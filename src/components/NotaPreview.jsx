@@ -24,10 +24,27 @@ export default function NotaPreview({
 
   useEffect(() => {
     if (qrCanvasRef.current) {
-      const qrData = `${transaction.noNota}|${transaction.custName || 'Pelanggan'}|${grandTotal}|${transaction.payStatus}`;
+      // Build compact human-readable QR content
+      const itemLines = items.map((item, i) => {
+        const total = calculateItemTotal(item);
+        const label = items.length > 1 ? `${i + 1}. ${item.name || 'Pekerjaan Cetak'}` : (item.name || 'Pekerjaan Cetak');
+        return `${label} | Qty:${item.qty} | ${formatRupiah(item.price)} | ${formatRupiah(total)}`;
+      }).join('\n');
+
+      const qrData = [
+        `Nota: ${transaction.noNota}`,
+        `Tgl : ${formatDateId(transaction.date)}`,
+        `------------------------------`,
+        itemLines,
+        `------------------------------`,
+        `Total : ${formatRupiah(grandTotal)}`,
+        `Status: ${transaction.payStatus}`,
+      ].join('\n');
+
       QRCode.toCanvas(qrCanvasRef.current, qrData, {
-        width: 65,
-        margin: 0,
+        width: 80,
+        margin: 1,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#ffffff'
@@ -36,7 +53,7 @@ export default function NotaPreview({
         if (error) console.error('QR code generation failed:', error);
       });
     }
-  }, [transaction.noNota, transaction.custName, grandTotal, transaction.payStatus]);
+  }, [transaction.noNota, transaction.date, transaction.payStatus, grandTotal, items]);
 
   const handlePrint = () => {
     window.print();
