@@ -189,7 +189,7 @@ export default function NotaPreview({
                   const itemTotal = calculateItemTotal(item);
                   const areaM2 = item.type === 'm2' ? (item.length / 100) * (item.width / 100) : 0;
 
-                  // Build list of specs for horizontal display
+                  // Build material / dimension specs
                   const specsParts = [];
                   if (item.type === 'm2') {
                     specsParts.push(`${item.length}×${item.width}cm (${areaM2.toFixed(2)}m²)`);
@@ -203,18 +203,19 @@ export default function NotaPreview({
                     specsParts.push(item.type.toUpperCase());
                   }
 
+                  // Finishing & Opsi Tambahan (Form Extras) - Italic separated by commas without quotes
+                  const extraDetails = [];
                   if (item.finishing) {
-                    specsParts.push(`Finishing: ${item.finishing}`);
+                    extraDetails.push(`Finishing: ${item.finishing}`);
                   }
-
                   (item.customDetails || []).forEach(d => {
                     if (d.key && d.value) {
-                      specsParts.push(`${d.key}: ${d.value}`);
+                      extraDetails.push(`${d.key}: ${d.value}`);
                     }
                   });
 
-                  const hasQuote = item.type === 'buku' && item.bookTitle;
-                  const hasDetails = hasQuote || specsParts.length > 0;
+                  const bookTitle = item.type === 'buku' && item.bookTitle ? item.bookTitle : '';
+                  const hasDetails = bookTitle || specsParts.length > 0 || extraDetails.length > 0;
 
                   return (
                     <React.Fragment key={idx}>
@@ -238,14 +239,19 @@ export default function NotaPreview({
                         <tr className="nota-item-detail-row">
                           <td colSpan="4">
                             <div className="nota-item-detail-box">
-                              {hasQuote && (
-                                <div className="nota-detail-quote">
-                                  &ldquo;{item.bookTitle}&rdquo;
+                              {bookTitle && (
+                                <div className="nota-detail-title" style={{ fontWeight: 600, color: '#334155', marginBottom: '0.15rem' }}>
+                                  {bookTitle}
                                 </div>
                               )}
                               {specsParts.length > 0 && (
                                 <div className="nota-detail-specs">
                                   {specsParts.join('  |  ')}
+                                </div>
+                              )}
+                              {extraDetails.length > 0 && (
+                                <div className="nota-detail-extras" style={{ fontStyle: 'italic', color: '#475569', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                                  {extraDetails.join(', ')}
                                 </div>
                               )}
                             </div>
