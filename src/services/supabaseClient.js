@@ -154,9 +154,15 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transaction_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_accounts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public stores access" ON public.stores FOR ALL USING (true);
-CREATE POLICY "Public catalog access" ON public.catalog_presets FOR ALL USING (true);
-CREATE POLICY "Public transactions access" ON public.transactions FOR ALL USING (true);
-CREATE POLICY "Public transaction_items access" ON public.transaction_items FOR ALL USING (true);
-CREATE POLICY "Public user_accounts access" ON public.user_accounts FOR ALL USING (true);
+DROP POLICY IF EXISTS "Public stores access" ON public.stores;
+DROP POLICY IF EXISTS "Public catalog access" ON public.catalog_presets;
+DROP POLICY IF EXISTS "Public transactions access" ON public.transactions;
+DROP POLICY IF EXISTS "Public transaction_items access" ON public.transaction_items;
+DROP POLICY IF EXISTS "Public user_accounts access" ON public.user_accounts;
+
+CREATE POLICY "Public stores access" ON public.stores FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public catalog access" ON public.catalog_presets FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public transactions access" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public transaction_items access" ON public.transaction_items FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public user_accounts access" ON public.user_accounts FOR ALL USING (true) WITH CHECK (true);
 `;
