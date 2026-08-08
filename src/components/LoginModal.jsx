@@ -15,8 +15,11 @@ export default function LoginModal({ onLoginSuccess }) {
 
     setTimeout(() => {
       const accounts = getStoredAccounts();
+      const inputUser = username.trim().toLowerCase();
+      const inputPass = password.trim();
+
       const matched = accounts.find(
-        acc => acc.username.trim().toLowerCase() === username.trim().toLowerCase() && acc.password === password
+        acc => acc.username.trim().toLowerCase() === inputUser && (acc.password === inputPass || acc.password === password)
       );
 
       if (matched) {

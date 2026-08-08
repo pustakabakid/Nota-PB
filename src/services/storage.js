@@ -20,7 +20,17 @@ export const getStoredAccounts = () => {
     const data = localStorage.getItem(KEYS.ACCOUNTS);
     if (!data) return defaultAccounts;
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultAccounts;
+    if (!Array.isArray(parsed) || parsed.length === 0) return defaultAccounts;
+
+    // Ensure default accounts always exist in stored array
+    const hasSuper = parsed.some(a => a.username.toLowerCase() === 'pustakabakid');
+    const hasKasir = parsed.some(a => a.username.toLowerCase() === 'kasir');
+
+    let merged = [...parsed];
+    if (!hasSuper) merged.push(defaultAccounts[0]);
+    if (!hasKasir) merged.push(defaultAccounts[1]);
+
+    return merged;
   } catch {
     return defaultAccounts;
   }
