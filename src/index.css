@@ -1015,6 +1015,41 @@ select.form-control {
   display: block;
 }
 
+/* Horizontal Multi-Row Item Details (Blueprint Layout) */
+.nota-item-main-row td {
+  padding: 0.55rem 0.25rem 0.15rem 0.25rem;
+  border-bottom: none !important;
+}
+
+.nota-item-detail-row td {
+  padding: 0 0.25rem 0.65rem 0.25rem;
+  border-bottom: 1px solid var(--figma-border);
+}
+
+.nota-item-detail-box {
+  background: rgba(25, 173, 131, 0.04);
+  border-left: 3px solid var(--primary);
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  margin-top: 0.15rem;
+}
+
+.nota-detail-quote {
+  font-style: italic;
+  font-size: 0.775rem;
+  color: #334155;
+  margin-bottom: 0.15rem;
+  line-height: 1.35;
+}
+
+.nota-detail-specs {
+  font-size: 0.75rem;
+  color: #475569;
+  font-weight: 500;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
 /* Totals Box View */
 .nota-totals-view {
   width: 100%;

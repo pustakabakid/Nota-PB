@@ -189,56 +189,70 @@ export default function NotaPreview({
                   const itemTotal = calculateItemTotal(item);
                   const areaM2 = item.type === 'm2' ? (item.length / 100) * (item.width / 100) : 0;
 
-                  // Build type/dimension sub-text
-                  let typeSub = '';
+                  // Build list of specs for horizontal display
+                  const specsParts = [];
                   if (item.type === 'm2') {
-                    typeSub = `${item.length}×${item.width}cm (${areaM2.toFixed(2)}m²)`;
+                    specsParts.push(`${item.length}×${item.width}cm (${areaM2.toFixed(2)}m²)`);
                   } else if (item.type === 'buku') {
-                    const bookParts = [];
-                    if (item.bookSize) bookParts.push(item.bookSize);
-                    if (item.bookPages) bookParts.push(`${item.bookPages} hlm`);
-                    if (item.bookPaperInner) bookParts.push(`Isi: ${item.bookPaperInner}`);
-                    if (item.bookCover) bookParts.push(`Cover: ${item.bookCover}`);
-                    if (item.bookBinding) bookParts.push(item.bookBinding);
-                    typeSub = bookParts.length > 0 ? bookParts.join(' | ') : 'BUKU';
+                    if (item.bookSize) specsParts.push(item.bookSize);
+                    if (item.bookPages) specsParts.push(`${item.bookPages} hlm`);
+                    if (item.bookPaperInner) specsParts.push(`Isi: ${item.bookPaperInner}`);
+                    if (item.bookCover) specsParts.push(`Cover: ${item.bookCover}`);
+                    if (item.bookBinding) specsParts.push(item.bookBinding);
                   } else {
-                    typeSub = item.type.toUpperCase();
+                    specsParts.push(item.type.toUpperCase());
                   }
 
-                  // Build custom details sub-text
-                  const customDetailParts = (item.customDetails || [])
-                    .filter(d => d.key && d.value)
-                    .map(d => `${d.key}: ${d.value}`);
+                  if (item.finishing) {
+                    specsParts.push(`Finishing: ${item.finishing}`);
+                  }
+
+                  (item.customDetails || []).forEach(d => {
+                    if (d.key && d.value) {
+                      specsParts.push(`${d.key}: ${d.value}`);
+                    }
+                  });
+
+                  const hasQuote = item.type === 'buku' && item.bookTitle;
+                  const hasDetails = hasQuote || specsParts.length > 0;
 
                   return (
-                    <tr key={idx}>
-                      <td>
-                        <strong className="nota-item-title">
-                          {items.length > 1 ? `${idx + 1}. ` : ''}{item.name || 'Pekerjaan Cetak'}
-                        </strong>
-                        {item.type === 'buku' && item.bookTitle && (
-                          <span className="nota-item-sub" style={{ fontStyle: 'italic' }}>
-                            &ldquo;{item.bookTitle}&rdquo;
-                          </span>
-                        )}
-                        <span className="nota-item-sub">{typeSub}</span>
-                        {item.finishing && (
-                          <span className="nota-item-sub">Finishing: {item.finishing}</span>
-                        )}
-                        {customDetailParts.length > 0 && (
-                          <span className="nota-item-sub">{customDetailParts.join(' | ')}</span>
-                        )}
-                      </td>
-                      <td className="text-right num-tabular" style={{ textAlign: 'center', color: '#646A6E' }}>
-                        {item.qty}
-                      </td>
-                      <td className="text-right num-tabular" style={{ color: '#1E2B33' }}>
-                        {formatRupiah(item.price)}
-                      </td>
-                      <td className="text-right num-tabular" style={{ color: '#1E2B33', fontWeight: 600 }}>
-                        {formatRupiah(itemTotal)}
-                      </td>
-                    </tr>
+                    <React.Fragment key={idx}>
+                      <tr className="nota-item-main-row">
+                        <td>
+                          <strong className="nota-item-title">
+                            {items.length > 1 ? `${idx + 1}. ` : ''}{item.name || 'Pekerjaan Cetak'}
+                          </strong>
+                        </td>
+                        <td className="text-right num-tabular" style={{ textAlign: 'center', color: '#646A6E' }}>
+                          {item.qty}
+                        </td>
+                        <td className="text-right num-tabular" style={{ color: '#1E2B33' }}>
+                          {formatRupiah(item.price)}
+                        </td>
+                        <td className="text-right num-tabular" style={{ color: '#1E2B33', fontWeight: 600 }}>
+                          {formatRupiah(itemTotal)}
+                        </td>
+                      </tr>
+                      {hasDetails && (
+                        <tr className="nota-item-detail-row">
+                          <td colSpan="4">
+                            <div className="nota-item-detail-box">
+                              {hasQuote && (
+                                <div className="nota-detail-quote">
+                                  &ldquo;{item.bookTitle}&rdquo;
+                                </div>
+                              )}
+                              {specsParts.length > 0 && (
+                                <div className="nota-detail-specs">
+                                  {specsParts.join('  |  ')}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
