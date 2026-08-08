@@ -837,11 +837,8 @@ select.form-control {
 .nota-canvas[data-paper="A4"] {
   width: 100%;
   max-width: 680px;
-  min-height: calc(680px * (297 / 210));
-  aspect-ratio: 210 / 297;
   font-size: 0.9rem;
   padding: 1.75rem 2rem;
-  box-sizing: border-box;
 }
 
 /* Thermal Printer Stack Layout */
@@ -2161,17 +2158,20 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   Full-Viewport Green-White Background & Proportional A4 Scaler
+   Full-Viewport Green-White Background & Non-Scrolling Proportional A4 Scaler
    ========================================================================== */
 .public-nota-page {
   min-height: 100vh;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   background: linear-gradient(180deg, rgba(25, 173, 131, 0.25) 0%, rgba(25, 173, 131, 0.05) 280px, var(--bg-app) 100%);
-  padding: 1.25rem 0.5rem 3rem 0.5rem;
+  padding: 0.75rem 0.5rem 4.5rem 0.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 [data-theme="dark"] .public-nota-page {
@@ -2180,43 +2180,50 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 
 .nota-a4-scaler {
   width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
-  aspect-ratio: 210 / 297;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   box-sizing: border-box;
 }
 
-@media (max-width: 680px) {
+/* Sticky Fixed Bottom Footer Action Toolbar */
+.quick-action-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-color);
+  padding: 0.65rem 1rem;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+.quick-action-toolbar-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 680px;
+}
+
+@media (max-width: 768px) {
+  .nota-a4-scaler {
+    transform-origin: center center;
+    transform: scale(min(calc((100vw - 16px) / 680), calc((100vh - 90px) / 840)));
+  }
+
   .nota-canvas[data-paper="A4"],
   .nota-canvas[data-paper="A5"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    aspect-ratio: 210 / 297 !important;
-    min-height: calc((100vw - 16px) * (297 / 210)) !important;
-    padding: 1.25rem 0.85rem !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Proportional font and component scaling on small phone viewports */
-  .nota-canvas[data-paper="A4"] .nota-header-view h3,
-  .nota-canvas[data-paper="A4"] .nota-item-title {
-    font-size: 0.85rem !important;
-  }
-
-  .nota-canvas[data-paper="A4"] .nota-meta-section-title {
-    font-size: 0.68rem !important;
-  }
-
-  .nota-canvas[data-paper="A4"] .nota-table {
-    font-size: 0.75rem !important;
-  }
-
-  .nota-canvas[data-paper="A4"] .nota-totals-view {
-    width: 100% !important;
-    font-size: 0.8rem !important;
+    width: 680px !important;
+    min-width: 680px !important;
+    max-width: 680px !important;
   }
 }
 

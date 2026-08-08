@@ -302,9 +302,9 @@ export default function NotaPreview({
             </CustomTooltip>
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: '680px', marginTop: '1rem' }}>
-            {/* Quick Action Toolbar */}
-            <div className="quick-action-toolbar" style={{ marginTop: 0 }}>
+          /* Fixed Sticky Bottom Action Footer */
+          <div className="quick-action-toolbar">
+            <div className="quick-action-toolbar-inner">
               <CustomTooltip text="Cetak Langsung Ke Printer">
                 <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={handlePrint}>
                   <i className="ri-printer-line"></i> Cetak
