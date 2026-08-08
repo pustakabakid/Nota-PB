@@ -829,16 +829,27 @@ select.form-control {
 }
 
 .nota-canvas[data-paper="A5"] {
-  width: 540px;
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 148 / 210;
   font-size: 0.875rem;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .nota-canvas[data-paper="A4"] {
   width: 100%;
   max-width: 680px;
+  aspect-ratio: 210 / 297;
   font-size: 0.9rem;
   padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
 }
 
 /* Thermal Printer Stack Layout */
@@ -2216,14 +2227,21 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 @media (max-width: 768px) {
   .nota-a4-scaler {
     transform-origin: center center;
-    transform: scale(min(calc((100vw - 16px) / 680), calc((100vh - 90px) / 840)));
+    transform: scale(min(calc((100vw - 16px) / 680), calc((100vh - 90px) / 961)));
   }
 
-  .nota-canvas[data-paper="A4"],
-  .nota-canvas[data-paper="A5"] {
+  .nota-canvas[data-paper="A4"] {
     width: 680px !important;
     min-width: 680px !important;
     max-width: 680px !important;
+    aspect-ratio: 210 / 297 !important;
+  }
+
+  .nota-canvas[data-paper="A5"] {
+    width: 540px !important;
+    min-width: 540px !important;
+    max-width: 540px !important;
+    aspect-ratio: 148 / 210 !important;
   }
 }
 
