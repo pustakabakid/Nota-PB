@@ -137,14 +137,26 @@ CREATE TABLE IF NOT EXISTS public.transaction_items (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 5. Table User Accounts / Akun Pengguna & Hak Akses
+CREATE TABLE IF NOT EXISTS public.user_accounts (
+  id TEXT PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'admin',
+  name TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable RLS (Row Level Security) with public access policy (for single/multi-store access)
 ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalog_presets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transaction_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_accounts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public stores access" ON public.stores FOR ALL USING (true);
 CREATE POLICY "Public catalog access" ON public.catalog_presets FOR ALL USING (true);
 CREATE POLICY "Public transactions access" ON public.transactions FOR ALL USING (true);
 CREATE POLICY "Public transaction_items access" ON public.transaction_items FOR ALL USING (true);
+CREATE POLICY "Public user_accounts access" ON public.user_accounts FOR ALL USING (true);
 `;

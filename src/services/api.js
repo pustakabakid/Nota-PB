@@ -9,7 +9,9 @@ import {
   getStoredCatalog,
   saveStoredCatalog,
   getStoredHistory,
-  saveStoredHistory
+  saveStoredHistory,
+  getStoredAccounts,
+  saveStoredAccounts
 } from './storage';
 
 // --------------------------------------------------------------------------
@@ -274,3 +276,77 @@ export const deleteTransactionApi = async (id, currentHistory) => {
 
   return updatedHistory;
 };
+
+// --------------------------------------------------------------------------
+// USER ACCOUNTS API (SUPABASE CLOUD SYNC)
+// --------------------------------------------------------------------------
+export const fetchAccountsApi = async () => {
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('user_accounts')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const accounts = data.map(u => ({
+          id: u.id,
+          username: u.username,
+          password: u.password,
+          role: u.role || 'admin',
+          name: u.name || u.username
+        }));
+        saveStoredAccounts(accounts);
+        return accounts;
+      }
+    } catch (err) {
+      console.warn('Cloud user_accounts fetch failed, using local backup:', err);
+    }
+  }
+  return getStoredAccounts();
+};
+
+export const saveAccountApi = async (account, currentAccounts) => {
+  const exists = currentAccounts.some(a => a.id === account.id);
+  const updatedAccounts = exists
+    ? currentAccounts.map(a => a.id === account.id ? account : a)
+    : [...currentAccounts, account];
+
+  saveStoredAccounts(updatedAccounts);
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('user_accounts').upsert({
+        id: String(account.id),
+        username: account.username,
+        password: account.password,
+        role: account.role,
+        name: account.name || account.username,
+        updated_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Failed to sync user_account to cloud:', err);
+    }
+  }
+
+  return updatedAccounts;
+};
+
+export const deleteAccountApi = async (id, currentAccounts) => {
+  const updatedAccounts = currentAccounts.filter(a => a.id !== id);
+  saveStoredAccounts(updatedAccounts);
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('user_accounts').delete().eq('id', String(id));
+    } catch (err) {
+      console.error('Failed to delete user_account from cloud:', err);
+    }
+  }
+
+  return updatedAccounts;
+};
+

@@ -14,7 +14,10 @@ import {
   deleteCatalogPresetApi,
   fetchHistoryApi,
   saveTransactionApi,
-  deleteTransactionApi
+  deleteTransactionApi,
+  fetchAccountsApi,
+  saveAccountApi,
+  deleteAccountApi
 } from './services/api';
 import { isSupabaseConnected } from './services/supabaseClient';
 import { generateReceiptNumber, calculateItemTotal, getStoredAccounts, saveStoredAccounts } from './services/storage';
@@ -136,6 +139,9 @@ export default function App() {
 
     const cat = await fetchCatalogApi();
     if (cat) setCatalog(cat);
+
+    const accs = await fetchAccountsApi();
+    if (accs) setAccounts(accs);
 
     const hist = await fetchHistoryApi();
     if (hist) {
@@ -390,13 +396,9 @@ export default function App() {
   };
 
   // Account Management Handlers
-  const handleSaveAccount = (accData) => {
-    const exists = accounts.some(a => a.id === accData.id);
-    const updated = exists
-      ? accounts.map(a => a.id === accData.id ? accData : a)
-      : [...accounts, accData];
+  const handleSaveAccount = async (accData) => {
+    const updated = await saveAccountApi(accData, accounts);
     setAccounts(updated);
-    saveStoredAccounts(updated);
     showToast(`Akun "${accData.username}" berhasil disimpan!`, 'success');
   };
 
@@ -412,10 +414,9 @@ export default function App() {
       title: 'Hapus Akun',
       message: `Hapus akun "${target.username}" dari sistem?`,
       variant: 'danger',
-      onConfirm: () => {
-        const updated = accounts.filter(a => a.id !== id);
+      onConfirm: async () => {
+        const updated = await deleteAccountApi(id, accounts);
         setAccounts(updated);
-        saveStoredAccounts(updated);
         closeConfirmModal();
         showToast(`Akun "${target.username}" telah dihapus.`, 'info');
       }
