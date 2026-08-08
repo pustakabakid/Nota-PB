@@ -2241,22 +2241,6 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   box-sizing: border-box;
 }
 
-.quick-action-toolbar .btn {
-  background: #90D3C7 !important;
-  color: #0E5A44 !important;
-  border: none !important;
-  border-radius: 6px !important;
-  font-weight: 600 !important;
-  padding: 0.65rem 0.5rem !important;
-  box-shadow: none !important;
-  transition: all 0.2s ease !important;
-}
-
-.quick-action-toolbar .btn:hover {
-  background: #7ECA7B !important;
-  transform: translateY(-1px);
-}
-
 /* Responsive adjustments across mobile (375px), tablet (768px), and desktop (1280px) */
 @media (max-width: 640px) {
   .public-nota-page,
