@@ -33,12 +33,9 @@ export default function PublicNotaView({
           <h3 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1.25rem', color: 'var(--text-color)' }}>
             Nota Digital Tidak Ditemukan
           </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
             Nomor nota yang Anda tuju tidak terdaftar atau telah dihapus dari sistem database.
           </p>
-          <button type="button" className="btn btn-primary" onClick={onBackToApp}>
-            <i className="ri-home-4-line"></i> Buka Aplikasi Utama
-          </button>
         </div>
       </div>
     );

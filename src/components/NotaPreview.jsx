@@ -270,12 +270,12 @@ export default function NotaPreview({
                 <span>Sub Total</span>
                 <span className="num-tabular">{formatRupiah(subtotal)}</span>
               </div>
-              <div className="nota-total-row">
-                <span>Diskon</span>
-                <span className="num-tabular">
-                  {transaction.discount > 0 ? `- ${formatRupiah(transaction.discount)}` : 'Rp. -0'}
-                </span>
-              </div>
+              {transaction.discount > 0 && (
+                <div className="nota-total-row">
+                  <span>Diskon</span>
+                  <span className="num-tabular">- {formatRupiah(transaction.discount)}</span>
+                </div>
+              )}
               <div className="nota-total-row grand-total">
                 <span>Total Harga</span>
                 <span className="num-tabular">{formatRupiah(grandTotal)}</span>
