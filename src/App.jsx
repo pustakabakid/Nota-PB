@@ -6,7 +6,6 @@ import NotaPreview from './components/NotaPreview';
 import DashboardPage from './components/DashboardPage';
 import PublicNotaView from './components/PublicNotaView';
 import LoginModal from './components/LoginModal';
-import AccountManagementModal from './components/AccountManagementModal';
 import {
   fetchStoreProfileApi,
   saveStoreProfileApi,
@@ -46,7 +45,6 @@ export default function App() {
     }
   });
   const [accounts, setAccounts] = useState(getStoredAccounts);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [storeProfile, setStoreProfile] = useState({
     name: 'NAMA TOKO PERCETAKAN',
     subtitle: '',
@@ -466,16 +464,6 @@ export default function App() {
         onCancel={closeConfirmModal}
       />
 
-      {isAccountModalOpen && (
-        <AccountManagementModal
-          accounts={accounts}
-          onSaveAccount={handleSaveAccount}
-          onDeleteAccount={handleDeleteAccount}
-          onClose={() => setIsAccountModalOpen(false)}
-          onShowToast={showToast}
-        />
-      )}
-
       <Header
         storeProfile={storeProfile}
         currentPage={activePage}
@@ -544,7 +532,9 @@ export default function App() {
           onReloadData={loadAllData}
           onShowToast={showToast}
           onNavigate={setCurrentPage}
-          onOpenAccounts={() => setIsAccountModalOpen(true)}
+          accounts={accounts}
+          onSaveAccount={handleSaveAccount}
+          onDeleteAccount={handleDeleteAccount}
         />
       )}
     </div>

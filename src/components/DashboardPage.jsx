@@ -64,9 +64,63 @@ export default function DashboardPage({
   onShowToast,
   // Page Navigation
   onNavigate,
-  onOpenAccounts
+  // Accounts props
+  accounts = [],
+  onSaveAccount,
+  onDeleteAccount
 }) {
   const [activeTab, setActiveTab] = useState('history');
+
+  // Account Management state
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [accountForm, setAccountForm] = useState({
+    username: '',
+    password: '',
+    role: 'admin',
+    name: ''
+  });
+
+  const ROLE_OPTIONS = [
+    { value: 'admin', label: 'Admin / Operator Kasir (Hanya Cetak Nota)' },
+    { value: 'superadmin', label: 'Superadmin (Akses Bebas Tanpa Batas)' }
+  ];
+
+  const superAdminCount = accounts.filter(a => a.role === 'superadmin').length;
+  const adminCount = accounts.filter(a => a.role === 'admin').length;
+
+  const handleOpenAddAccount = () => {
+    setAccountForm({ username: '', password: '', role: 'admin', name: '' });
+    setEditingAccount({ isNew: true });
+  };
+
+  const handleOpenEditAccount = (acc) => {
+    setAccountForm({ username: acc.username, password: acc.password, role: acc.role || 'admin', name: acc.name || '' });
+    setEditingAccount(acc);
+  };
+
+  const handleAccountSubmit = (e) => {
+    e.preventDefault();
+    if (!accountForm.username.trim() || !accountForm.password.trim()) {
+      if (onShowToast) onShowToast('Username dan Password wajib diisi!', 'danger');
+      return;
+    }
+    const payload = {
+      id: editingAccount.isNew ? `usr-${Date.now()}` : editingAccount.id,
+      username: accountForm.username.trim(),
+      password: accountForm.password.trim(),
+      role: accountForm.role,
+      name: accountForm.name.trim() || (accountForm.role === 'superadmin' ? 'Super Admin' : 'Operator Kasir')
+    };
+    if (onSaveAccount) onSaveAccount(payload);
+    setEditingAccount(null);
+  };
+
+  const getAvatarInitials = (name, username) => {
+    const text = (name || username || 'US').trim();
+    const parts = text.split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return text.slice(0, 2).toUpperCase();
+  };
 
   // Search & Filter state for History
   const [historySearch, setHistorySearch] = useState('');
@@ -409,15 +463,12 @@ export default function DashboardPage({
             <i className={isConnected ? "ri-cloud-fill" : "ri-cloud-line"} style={{ color: isConnected ? 'var(--primary)' : 'inherit' }}></i> 
             Koneksi Cloud DB {isConnected && <span className="tab-badge-online">Active</span>}
           </button>
-          {onOpenAccounts && (
-            <button
-              className="dashboard-tab"
-              onClick={onOpenAccounts}
-              style={{ color: 'var(--primary)', fontWeight: 600 }}
-            >
-              <i className="ri-user-settings-line"></i> Manajemen Akun
-            </button>
-          )}
+          <button
+            className={`dashboard-tab ${activeTab === 'accounts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('accounts')}
+          >
+            <i className="ri-user-settings-line"></i> Manajemen Akun ({accounts.length})
+          </button>
         </div>
 
         {/* ================================================================== */}
@@ -1045,6 +1096,217 @@ export default function DashboardPage({
               <button type="button" className="btn btn-primary" onClick={handleSaveCloudConfig}>
                 <i className="ri-save-line"></i> Simpan Koneksi DB
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 5: MANAJEMEN AKUN PENGGUNA */}
+        {/* ================================================================== */}
+        {activeTab === 'accounts' && (
+          <div>
+            {/* Toolbar Summary & Action Bar */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              marginBottom: '1.25rem',
+              background: 'var(--bg-surface-solid)',
+              padding: '0.75rem 1rem',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span><strong style={{ color: 'var(--text-color)' }}>{accounts.length}</strong> Total Akun</span>
+                <span>•</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{superAdminCount} Superadmin</span>
+                <span>•</span>
+                <span style={{ color: 'var(--text-color)', fontWeight: 500 }}>{adminCount} Admin Kasir</span>
+              </div>
+
+              {!editingAccount && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  style={{ fontSize: '0.825rem', padding: '0.4rem 0.85rem' }}
+                  onClick={handleOpenAddAccount}
+                >
+                  <i className="ri-user-add-line"></i> Tambah Akun Kasir Baru
+                </button>
+              )}
+            </div>
+
+            {/* Inline Add / Edit Form Box */}
+            {editingAccount && (
+              <form onSubmit={handleAccountSubmit} style={{
+                background: 'var(--bg-surface-solid)',
+                padding: '1.25rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--primary)',
+                marginBottom: '1.5rem',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <i className={editingAccount.isNew ? "ri-user-add-line" : "ri-edit-line"} style={{ color: 'var(--primary)' }}></i>
+                    {editingAccount.isNew ? 'Tambah Akun Pengguna Baru' : `Edit Akun: ${editingAccount.username}`}
+                  </h4>
+                  <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => setEditingAccount(null)}>
+                    Batal
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Nama Lengkap / Label</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Contoh: Kasir Shift Pagi"
+                      value={accountForm.name}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Role / Hak Akses</label>
+                    <CustomSelect
+                      options={ROLE_OPTIONS}
+                      value={accountForm.role}
+                      onChange={(val) => setAccountForm(prev => ({ ...prev, role: val }))}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Username Login</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Username"
+                      value={accountForm.username}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, username: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Password Login</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Password"
+                      value={accountForm.password}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, password: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingAccount(null)}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    <i className="ri-save-line"></i> Simpan Akun
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Clean Accounts Table */}
+            <div className="dense-table-container">
+              <table className="dense-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ paddingLeft: '1rem' }}>Pengguna</th>
+                    <th>Username</th>
+                    <th>Role Hak Akses</th>
+                    <th style={{ width: '90px', textAlign: 'center' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accounts.map(acc => {
+                    const isSuper = acc.role === 'superadmin';
+                    const initials = getAvatarInitials(acc.name, acc.username);
+
+                    return (
+                      <tr key={acc.id}>
+                        <td style={{ paddingLeft: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              background: isSuper ? 'rgba(27, 189, 143, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                              color: isSuper ? 'var(--primary)' : '#3b82f6',
+                              fontWeight: 700,
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              {initials}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: 'var(--text-color)', fontSize: '0.875rem', lineHeight: '1.2' }}>
+                                {acc.name || acc.username}
+                              </div>
+                              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {isSuper ? 'Akses Bebas Aplikasi' : 'Akses Hanya Cetak Nota'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.825rem',
+                            background: 'var(--bg-surface-solid)',
+                            border: '1px solid var(--border-color)',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontWeight: 600,
+                            color: 'var(--text-color)'
+                          }}>
+                            {acc.username}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-pill ${isSuper ? 'status-lunas' : 'status-proses'}`}>
+                            <i className={isSuper ? 'ri-shield-keyhole-line' : 'ri-user-3-line'}></i>
+                            {isSuper ? 'Superadmin' : 'Admin Kasir'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                            <CustomTooltip text="Edit Akun & Password">
+                              <button type="button" className="btn-table-action" onClick={() => handleOpenEditAccount(acc)}>
+                                <i className="ri-edit-line"></i>
+                              </button>
+                            </CustomTooltip>
+                            {acc.username !== 'pustakabakid' ? (
+                              <CustomTooltip text="Hapus Akun">
+                                <button type="button" className="btn-table-action btn-table-delete" onClick={() => onDeleteAccount && onDeleteAccount(acc.id)}>
+                                  <i className="ri-delete-bin-line"></i>
+                                </button>
+                              </CustomTooltip>
+                            ) : (
+                              <CustomTooltip text="Akun Utama Tidak Dapat Dihapus">
+                                <button type="button" className="btn-table-action" disabled style={{ opacity: 0.3, cursor: 'not-allowed' }}>
+                                  <i className="ri-lock-line"></i>
+                                </button>
+                              </CustomTooltip>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
