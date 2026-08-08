@@ -165,9 +165,9 @@ export default function NotaPreview({
                   )}
                   <div>
                     Status Pembayaran: {' '}
-                    <span style={{ color: transaction.payStatus === 'Lunas' ? '#1BBD8F' : (transaction.payStatus === 'DP' ? '#b45309' : '#b91c1c'), fontWeight: 600 }}>
+                    <u style={{ color: transaction.payStatus === 'Lunas' ? '#1BBD8F' : (transaction.payStatus === 'DP' ? '#b45309' : '#b91c1c'), fontWeight: 700 }}>
                       {transaction.payStatus === 'Lunas' ? 'LUNAS' : transaction.payStatus.toUpperCase()}
-                    </span>
+                    </u>
                   </div>
                   <div>Pengambilan: {transaction.pickupMethod || 'Ditunggu'}</div>
                 </div>

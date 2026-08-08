@@ -2204,7 +2204,7 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   box-sizing: border-box;
 }
 
-/* Floating centered A4 paper canvas */
+/* Floating centered A4 paper canvas (Matching RYO Digital Printing layout architecture) */
 .nota-canvas[data-paper="A4"] {
   position: relative;
   z-index: 2;
@@ -2214,8 +2214,8 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   background: #FFFFFF;
   color: #111827;
   padding: 2.5rem 2.5rem 2rem 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.07), 0 4px 8px rgba(0,0,0,0.07), 0 8px 16px rgba(0,0,0,0.07), 0 16px 32px rgba(0,0,0,0.07), 0 32px 64px rgba(0,0,0,0.07);
   border: none;
   margin: 0 auto;
   box-sizing: border-box;
