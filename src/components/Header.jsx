@@ -52,15 +52,6 @@ export default function Header({ storeProfile, currentPage, onNavigate, isCloudC
             >
               <i className="ri-dashboard-3-line"></i>
               <span>Dashboard</span>
-              <span style={{
-                fontSize: '0.65rem',
-                padding: '0.1rem 0.35rem',
-                borderRadius: '10px',
-                background: isCloudConnected ? 'rgba(27, 189, 143, 0.25)' : 'rgba(0,0,0,0.12)',
-                marginLeft: '0.15rem'
-              }}>
-                {isCloudConnected ? '☁️ Cloud' : '💾 Lokal'}
-              </span>
             </button>
           )}
         </div>
