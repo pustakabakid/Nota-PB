@@ -86,11 +86,13 @@ export default function PublicNotaView({
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-surface-solid)',
-      padding: '1.5rem 1rem 3rem 1rem'
+      width: '100%',
+      background: 'var(--bg-app)',
+      padding: '1.25rem 0.5rem 3rem 0.5rem',
+      boxSizing: 'border-box'
     }}>
       {/* Render Public Nota HTML Canvas with Quick Action Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NotaPreview
           storeProfile={storeProfile}
           transaction={transaction}

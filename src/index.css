@@ -2157,4 +2157,45 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   }
 }
 
+/* ==========================================================================
+   Full-Viewport Background & Mobile A4 Canvas Scaling
+   ========================================================================== */
+.nota-preview-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 4px;
+}
+
+@media (max-width: 640px) {
+  .nota-canvas[data-paper="A4"],
+  .nota-canvas[data-paper="A5"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1.25rem 0.85rem !important;
+    box-sizing: border-box !important;
+    font-size: 0.825rem !important;
+  }
+
+  .nota-header-view {
+    gap: 0.5rem;
+  }
+
+  .nota-meta-grid {
+    gap: 0.5rem;
+  }
+
+  .nota-table {
+    font-size: 0.775rem !important;
+  }
+
+  .nota-totals-view {
+    width: 100% !important;
+  }
+}
+
 
