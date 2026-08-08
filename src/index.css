@@ -1890,7 +1890,7 @@ select.form-control {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm;
+    margin: 10mm 8mm;
   }
 
   html, body {
@@ -1900,6 +1900,7 @@ select.form-control {
     padding: 0 !important;
   }
 
+  /* Hide UI chrome — specific classes only, NOT global button selector */
   .public-nota-page::before,
   .nota-preview-page-container::before,
   .paper-selector-bar,
@@ -1909,36 +1910,55 @@ select.form-control {
   .form-container,
   .history-container,
   .toast-container,
-  .btn,
-  button {
+  .custom-tooltip-wrapper,
+  .custom-tooltip-bubble {
     display: none !important;
   }
 
+  /* Hide 4 action buttons by their wrapper only */
+  .quick-action-toolbar { display: none !important; }
+
+  /* Reset page wrappers */
   .public-nota-page,
   .nota-preview-page-container {
+    display: block !important;
     background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     min-height: auto !important;
+    overflow: visible !important;
   }
 
+  section,
+  .preview-sticky-wrapper,
   .nota-a4-scaler {
+    display: block !important;
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    width: 100% !important;
+    position: static !important;
+    z-index: auto !important;
   }
 
+  /* Reset nota-canvas for A4 print — override vw-based sizing */
   .nota-canvas[data-paper="A4"],
   .nota-canvas {
     box-shadow: none !important;
     border: none !important;
-    padding: 1.5rem !important;
+    border-radius: 0 !important;
+    padding: 1rem 1.5rem !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
     background: #ffffff !important;
     color: #000000 !important;
-    margin: 0 auto !important;
-    page-break-inside: avoid;
+    margin: 0 !important;
+    position: static !important;
+    z-index: auto !important;
+    font-size: 0.85rem !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .nota-table th {
@@ -1956,6 +1976,12 @@ select.form-control {
     border-left: 3px solid #19AD83 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* Hide paper selector buttons (by parent class) but NOT other button elements */
+  .paper-selector-bar button,
+  .quick-action-toolbar button {
+    display: none !important;
   }
 }
 
