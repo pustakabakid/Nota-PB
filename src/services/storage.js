@@ -131,7 +131,7 @@ export const generateNotaText = (storeProfile, transaction, items, grandTotal, s
   const totalSisa = sisa > 0 ? sisa : 0;
 
   let text = `*BUKTI PEMBAYARAN*\n\n`;
-  if (storeProfile?.name) text += `${storeProfile.name}\n`;
+  if (storeProfile?.name) text += `*${storeProfile.name}*\n`;
   if (storeProfile?.address) text += `${storeProfile.address}\n`;
   text += `\n`;
 
@@ -144,11 +144,7 @@ export const generateNotaText = (storeProfile, transaction, items, grandTotal, s
   text += `Status: *${(transaction.payStatus || 'LUNAS').toUpperCase()}*\n\n`;
 
   text += `Detail nota: ${publicUrl}\n\n`;
-  if (storeProfile?.footerMsg) {
-    text += `${storeProfile.footerMsg}`;
-  } else {
-    text += `Bila ada pertanyaan, silakan hubungi CS kami.\n*Terima Kasih*`;
-  }
+  text += `${storeProfile?.footerMsg || 'Terima kasih. Cetakan tidak dapat dibatalkan.'}`;
 
   return text;
 };
