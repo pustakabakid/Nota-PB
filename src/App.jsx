@@ -32,11 +32,14 @@ export default function App() {
   });
   const [publicRecord, setPublicRecord] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('nota_kasir_authenticated') === 'true';
+    // Clear old localStorage keys to enforce tab-based session
+    localStorage.removeItem('nota_kasir_authenticated');
+    localStorage.removeItem('nota_kasir_user');
+    return sessionStorage.getItem('nota_kasir_authenticated') === 'true';
   });
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('nota_kasir_user');
+      const stored = sessionStorage.getItem('nota_kasir_user');
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -363,8 +366,8 @@ export default function App() {
 
   // Authentication Handlers
   const handleLoginSuccess = (userAcc) => {
-    localStorage.setItem('nota_kasir_authenticated', 'true');
-    localStorage.setItem('nota_kasir_user', JSON.stringify(userAcc));
+    sessionStorage.setItem('nota_kasir_authenticated', 'true');
+    sessionStorage.setItem('nota_kasir_user', JSON.stringify(userAcc));
     setIsAuthenticated(true);
     setCurrentUser(userAcc);
     showToast(`Berhasil masuk sebagai ${userAcc.role === 'superadmin' ? 'Superadmin' : 'Admin Kasir'} (${userAcc.username})!`, 'success');
@@ -377,8 +380,8 @@ export default function App() {
       message: 'Keluar dari sesi kasir? Anda harus memasukkan password kembali untuk mengakses aplikasi.',
       variant: 'danger',
       onConfirm: () => {
-        localStorage.removeItem('nota_kasir_authenticated');
-        localStorage.removeItem('nota_kasir_user');
+        sessionStorage.removeItem('nota_kasir_authenticated');
+        sessionStorage.removeItem('nota_kasir_user');
         setIsAuthenticated(false);
         setCurrentUser(null);
         setCurrentPage('editor');
