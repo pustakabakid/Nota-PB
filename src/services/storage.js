@@ -127,43 +127,28 @@ export const formatDateId = (dateStr) => {
 export const generateNotaText = (storeProfile, transaction, items, grandTotal, sisa) => {
   const publicUrl = window.location.origin + window.location.pathname + '?nota=' + encodeURIComponent(transaction.noNota);
 
-  let text = `*E-NOTA REGISTRASI PERCETAKAN*\n`;
-  text += `*${storeProfile?.name || 'PERCETAKAN'}*\n`;
-  text += `--------------------------------------\n`;
-  text += `No. Nota: ${transaction.noNota}\n`;
-  text += `Pelanggan: ${transaction.custName || 'Pelanggan Umum'}\n`;
-  text += `Tanggal: ${formatDateId(transaction.date)}\n\n`;
-  text += `*RINCIAN PESANAN:*\n`;
+  const totalBayar = transaction.payStatus === 'Lunas' ? grandTotal : (transaction.dp || 0);
+  const totalSisa = sisa > 0 ? sisa : 0;
 
-  items.forEach((i, idx) => {
-    const itemTotal = calculateItemTotal(i);
-    text += `${idx + 1}. ${i.name || 'Pekerjaan Cetak'} `;
-    if (i.type === 'm2') {
-      text += `(${i.length || 0}x${i.width || 0}cm) x ${i.qty || 1} = ${formatRupiah(itemTotal)}\n`;
-    } else if (i.type === 'buku') {
-      text += `x ${i.qty || 1} Eksemplar = ${formatRupiah(itemTotal)}\n`;
-      const bookDetail = formatBookDetailText(i);
-      if (bookDetail) text += `   ${bookDetail}\n`;
-    } else {
-      text += `x ${i.qty || 1} ${(i.type || 'PCS').toUpperCase()} = ${formatRupiah(itemTotal)}\n`;
-    }
-    if (i.finishing) text += `   Finishing: ${i.finishing}\n`;
-    const customDet = formatCustomDetailsText(i);
-    if (customDet) text += `   ${customDet}\n`;
-  });
+  let text = `*BUKTI PEMBAYARAN*\n\n`;
+  if (storeProfile?.name) text += `${storeProfile.name}\n`;
+  if (storeProfile?.address) text += `${storeProfile.address}\n`;
+  text += `\n`;
 
-  text += `--------------------------------------\n`;
-  text += `*TOTAL: ${formatRupiah(grandTotal)}*\n`;
-  if (sisa > 0) {
-    text += `Uang Muka (DP): ${formatRupiah((transaction.dp || 0))}\n`;
-    text += `*SISA TAGIHAN: ${formatRupiah(sisa)}*\n`;
+  text += `Nama: *${transaction.custName || 'Pelanggan'}*\n`;
+  text += `Waktu: *${formatDateId(transaction.date)}*\n\n`;
+
+  text += `Total: *${formatRupiah(grandTotal)}*\n`;
+  text += `Bayar: *${formatRupiah(totalBayar)}*\n`;
+  text += `Kembali: *${formatRupiah(totalSisa)}*\n`;
+  text += `Status: *${(transaction.payStatus || 'LUNAS').toUpperCase()}*\n\n`;
+
+  text += `Detail nota: ${publicUrl}\n\n`;
+  if (storeProfile?.footerMsg) {
+    text += `${storeProfile.footerMsg}`;
   } else {
-    text += `Status: *LUNAS*\n`;
+    text += `Bila ada pertanyaan, silakan hubungi CS kami.\n*Terima Kasih*`;
   }
-  text += `--------------------------------------\n`;
-  text += `📄 *Tautan Nota Digital (HTML):*\n`;
-  text += `${publicUrl}\n\n`;
-  if (storeProfile?.footerMsg) text += `${storeProfile.footerMsg}\n`;
 
   return text;
 };
