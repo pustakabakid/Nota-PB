@@ -1,7 +1,7 @@
 import React from 'react';
 import CustomTooltip from './ui/CustomTooltip';
 
-export default function Header({ storeProfile, currentPage, onNavigate, isCloudConnected, theme, onToggleTheme }) {
+export default function Header({ storeProfile, currentPage, onNavigate, isCloudConnected, theme, onToggleTheme, onLogout }) {
   return (
     <header className="app-header">
       <div className="brand-container">
@@ -46,6 +46,14 @@ export default function Header({ storeProfile, currentPage, onNavigate, isCloudC
             <i className={theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'}></i>
           </button>
         </CustomTooltip>
+
+        {onLogout && (
+          <CustomTooltip text="Keluar dari Sesi Kasir">
+            <button className="btn btn-secondary btn-sm btn-icon-only" onClick={onLogout} style={{ color: 'var(--danger)' }}>
+              <i className="ri-logout-box-r-line"></i>
+            </button>
+          </CustomTooltip>
+        )}
       </div>
     </header>
   );

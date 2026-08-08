@@ -5,6 +5,7 @@ import ItemCalculator from './components/ItemCalculator';
 import NotaPreview from './components/NotaPreview';
 import DashboardPage from './components/DashboardPage';
 import PublicNotaView from './components/PublicNotaView';
+import LoginModal from './components/LoginModal';
 import {
   fetchStoreProfileApi,
   saveStoreProfileApi,
@@ -29,6 +30,9 @@ export default function App() {
     return params.get('nota') || null;
   });
   const [publicRecord, setPublicRecord] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('nota_kasir_authenticated') === 'true';
+  });
   const [storeProfile, setStoreProfile] = useState({
     name: 'NAMA TOKO PERCETAKAN',
     subtitle: '',
@@ -346,6 +350,28 @@ export default function App() {
     showToast('Data backup JSON berhasil diunduh!', 'success');
   };
 
+  // Authentication Handlers
+  const handleLoginSuccess = () => {
+    localStorage.setItem('nota_kasir_authenticated', 'true');
+    setIsAuthenticated(true);
+    showToast('Berhasil masuk sebagai Operator Kasir!', 'success');
+  };
+
+  const handleLogout = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Keluar Sesi Kasir',
+      message: 'Keluar dari sesi kasir? Anda harus memasukkan password kembali untuk mengakses aplikasi.',
+      variant: 'danger',
+      onConfirm: () => {
+        localStorage.removeItem('nota_kasir_authenticated');
+        setIsAuthenticated(false);
+        closeConfirmModal();
+        showToast('Sesi kasir telah dikunci.', 'info');
+      }
+    });
+  };
+
   if (publicNotaNo) {
     return (
       <div>
@@ -359,6 +385,15 @@ export default function App() {
             setPublicRecord(null);
           }}
         />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div>
+        <Toast toasts={toasts} onDismiss={handleDismissToast} />
+        <LoginModal onLoginSuccess={handleLoginSuccess} />
       </div>
     );
   }
@@ -383,6 +418,7 @@ export default function App() {
         isCloudConnected={isCloudConnected}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        onLogout={handleLogout}
       />
 
       {currentPage === 'editor' ? (
