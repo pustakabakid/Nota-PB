@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getStoredAccounts } from '../services/storage';
 
 export default function LoginModal({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
@@ -13,8 +14,13 @@ export default function LoginModal({ onLoginSuccess }) {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (username.trim() === 'pustakabakid' && password === 'pbmu48') {
-        onLoginSuccess();
+      const accounts = getStoredAccounts();
+      const matched = accounts.find(
+        acc => acc.username.trim().toLowerCase() === username.trim().toLowerCase() && acc.password === password
+      );
+
+      if (matched) {
+        onLoginSuccess(matched);
       } else {
         setErrorMsg('Username atau Password yang Anda masukkan salah!');
         setIsLoading(false);

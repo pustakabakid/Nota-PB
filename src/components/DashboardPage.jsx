@@ -63,7 +63,8 @@ export default function DashboardPage({
   onReloadData,
   onShowToast,
   // Page Navigation
-  onNavigate
+  onNavigate,
+  onOpenAccounts
 }) {
   const [activeTab, setActiveTab] = useState('history');
 
@@ -408,6 +409,15 @@ export default function DashboardPage({
             <i className={isConnected ? "ri-cloud-fill" : "ri-cloud-line"} style={{ color: isConnected ? 'var(--primary)' : 'inherit' }}></i> 
             Koneksi Cloud DB {isConnected && <span className="tab-badge-online">Active</span>}
           </button>
+          {onOpenAccounts && (
+            <button
+              className="dashboard-tab"
+              onClick={onOpenAccounts}
+              style={{ color: 'var(--primary)', fontWeight: 600 }}
+            >
+              <i className="ri-user-settings-line"></i> Manajemen Akun
+            </button>
+          )}
         </div>
 
         {/* ================================================================== */}

@@ -6,6 +6,7 @@ import NotaPreview from './components/NotaPreview';
 import DashboardPage from './components/DashboardPage';
 import PublicNotaView from './components/PublicNotaView';
 import LoginModal from './components/LoginModal';
+import AccountManagementModal from './components/AccountManagementModal';
 import {
   fetchStoreProfileApi,
   saveStoreProfileApi,
@@ -17,7 +18,7 @@ import {
   deleteTransactionApi
 } from './services/api';
 import { isSupabaseConnected } from './services/supabaseClient';
-import { generateReceiptNumber, calculateItemTotal } from './services/storage';
+import { generateReceiptNumber, calculateItemTotal, getStoredAccounts, saveStoredAccounts } from './services/storage';
 
 import Toast from './components/ui/Toast';
 import ConfirmModal from './components/ui/ConfirmModal';
@@ -33,6 +34,16 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('nota_kasir_authenticated') === 'true';
   });
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('nota_kasir_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [accounts, setAccounts] = useState(getStoredAccounts);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [storeProfile, setStoreProfile] = useState({
     name: 'NAMA TOKO PERCETAKAN',
     subtitle: '',
@@ -351,10 +362,12 @@ export default function App() {
   };
 
   // Authentication Handlers
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (userAcc) => {
     localStorage.setItem('nota_kasir_authenticated', 'true');
+    localStorage.setItem('nota_kasir_user', JSON.stringify(userAcc));
     setIsAuthenticated(true);
-    showToast('Berhasil masuk sebagai Operator Kasir!', 'success');
+    setCurrentUser(userAcc);
+    showToast(`Berhasil masuk sebagai ${userAcc.role === 'superadmin' ? 'Superadmin' : 'Admin Kasir'} (${userAcc.username})!`, 'success');
   };
 
   const handleLogout = () => {
@@ -365,9 +378,45 @@ export default function App() {
       variant: 'danger',
       onConfirm: () => {
         localStorage.removeItem('nota_kasir_authenticated');
+        localStorage.removeItem('nota_kasir_user');
         setIsAuthenticated(false);
+        setCurrentUser(null);
+        setCurrentPage('editor');
         closeConfirmModal();
         showToast('Sesi kasir telah dikunci.', 'info');
+      }
+    });
+  };
+
+  // Account Management Handlers
+  const handleSaveAccount = (accData) => {
+    const exists = accounts.some(a => a.id === accData.id);
+    const updated = exists
+      ? accounts.map(a => a.id === accData.id ? accData : a)
+      : [...accounts, accData];
+    setAccounts(updated);
+    saveStoredAccounts(updated);
+    showToast(`Akun "${accData.username}" berhasil disimpan!`, 'success');
+  };
+
+  const handleDeleteAccount = (id) => {
+    const target = accounts.find(a => a.id === id);
+    if (!target) return;
+    if (target.username === 'pustakabakid') {
+      showToast('Akun Superadmin utama tidak dapat dihapus!', 'danger');
+      return;
+    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Hapus Akun',
+      message: `Hapus akun "${target.username}" dari sistem?`,
+      variant: 'danger',
+      onConfirm: () => {
+        const updated = accounts.filter(a => a.id !== id);
+        setAccounts(updated);
+        saveStoredAccounts(updated);
+        closeConfirmModal();
+        showToast(`Akun "${target.username}" telah dihapus.`, 'info');
       }
     });
   };
@@ -398,6 +447,9 @@ export default function App() {
     );
   }
 
+  const isSuperAdmin = !currentUser || currentUser.role === 'superadmin';
+  const activePage = isSuperAdmin ? currentPage : 'editor';
+
   return (
     <div>
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
@@ -411,17 +463,28 @@ export default function App() {
         onCancel={closeConfirmModal}
       />
 
+      {isAccountModalOpen && (
+        <AccountManagementModal
+          accounts={accounts}
+          onSaveAccount={handleSaveAccount}
+          onDeleteAccount={handleDeleteAccount}
+          onClose={() => setIsAccountModalOpen(false)}
+          onShowToast={showToast}
+        />
+      )}
+
       <Header
         storeProfile={storeProfile}
-        currentPage={currentPage}
+        currentPage={activePage}
         onNavigate={setCurrentPage}
         isCloudConnected={isCloudConnected}
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onLogout={handleLogout}
+        currentUser={currentUser}
       />
 
-      {currentPage === 'editor' ? (
+      {activePage === 'editor' ? (
         <main className="app-container">
           <section className="form-container">
             <CustomerForm
@@ -478,6 +541,7 @@ export default function App() {
           onReloadData={loadAllData}
           onShowToast={showToast}
           onNavigate={setCurrentPage}
+          onOpenAccounts={() => setIsAccountModalOpen(true)}
         />
       )}
     </div>

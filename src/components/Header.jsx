@@ -1,7 +1,9 @@
 import React from 'react';
 import CustomTooltip from './ui/CustomTooltip';
 
-export default function Header({ storeProfile, currentPage, onNavigate, isCloudConnected, theme, onToggleTheme, onLogout }) {
+export default function Header({ storeProfile, currentPage, onNavigate, isCloudConnected, theme, onToggleTheme, onLogout, currentUser }) {
+  const isSuperAdmin = !currentUser || currentUser.role === 'superadmin';
+
   return (
     <header className="app-header">
       <div className="brand-container">
@@ -12,7 +14,26 @@ export default function Header({ storeProfile, currentPage, onNavigate, isCloudC
         </div>
       </div>
       <div className="header-actions" style={{ gap: '0.6rem' }}>
-        {/* Main Page Navigation Tabs */}
+        {/* User Role Badge */}
+        {currentUser && (
+          <div style={{
+            fontSize: '0.725rem',
+            fontWeight: 600,
+            color: isSuperAdmin ? 'var(--primary)' : 'var(--text-color)',
+            background: isSuperAdmin ? 'rgba(27, 189, 143, 0.12)' : 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            padding: '0.25rem 0.6rem',
+            borderRadius: 'var(--radius-md)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem'
+          }}>
+            <i className={isSuperAdmin ? 'ri-shield-keyhole-line' : 'ri-user-3-line'}></i>
+            <span>{isSuperAdmin ? 'Superadmin' : 'Admin Kasir'}</span>
+          </div>
+        )}
+
+        {/* Main Page Navigation Tabs (Dashboard visible to Superadmin only) */}
         <div style={{ display: 'flex', gap: '0.35rem', background: 'var(--bg-card)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
           <button 
             className={`btn btn-sm ${currentPage === 'editor' ? 'btn-primary' : 'btn-secondary'}`}
@@ -22,23 +43,26 @@ export default function Header({ storeProfile, currentPage, onNavigate, isCloudC
             <i className="ri-printer-line"></i>
             <span>Cetak Nota</span>
           </button>
-          <button 
-            className={`btn btn-sm ${currentPage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => onNavigate('dashboard')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
-          >
-            <i className="ri-dashboard-3-line"></i>
-            <span>Dashboard</span>
-            <span style={{
-              fontSize: '0.65rem',
-              padding: '0.1rem 0.35rem',
-              borderRadius: '10px',
-              background: isCloudConnected ? 'rgba(27, 189, 143, 0.25)' : 'rgba(0,0,0,0.12)',
-              marginLeft: '0.15rem'
-            }}>
-              {isCloudConnected ? '☁️ Cloud' : '💾 Lokal'}
-            </span>
-          </button>
+
+          {isSuperAdmin && (
+            <button 
+              className={`btn btn-sm ${currentPage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => onNavigate('dashboard')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
+            >
+              <i className="ri-dashboard-3-line"></i>
+              <span>Dashboard</span>
+              <span style={{
+                fontSize: '0.65rem',
+                padding: '0.1rem 0.35rem',
+                borderRadius: '10px',
+                background: isCloudConnected ? 'rgba(27, 189, 143, 0.25)' : 'rgba(0,0,0,0.12)',
+                marginLeft: '0.15rem'
+              }}>
+                {isCloudConnected ? '☁️ Cloud' : '💾 Lokal'}
+              </span>
+            </button>
+          )}
         </div>
 
         <CustomTooltip text="Ganti Mode Terang / Gelap">

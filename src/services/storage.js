@@ -6,7 +6,32 @@ const KEYS = {
   STORE: 'nota_percetakan_store',
   CATALOG: 'nota_percetakan_catalog',
   HISTORY: 'nota_percetakan_history',
-  THEME: 'nota_percetakan_theme'
+  THEME: 'nota_percetakan_theme',
+  ACCOUNTS: 'nota_percetakan_accounts'
+};
+
+export const defaultAccounts = [
+  { id: 'usr-superadmin', username: 'pustakabakid', password: 'pbmu48', role: 'superadmin', name: 'Super Admin' },
+  { id: 'usr-kasir-1', username: 'kasir', password: 'kasir123', role: 'admin', name: 'Operator Kasir' }
+];
+
+export const getStoredAccounts = () => {
+  try {
+    const data = localStorage.getItem(KEYS.ACCOUNTS);
+    if (!data) return defaultAccounts;
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultAccounts;
+  } catch {
+    return defaultAccounts;
+  }
+};
+
+export const saveStoredAccounts = (accounts) => {
+  try {
+    localStorage.setItem(KEYS.ACCOUNTS, JSON.stringify(accounts));
+  } catch (err) {
+    console.error('Failed to save accounts to storage:', err);
+  }
 };
 
 export const defaultStore = {
