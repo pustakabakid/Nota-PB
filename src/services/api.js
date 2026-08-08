@@ -286,19 +286,35 @@ export const fetchAccountsApi = async () => {
     try {
       const { data, error } = await supabase
         .from('user_accounts')
-        .select('*')
-        .order('created_at', { ascending: true });
+        .select('*');
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        const accounts = data.map(u => ({
-          id: u.id,
-          username: u.username,
-          password: u.password,
-          role: u.role || 'admin',
-          name: u.name || u.username
-        }));
-        saveStoredAccounts(accounts);
-        return accounts;
+      if (!error && Array.isArray(data)) {
+        if (data.length > 0) {
+          const accounts = data.map(u => ({
+            id: u.id,
+            username: u.username,
+            password: u.password,
+            role: u.role || 'admin',
+            name: u.name || u.username
+          }));
+          saveStoredAccounts(accounts);
+          return accounts;
+        } else {
+          // Table is empty in Supabase, seed default accounts into Supabase!
+          const defaults = getStoredAccounts();
+          const seedPayload = defaults.map(acc => ({
+            id: String(acc.id),
+            username: acc.username,
+            password: acc.password,
+            role: acc.role || 'admin',
+            name: acc.name || acc.username,
+            updated_at: new Date().toISOString()
+          }));
+          await supabase.from('user_accounts').upsert(seedPayload);
+          return defaults;
+        }
+      } else if (error) {
+        console.warn('Cloud user_accounts fetch error:', error.message);
       }
     } catch (err) {
       console.warn('Cloud user_accounts fetch failed, using local backup:', err);
@@ -318,7 +334,7 @@ export const saveAccountApi = async (account, currentAccounts) => {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('user_accounts').upsert({
+      const { error } = await supabase.from('user_accounts').upsert({
         id: String(account.id),
         username: account.username,
         password: account.password,
@@ -326,6 +342,9 @@ export const saveAccountApi = async (account, currentAccounts) => {
         name: account.name || account.username,
         updated_at: new Date().toISOString()
       });
+      if (error) {
+        console.error('Supabase user_account upsert error:', error.message);
+      }
     } catch (err) {
       console.error('Failed to sync user_account to cloud:', err);
     }
@@ -341,7 +360,10 @@ export const deleteAccountApi = async (id, currentAccounts) => {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      await supabase.from('user_accounts').delete().eq('id', String(id));
+      const { error } = await supabase.from('user_accounts').delete().eq('id', String(id));
+      if (error) {
+        console.error('Supabase user_account delete error:', error.message);
+      }
     } catch (err) {
       console.error('Failed to delete user_account from cloud:', err);
     }
