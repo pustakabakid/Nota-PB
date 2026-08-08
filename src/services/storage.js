@@ -22,15 +22,13 @@ export const getStoredAccounts = () => {
     const parsed = JSON.parse(data);
     if (!Array.isArray(parsed) || parsed.length === 0) return defaultAccounts;
 
-    // Ensure default accounts always exist in stored array
+    // Only ensure superadmin 'pustakabakid' is present as safety fallback
     const hasSuper = parsed.some(a => a.username.toLowerCase() === 'pustakabakid');
-    const hasKasir = parsed.some(a => a.username.toLowerCase() === 'kasir');
+    if (!hasSuper) {
+      return [defaultAccounts[0], ...parsed];
+    }
 
-    let merged = [...parsed];
-    if (!hasSuper) merged.push(defaultAccounts[0]);
-    if (!hasKasir) merged.push(defaultAccounts[1]);
-
-    return merged;
+    return parsed;
   } catch {
     return defaultAccounts;
   }
