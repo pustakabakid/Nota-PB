@@ -2264,7 +2264,19 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: #F4F6F8;
+  background-color: #F0F2F4;
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(255,255,255,0.75) 18px,
+      rgba(255,255,255,0.75) 28px,
+      transparent 28px,
+      transparent 38px,
+      rgba(200,205,210,0.18) 38px,
+      rgba(200,205,210,0.18) 40px
+    );
   padding: 1.75rem 1rem 3.5rem 1rem;
   box-sizing: border-box;
   display: flex;
