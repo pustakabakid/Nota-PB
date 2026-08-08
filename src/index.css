@@ -2158,80 +2158,111 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   Public Nota Hero Background & Fixed Action Footer Bar (Mockup Match)
+   Full-Bleed Hero Background & Centered A4 Aspect Ratio Receipt Layout
    ========================================================================== */
-.public-nota-hero-bg {
+.public-nota-page,
+.nota-preview-page-container {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(180deg, #10B981 0%, #10B981 220px, var(--bg-app) 220px, var(--bg-app) 100%);
-  padding: 1rem 0.5rem 5rem 0.5rem;
+  background: linear-gradient(180deg, #19AD83 0%, #19AD83 240px, var(--bg-app) 240px);
+  padding: 1.75rem 1rem 3.5rem 1rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+}
+
+[data-theme="dark"] .public-nota-page,
+[data-theme="dark"] .nota-preview-page-container {
+  background: linear-gradient(180deg, #19AD83 0%, #19AD83 240px, #121319 240px);
+}
+
+.nota-a4-scaler {
+  width: 100%;
+  display: flex;
   justify-content: center;
-  overflow: hidden;
+  align-items: flex-start;
+  box-sizing: border-box;
 }
 
-[data-theme="dark"] .public-nota-hero-bg {
-  background: linear-gradient(180deg, #059669 0%, #059669 220px, var(--bg-app) 220px, var(--bg-app) 100%);
+/* Floating centered A4 paper canvas */
+.nota-canvas[data-paper="A4"] {
+  width: min(92vw, 640px);
+  min-height: calc(min(92vw, 640px) * 1.4142);
+  height: auto;
+  background: #FFFFFF;
+  color: #111827;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-size: 0.9rem;
 }
 
-.fixed-action-footer {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 24px);
-  max-width: 480px;
+/* 4 Action Buttons Toolbar below Card */
+.quick-action-toolbar-container {
+  width: min(92vw, 640px);
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.quick-action-toolbar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  z-index: 1000;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 8px 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-[data-theme="dark"] .fixed-action-footer {
-  background: rgba(25, 26, 38, 0.92);
-  border-color: var(--border-color);
-}
+/* Responsive adjustments across mobile (375px), tablet (768px), and desktop (1280px) */
+@media (max-width: 640px) {
+  .public-nota-page,
+  .nota-preview-page-container {
+    padding: 1.25rem 0.5rem 2.5rem 0.5rem;
+    background: linear-gradient(180deg, #19AD83 0%, #19AD83 180px, var(--bg-app) 180px);
+  }
 
-.btn-footer-action {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 10px 4px;
-  border-radius: 8px;
-  border: none;
-  background: #A7F3D0;
-  color: #065F46;
-  font-weight: 700;
-  font-size: 0.775rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+  .nota-canvas[data-paper="A4"] {
+    width: calc(100vw - 24px) !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 1.5rem 1.15rem !important;
+    border-radius: 10px !important;
+    font-size: 0.825rem !important;
+  }
 
-[data-theme="dark"] .btn-footer-action {
-  background: rgba(76, 194, 255, 0.22);
-  color: #4cc2ff;
-}
+  .quick-action-toolbar-container {
+    width: calc(100vw - 24px);
+    margin-top: 1rem;
+  }
 
-.btn-footer-action i {
-  font-size: 1.2rem;
-}
+  .quick-action-toolbar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
 
-.btn-footer-action:hover {
-  background: #10B981;
-  color: #ffffff;
-  transform: translateY(-2px);
+  .nota-canvas[data-paper="A4"] .nota-header-view h3,
+  .nota-canvas[data-paper="A4"] .nota-item-title {
+    font-size: 0.85rem !important;
+  }
+
+  .nota-canvas[data-paper="A4"] .nota-meta-section-title {
+    font-size: 0.68rem !important;
+  }
+
+  .nota-canvas[data-paper="A4"] .nota-table {
+    font-size: 0.75rem !important;
+  }
+
+  .nota-canvas[data-paper="A4"] .nota-totals-view {
+    width: 100% !important;
+    font-size: 0.8rem !important;
+  }
 }
 
 
