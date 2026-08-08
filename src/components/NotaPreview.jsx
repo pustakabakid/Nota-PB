@@ -184,7 +184,7 @@ export default function NotaPreview({
                   // Build type/dimension sub-text
                   let typeSub = '';
                   if (item.type === 'm2') {
-                    typeSub = `${item.length}x${item.width}cm (${areaM2.toFixed(2)}m²)`;
+                    typeSub = `${item.length}×${item.width}cm (${areaM2.toFixed(2)}m²)`;
                   } else if (item.type === 'buku') {
                     const bookParts = [];
                     if (item.bookSize) bookParts.push(item.bookSize);

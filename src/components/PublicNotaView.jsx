@@ -85,38 +85,35 @@ export default function PublicNotaView({
 
   return (
     <div className="public-nota-page">
-      {/* Top Header Bar for Public Nota View */}
+      {/* Floating Home Action Button (Discreet Top-Right) */}
       <div style={{
+        position: 'relative',
+        zIndex: 10,
         width: 'min(92vw, 640px)',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '1.25rem',
-        padding: '0.65rem 0.85rem',
-        background: 'var(--bg-card)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-color)',
-        boxShadow: 'var(--shadow-sm)',
-        boxSizing: 'border-box'
+        justifyContent: 'flex-end',
+        marginBottom: '0.75rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src="/favicon.svg" alt="Logo" style={{ height: '28px', width: 'auto' }} />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-color)' }}>
-            E-Nota Digital
-          </span>
-        </div>
         <button
           type="button"
           className="btn btn-secondary btn-sm"
-          style={{ fontSize: '0.775rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+          style={{
+            fontSize: '0.775rem',
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(4px)',
+            border: 'none',
+            color: '#0E5A44',
+            fontWeight: 600,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}
           onClick={onBackToApp}
         >
-          <i className="ri-home-4-line"></i> Buka Aplikasi Utama
+          <i className="ri-home-4-line"></i> Buka Aplikasi
         </button>
       </div>
 
       {/* Render Public Nota HTML Canvas with Proportional Scaler */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NotaPreview
           storeProfile={storeProfile}
           transaction={transaction}
