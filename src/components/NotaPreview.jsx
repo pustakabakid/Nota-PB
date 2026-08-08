@@ -83,7 +83,7 @@ export default function NotaPreview({
   };
 
   return (
-    <section className="preview-container">
+    <section>
       <div className="preview-sticky-wrapper">
         
         {/* Paper selector bar */}

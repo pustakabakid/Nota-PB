@@ -85,33 +85,6 @@ export default function PublicNotaView({
 
   return (
     <div className="public-nota-page">
-      {/* Floating Home Action Button (Discreet Top-Right) */}
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        width: 'min(92vw, 640px)',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginBottom: '0.75rem'
-      }}>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          style={{
-            fontSize: '0.775rem',
-            background: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(4px)',
-            border: 'none',
-            color: '#0E5A44',
-            fontWeight: 600,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}
-          onClick={onBackToApp}
-        >
-          <i className="ri-home-4-line"></i> Buka Aplikasi
-        </button>
-      </div>
-
       {/* Render Public Nota HTML Canvas with Proportional Scaler */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NotaPreview
