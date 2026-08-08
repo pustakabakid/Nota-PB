@@ -84,8 +84,9 @@ export default function PublicNotaView({
   };
 
   return (
-    <div className="public-nota-page">
-      <div className="public-nota-content-container">
+    <div className="public-nota-hero-bg">
+      {/* Render Public Nota HTML Canvas with Proportional Scaler & Fixed Action Footer */}
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NotaPreview
           storeProfile={storeProfile}
           transaction={transaction}

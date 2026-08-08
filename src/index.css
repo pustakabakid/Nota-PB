@@ -829,27 +829,16 @@ select.form-control {
 }
 
 .nota-canvas[data-paper="A5"] {
-  width: 100%;
-  max-width: 540px;
-  aspect-ratio: 148 / 210;
+  width: 540px;
   font-size: 0.875rem;
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-sizing: border-box;
 }
 
 .nota-canvas[data-paper="A4"] {
   width: 100%;
   max-width: 680px;
-  aspect-ratio: 210 / 297;
   font-size: 0.9rem;
   padding: 1.75rem 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-sizing: border-box;
 }
 
 /* Thermal Printer Stack Layout */
@@ -2169,104 +2158,80 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   Public Nota Page Layout (Emerald Green Header Banner & Floating Card)
+   Public Nota Hero Background & Fixed Action Footer Bar (Mockup Match)
    ========================================================================== */
-.public-nota-page {
-  position: relative;
+.public-nota-hero-bg {
   min-height: 100vh;
   width: 100%;
-  background: var(--bg-app);
-  padding-bottom: 5.5rem;
+  background: linear-gradient(180deg, #10B981 0%, #10B981 220px, var(--bg-app) 220px, var(--bg-app) 100%);
+  padding: 1rem 0.5rem 5rem 0.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-/* Top Emerald Green Header Accent Banner (Matches User Mockup) */
-.public-nota-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  background: #19AD83;
-  border-bottom-left-radius: 28px;
-  border-bottom-right-radius: 28px;
-  z-index: 1;
-}
-
-.public-nota-content-container {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 680px;
-  margin-top: 2.25rem;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  display: flex;
   justify-content: center;
+  overflow: hidden;
 }
 
-.nota-a4-scaler {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  box-sizing: border-box;
+[data-theme="dark"] .public-nota-hero-bg {
+  background: linear-gradient(180deg, #059669 0%, #059669 220px, var(--bg-app) 220px, var(--bg-app) 100%);
 }
 
-/* Sticky Fixed Bottom Footer Action Toolbar */
-.quick-action-toolbar {
+.fixed-action-footer {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border-color);
-  padding: 0.65rem 1rem;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-}
-
-.quick-action-toolbar-inner {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 480px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 680px;
+  gap: 8px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-@media (max-width: 640px) {
-  .public-nota-page::before {
-    height: 160px;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-  }
+[data-theme="dark"] .fixed-action-footer {
+  background: rgba(25, 26, 38, 0.92);
+  border-color: var(--border-color);
+}
 
-  .public-nota-content-container {
-    margin-top: 1.5rem;
-    padding: 0 0.85rem;
-  }
+.btn-footer-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: none;
+  background: #A7F3D0;
+  color: #065F46;
+  font-weight: 700;
+  font-size: 0.775rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-  .nota-canvas[data-paper="A4"],
-  .nota-canvas[data-paper="A5"] {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    aspect-ratio: auto !important;
-    padding: 1.35rem 1rem !important;
-    box-sizing: border-box !important;
-    border-radius: var(--radius-lg) !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
-  }
+[data-theme="dark"] .btn-footer-action {
+  background: rgba(76, 194, 255, 0.22);
+  color: #4cc2ff;
+}
+
+.btn-footer-action i {
+  font-size: 1.2rem;
+}
+
+.btn-footer-action:hover {
+  background: #10B981;
+  color: #ffffff;
+  transform: translateY(-2px);
 }
 
 
