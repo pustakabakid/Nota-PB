@@ -236,13 +236,18 @@ export default function App() {
   // Save Transaction to History
   const handleSaveTransaction = async () => {
     const finalCustName = transaction.custName.trim() || 'Pelanggan Umum';
+    const trxId = transaction.id || `trx-${Date.now()}`;
 
     const newRecord = {
-      id: `trx-${Date.now()}`,
+      id: trxId,
       noNota: transaction.noNota,
       date: transaction.date,
       custName: finalCustName,
       custPhone: transaction.custPhone.trim(),
+      custAddress: transaction.custAddress ? transaction.custAddress.trim() : '',
+      payMethod: transaction.payMethod || 'Transfer',
+      bankName: transaction.bankName || '',
+      pickupMethod: transaction.pickupMethod || 'Ditunggu',
       orderStatus: transaction.orderStatus,
       payStatus: transaction.payStatus,
       items: items,
@@ -258,11 +263,13 @@ export default function App() {
     setHistory(updatedHistory);
     setIsCurrentNotaSaved(true);
 
-    if (transaction.custName.trim() === '') {
-      setTransaction(prev => ({ ...prev, custName: 'Pelanggan Umum' }));
-    }
+    setTransaction(prev => ({
+      ...prev,
+      id: trxId,
+      custName: finalCustName
+    }));
 
-    showToast(`Nota ${transaction.noNota} berhasil diterbitkan & tersimpan di Cloud!`, 'success');
+    showToast(`Nota ${transaction.noNota} berhasil tersimpan & ter-update di Cloud!`, 'success');
   };
 
   const handleResetForm = () => {
@@ -273,6 +280,7 @@ export default function App() {
       variant: 'danger',
       onConfirm: () => {
         setTransaction({
+          id: null,
           noNota: generateReceiptNumber(),
           custName: '',
           custPhone: '',
@@ -310,9 +318,14 @@ export default function App() {
 
   const handleLoadTransaction = (rec) => {
     setTransaction({
+      id: rec.id,
       noNota: rec.noNota,
       custName: rec.custName,
       custPhone: rec.custPhone || '',
+      custAddress: rec.custAddress || '',
+      payMethod: rec.payMethod || 'Transfer',
+      bankName: rec.bankName || '',
+      pickupMethod: rec.pickupMethod || 'Ditunggu',
       date: rec.date,
       orderStatus: rec.orderStatus,
       payStatus: rec.payStatus,
