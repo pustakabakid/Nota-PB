@@ -2169,31 +2169,51 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   Full-Viewport Green-White Background & Non-Scrolling Proportional A4 Scaler
+   Public Nota Page Layout (Emerald Green Header Banner & Floating Card)
    ========================================================================== */
 .public-nota-page {
+  position: relative;
   min-height: 100vh;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(25, 173, 131, 0.25) 0%, rgba(25, 173, 131, 0.05) 280px, var(--bg-app) 100%);
-  padding: 0.75rem 0.5rem 4.5rem 0.5rem;
+  width: 100%;
+  background: var(--bg-app);
+  padding-bottom: 5.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
-[data-theme="dark"] .public-nota-page {
-  background: linear-gradient(180deg, rgba(76, 194, 255, 0.22) 0%, rgba(76, 194, 255, 0.04) 280px, var(--bg-app) 100%);
+/* Top Emerald Green Header Accent Banner (Matches User Mockup) */
+.public-nota-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: #19AD83;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  z-index: 1;
+}
+
+.public-nota-content-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 680px;
+  margin-top: 2.25rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
 .nota-a4-scaler {
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   box-sizing: border-box;
 }
 
@@ -2209,7 +2229,7 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border-color);
   padding: 0.65rem 1rem;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2224,24 +2244,28 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   max-width: 680px;
 }
 
-@media (max-width: 768px) {
-  .nota-a4-scaler {
-    transform-origin: center center;
-    transform: scale(min(calc((100vw - 16px) / 680), calc((100vh - 90px) / 961)));
+@media (max-width: 640px) {
+  .public-nota-page::before {
+    height: 160px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
   }
 
-  .nota-canvas[data-paper="A4"] {
-    width: 680px !important;
-    min-width: 680px !important;
-    max-width: 680px !important;
-    aspect-ratio: 210 / 297 !important;
+  .public-nota-content-container {
+    margin-top: 1.5rem;
+    padding: 0 0.85rem;
   }
 
+  .nota-canvas[data-paper="A4"],
   .nota-canvas[data-paper="A5"] {
-    width: 540px !important;
-    min-width: 540px !important;
-    max-width: 540px !important;
-    aspect-ratio: 148 / 210 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: auto !important;
+    padding: 1.35rem 1rem !important;
+    box-sizing: border-box !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
   }
 }
 
