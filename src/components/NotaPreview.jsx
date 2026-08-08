@@ -106,8 +106,8 @@ export default function NotaPreview({
           </div>
         )}
 
-        {/* Printable Nota Canvas Wrapper (Prevents horizontal clipping on mobile) */}
-        <div className="nota-preview-scroll-wrapper">
+        {/* Printable Nota Canvas Wrapper (Proportional A4 Scaler for mobile & desktop) */}
+        <div className="nota-a4-scaler">
           <div id="printableNota" ref={printableRef} className="nota-canvas" data-paper={selectedPaper}>
             
             {/* Figma Top Header Section */}

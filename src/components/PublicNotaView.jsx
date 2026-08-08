@@ -84,14 +84,38 @@ export default function PublicNotaView({
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100%',
-      background: 'var(--bg-app)',
-      padding: '1.25rem 0.5rem 3rem 0.5rem',
-      boxSizing: 'border-box'
-    }}>
-      {/* Render Public Nota HTML Canvas with Quick Action Buttons */}
+    <div className="public-nota-page">
+      {/* Top Header Bar for Public Nota View */}
+      <div style={{
+        width: '100%',
+        maxWidth: '680px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '1rem',
+        padding: '0.5rem 0.75rem',
+        background: 'var(--bg-card)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border-color)',
+        boxShadow: 'var(--shadow-sm)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/favicon.svg" alt="Logo" style={{ height: '28px', width: 'auto' }} />
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-color)' }}>
+            E-Nota Digital
+          </span>
+        </div>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          style={{ fontSize: '0.775rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+          onClick={onBackToApp}
+        >
+          <i className="ri-home-4-line"></i> Buka Aplikasi Utama
+        </button>
+      </div>
+
+      {/* Render Public Nota HTML Canvas with Proportional Scaler */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NotaPreview
           storeProfile={storeProfile}

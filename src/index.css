@@ -2158,43 +2158,60 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   Full-Viewport Background & Mobile A4 Canvas Scaling
+   Full-Viewport Green-White Background & Proportional A4 Scaler
    ========================================================================== */
-.nota-preview-scroll-wrapper {
+.public-nota-page {
+  min-height: 100vh;
   width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(180deg, rgba(25, 173, 131, 0.25) 0%, rgba(25, 173, 131, 0.05) 280px, var(--bg-app) 100%);
+  padding: 1.25rem 0.5rem 3rem 0.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+[data-theme="dark"] .public-nota-page {
+  background: linear-gradient(180deg, rgba(76, 194, 255, 0.22) 0%, rgba(76, 194, 255, 0.04) 280px, var(--bg-app) 100%);
+}
+
+.nota-a4-scaler {
+  width: 100%;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   box-sizing: border-box;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0 4px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .nota-canvas[data-paper="A4"],
   .nota-canvas[data-paper="A5"] {
     width: 100% !important;
     max-width: 100% !important;
     padding: 1.25rem 0.85rem !important;
     box-sizing: border-box !important;
-    font-size: 0.825rem !important;
   }
 
-  .nota-header-view {
-    gap: 0.5rem;
+  /* Proportional font and component scaling on small phone viewports */
+  .nota-canvas[data-paper="A4"] .nota-header-view h3,
+  .nota-canvas[data-paper="A4"] .nota-item-title {
+    font-size: 0.85rem !important;
   }
 
-  .nota-meta-grid {
-    gap: 0.5rem;
+  .nota-canvas[data-paper="A4"] .nota-meta-section-title {
+    font-size: 0.68rem !important;
   }
 
-  .nota-table {
-    font-size: 0.775rem !important;
+  .nota-canvas[data-paper="A4"] .nota-table {
+    font-size: 0.75rem !important;
   }
 
-  .nota-totals-view {
+  .nota-canvas[data-paper="A4"] .nota-totals-view {
     width: 100% !important;
+    font-size: 0.8rem !important;
   }
 }
 
