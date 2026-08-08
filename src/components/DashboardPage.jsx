@@ -281,15 +281,10 @@ export default function DashboardPage({
   const totalSisa = history.reduce((acc, h) => acc + (Number(h.sisa) || 0), 0);
 
   return (
-    <div className="dashboard-page-container" style={{ padding: '1rem', maxWidth: '1280px', margin: '0 auto' }}>
+    <div className="dashboard-page-container">
       
       {/* 4 Overview Analytics Stat Cards */}
-      <div className="dashboard-stats-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '0.85rem',
-        marginBottom: '1rem'
-      }}>
+      <div className="dashboard-stats-grid">
         {/* Stat Card 1: Omset */}
         <div className="stat-card" style={{
           background: 'var(--bg-card)',
@@ -479,7 +474,7 @@ export default function DashboardPage({
             {/* Single Row Horizontal Dense Toolbar */}
             <div className="dense-toolbar">
               {/* Search input */}
-              <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px' }}>
+              <div style={{ position: 'relative', flex: '1 1 280px', minWidth: '200px' }}>
                 <i className="ri-search-line" style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}></i>
                 <input
                   type="text"
@@ -688,7 +683,7 @@ export default function DashboardPage({
             {/* Dense Horizontal Toolbar */}
             <div className="dense-toolbar">
               {/* Search */}
-              <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px' }}>
+              <div style={{ position: 'relative', flex: '1 1 280px', minWidth: '200px' }}>
                 <i className="ri-search-line" style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}></i>
                 <input
                   type="text"
