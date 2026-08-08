@@ -2222,6 +2222,49 @@ body.dark-mode .dense-table tbody tr:nth-child(even) {
   font-size: 0.9rem;
 }
 
+/* Dynamic Auto-Fit Font Scaling System (Fits 1-Page A4 Sheet Aspect Ratio Without Scroll) */
+.nota-canvas[data-paper="A4"].density-dense,
+.nota-canvas[data-paper="A5"].density-dense {
+  font-size: 0.8rem;
+  padding: 1.75rem 1.75rem 1.35rem 1.75rem;
+}
+
+.nota-canvas[data-paper="A4"].density-dense .nota-table th,
+.nota-canvas[data-paper="A5"].density-dense .nota-table th {
+  padding: 0.35rem 0.2rem;
+  font-size: 0.725rem;
+}
+
+.nota-canvas[data-paper="A4"].density-dense .nota-table td,
+.nota-canvas[data-paper="A5"].density-dense .nota-table td {
+  padding: 0.35rem 0.2rem;
+  font-size: 0.775rem;
+}
+
+.nota-canvas[data-paper="A4"].density-compact,
+.nota-canvas[data-paper="A5"].density-compact {
+  font-size: 0.725rem;
+  padding: 1.25rem 1.25rem 1rem 1.25rem;
+}
+
+.nota-canvas[data-paper="A4"].density-compact .nota-table th,
+.nota-canvas[data-paper="A5"].density-compact .nota-table th {
+  padding: 0.25rem 0.15rem;
+  font-size: 0.675rem;
+}
+
+.nota-canvas[data-paper="A4"].density-compact .nota-table td,
+.nota-canvas[data-paper="A5"].density-compact .nota-table td {
+  padding: 0.25rem 0.15rem;
+  font-size: 0.7rem;
+}
+
+.nota-canvas[data-paper="A4"].density-compact .nota-item-sub,
+.nota-canvas[data-paper="A5"].density-compact .nota-item-sub {
+  font-size: 0.65rem;
+  margin-top: 0.08rem;
+}
+
 /* 4 Action Buttons Toolbar below Card (Teal Soft Pill Style like Image) */
 .quick-action-toolbar {
   position: relative;

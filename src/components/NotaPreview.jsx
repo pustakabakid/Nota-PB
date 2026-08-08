@@ -82,6 +82,14 @@ export default function NotaPreview({
     }
   };
 
+  // Calculate dynamic density class based on item count to fit 1-page A4 aspect ratio without scroll
+  let densityClass = 'density-normal';
+  if (items.length >= 5) {
+    densityClass = 'density-compact';
+  } else if (items.length >= 3) {
+    densityClass = 'density-dense';
+  }
+
   return (
     <section>
       <div className="preview-sticky-wrapper">
@@ -108,7 +116,7 @@ export default function NotaPreview({
 
         {/* Printable Nota Canvas Wrapper (Proportional A4 Scaler for mobile & desktop) */}
         <div className="nota-a4-scaler">
-          <div id="printableNota" ref={printableRef} className="nota-canvas" data-paper={selectedPaper}>
+          <div id="printableNota" ref={printableRef} className={`nota-canvas ${densityClass}`} data-paper={selectedPaper}>
             
             {/* Figma Top Header Section */}
             <div className="nota-header-view">
