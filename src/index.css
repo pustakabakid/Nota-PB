@@ -1886,38 +1886,76 @@ select.form-control {
   }
 }
 
-/* Print Engine & PDF Cleanup */
+/* Print Engine & PDF Cleanup (Identical Digital A4 Layout Without Buttons) */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
   }
 
-  .preview-container {
+  html, body {
     background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
     padding: 0 !important;
   }
 
-  .preview-container::before {
-    display: none !important;
-  }
-
+  .public-nota-page::before,
+  .nota-preview-page-container::before,
   .paper-selector-bar,
   .app-header,
   .quick-action-toolbar,
+  .quick-action-toolbar-container,
   .form-container,
   .history-container,
-  .toast-container {
+  .toast-container,
+  .btn,
+  button {
     display: none !important;
   }
 
+  .public-nota-page,
+  .nota-preview-page-container {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+
+  .nota-a4-scaler {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .nota-canvas[data-paper="A4"],
   .nota-canvas {
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
+    padding: 1.5rem !important;
     width: 100% !important;
     max-width: 100% !important;
     background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid;
+  }
+
+  .nota-table th {
+    border-bottom: 1.5px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  .nota-table td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #000000 !important;
+  }
+
+  .nota-item-detail-box {
+    background: #f8fafc !important;
+    border-left: 3px solid #19AD83 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 
