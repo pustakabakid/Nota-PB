@@ -6,40 +6,7 @@ const KEYS = {
   STORE: 'nota_percetakan_store',
   CATALOG: 'nota_percetakan_catalog',
   HISTORY: 'nota_percetakan_history',
-  THEME: 'nota_percetakan_theme',
-  ACCOUNTS: 'nota_percetakan_accounts'
-};
-
-export const defaultAccounts = [
-  { id: 'usr-superadmin', username: 'pustakabakid', password: 'pbmu48', role: 'superadmin', name: 'Super Admin' },
-  { id: 'usr-kasir-1', username: 'kasir', password: 'kasir123', role: 'admin', name: 'Operator Kasir' }
-];
-
-export const getStoredAccounts = () => {
-  try {
-    const data = localStorage.getItem(KEYS.ACCOUNTS);
-    if (!data) return defaultAccounts;
-    const parsed = JSON.parse(data);
-    if (!Array.isArray(parsed) || parsed.length === 0) return defaultAccounts;
-
-    // Only ensure superadmin 'pustakabakid' is present as safety fallback
-    const hasSuper = parsed.some(a => a.username.toLowerCase() === 'pustakabakid');
-    if (!hasSuper) {
-      return [defaultAccounts[0], ...parsed];
-    }
-
-    return parsed;
-  } catch {
-    return defaultAccounts;
-  }
-};
-
-export const saveStoredAccounts = (accounts) => {
-  try {
-    localStorage.setItem(KEYS.ACCOUNTS, JSON.stringify(accounts));
-  } catch (err) {
-    console.error('Failed to save accounts to storage:', err);
-  }
+  THEME: 'nota_percetakan_theme'
 };
 
 export const defaultStore = {
@@ -47,10 +14,61 @@ export const defaultStore = {
   subtitle: '',
   address: '',
   phone: '',
-  footerMsg: 'Terima kasih atas kunjungan Anda.'
+  footerMsg: 'Terima kasih atas kunjungan Anda.',
+  defaultPaper: 'A4',
+  customPaperName: 'Kustom',
+  customPaperWidth: 100, // mm
+  customPaperHeight: 150, // mm (0 = continuous roll)
+  customPaperMargin: 4, // mm
+  qrSize: 'medium', // 'small' | 'medium' | 'large' | 'custom'
+  customQrSize: 24, // number
+  customQrUnit: 'mm', // 'mm' | 'px'
+  customQrSizePx: 80, // px fallback
+  qrPosition: 'right', // 'center' | 'right' | 'left'
+  showQrCode: true,
+  density: 'normal', // 'compact' | 'normal' | 'spacious'
+  bankName: '',
+  bankAccount: '',
+  bankHolder: ''
 };
 
 export const defaultCatalog = [];
+
+/**
+ * Safe local storage setter with quota guard & graceful trimming
+ */
+export const safeSetItem = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (err) {
+    console.warn(`LocalStorage quota exceeded for key "${key}". Trimming old data:`, err);
+    if (key === KEYS.HISTORY) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed) && parsed.length > 100) {
+          const trimmed = parsed.slice(0, 100);
+          localStorage.setItem(key, JSON.stringify(trimmed));
+        }
+      } catch (innerErr) {
+        console.error('Failed to save trimmed history to LocalStorage:', innerErr);
+      }
+    }
+  }
+};
+
+/**
+ * Normalizes customer phone numbers to clean digits with country code format (08xx -> 628xx)
+ */
+export const normalizePhoneNumber = (phone) => {
+  if (!phone) return '';
+  let clean = String(phone).replace(/\D/g, '');
+  if (clean.startsWith('0')) {
+    clean = '62' + clean.slice(1);
+  } else if (clean.startsWith('8')) {
+    clean = '628' + clean.slice(1);
+  }
+  return clean;
+};
 
 export const getStoredStoreProfile = () => {
   try {
@@ -67,7 +85,7 @@ export const getStoredStoreProfile = () => {
 };
 
 export const saveStoredStoreProfile = (profile) => {
-  localStorage.setItem(KEYS.STORE, JSON.stringify(profile));
+  safeSetItem(KEYS.STORE, JSON.stringify(profile));
 };
 
 export const getStoredCatalog = () => {
@@ -80,7 +98,7 @@ export const getStoredCatalog = () => {
 };
 
 export const saveStoredCatalog = (catalog) => {
-  localStorage.setItem(KEYS.CATALOG, JSON.stringify(catalog));
+  safeSetItem(KEYS.CATALOG, JSON.stringify(catalog));
 };
 
 export const getStoredHistory = () => {
@@ -93,38 +111,98 @@ export const getStoredHistory = () => {
 };
 
 export const saveStoredHistory = (history) => {
-  localStorage.setItem(KEYS.HISTORY, JSON.stringify(history));
+  safeSetItem(KEYS.HISTORY, JSON.stringify(history));
 };
 
 export const calculateItemTotal = (item) => {
   if (!item) return 0;
+  const qty = Math.max(0, parseInt(item.qty, 10) || 0);
+  const price = Math.max(0, parseFloat(item.price) || 0);
   if (item.type === 'm2') {
-    const lengthM = (item.length || 0) / 100;
-    const widthM = (item.width || 0) / 100;
-    return lengthM * widthM * (item.qty || 0) * (item.price || 0);
+    const lengthM = Math.max(0, parseFloat(item.length) || 0) / 100;
+    const widthM = Math.max(0, parseFloat(item.width) || 0) / 100;
+    return Math.round(lengthM * widthM * qty * price);
   }
   // buku, pcs, rim, pack — semua qty × price
-  return (item.qty || 0) * (item.price || 0);
+  return Math.round(qty * price);
 };
 
 // Helper: format book detail line for text output
-const formatBookDetailText = (item) => {
+export const formatBookDetailText = (item) => {
+  if (!item) return '';
   const parts = [];
+  if (item.bookTitle) parts.push(`"${item.bookTitle}"`);
   if (item.bookSize) parts.push(item.bookSize);
   if (item.bookPages) parts.push(`${item.bookPages} hlm`);
   if (item.bookPaperInner) parts.push(`Isi: ${item.bookPaperInner}`);
   if (item.bookCover) parts.push(`Cover: ${item.bookCover}`);
-  if (item.bookBinding) parts.push(item.bookBinding);
+  if (item.bookBinding) parts.push(`Jilid: ${item.bookBinding}`);
   return parts.length > 0 ? parts.join(' | ') : '';
 };
 
 // Helper: format custom details for text output
-const formatCustomDetailsText = (item) => {
-  if (!item.customDetails || item.customDetails.length === 0) return '';
+export const formatCustomDetailsText = (item) => {
+  if (!item || !item.customDetails || item.customDetails.length === 0) return '';
   return item.customDetails
     .filter(d => d.key && d.value)
     .map(d => `${d.key}: ${d.value}`)
     .join(' | ');
+};
+
+/**
+ * Centralized item summary formatter for Receipt Preview, WA Share, and Excel Reports
+ * @param {Object} item - Transaction item object
+ * @param {'full' | 'single-line' | 'specs'} mode - Formatting target
+ * @returns {string}
+ */
+export const formatItemSummary = (item, mode = 'full') => {
+  if (!item) return '';
+  const total = calculateItemTotal(item);
+  const name = item.name || 'Pekerjaan Cetak';
+  const qty = item.qty || 1;
+  const unit = (item.type || 'pcs').toUpperCase();
+
+  if (mode === 'single-line') {
+    return `${name} (${qty} ${unit}) = ${formatRupiah(total)}`;
+  }
+
+  if (mode === 'specs') {
+    const specs = [];
+    if (item.type === 'm2') {
+      specs.push(`${item.length || 0}×${item.width || 0} cm`);
+    } else if (item.type === 'buku') {
+      const bookDet = formatBookDetailText(item);
+      if (bookDet) specs.push(bookDet);
+    }
+    if (item.finishing) specs.push(`Finishing: ${item.finishing}`);
+    const customDet = formatCustomDetailsText(item);
+    if (customDet) specs.push(customDet);
+    return specs.join(' | ');
+  }
+
+  // mode === 'full'
+  let line = `${name} `;
+  if (item.type === 'm2') {
+    line += `(${item.length || 0}×${item.width || 0} cm) × ${qty} = ${formatRupiah(total)}`;
+  } else if (item.type === 'buku') {
+    line += `× ${qty} Eksemplar = ${formatRupiah(total)}`;
+  } else {
+    line += `× ${qty} ${unit} = ${formatRupiah(total)}`;
+  }
+
+  const extraParts = [];
+  if (item.type === 'buku') {
+    const bookDet = formatBookDetailText(item);
+    if (bookDet) extraParts.push(bookDet);
+  }
+  if (item.finishing) extraParts.push(`Finishing: ${item.finishing}`);
+  const customDet = formatCustomDetailsText(item);
+  if (customDet) extraParts.push(customDet);
+
+  if (extraParts.length > 0) {
+    line += `\n   ${extraParts.join('\n   ')}`;
+  }
+  return line;
 };
 
 export const formatRupiah = (amount) => {
@@ -135,13 +213,40 @@ export const formatRupiah = (amount) => {
   }).format(amount || 0);
 };
 
-export const generateReceiptNumber = () => {
+/**
+ * Returns clean local YYYY-MM-DD date string without UTC shift issues
+ */
+export const getLocalDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Generates collision-free receipt number against existing history
+ */
+export const generateReceiptNumber = (existingHistory = []) => {
   const today = new Date();
   const dateStr = today.getFullYear() +
     String(today.getMonth() + 1).padStart(2, '0') +
     String(today.getDate()).padStart(2, '0');
-  const random = Math.floor(100 + Math.random() * 900);
-  return `NOTA-${dateStr}-${random}`;
+  
+  let random = Math.floor(100 + Math.random() * 900);
+  let receiptNo = `NOTA-${dateStr}-${random}`;
+
+  if (Array.isArray(existingHistory) && existingHistory.length > 0) {
+    const existingNos = new Set(existingHistory.map(h => h.noNota));
+    let attempts = 0;
+    while (existingNos.has(receiptNo) && attempts < 100) {
+      random = Math.floor(100 + Math.random() * 900);
+      receiptNo = `NOTA-${dateStr}-${random}`;
+      attempts++;
+    }
+  }
+
+  return receiptNo;
 };
 
 export const formatDateId = (dateStr) => {
@@ -169,20 +274,7 @@ export const generateNotaText = (storeProfile, transaction, items, grandTotal, s
 
   text += `*RINCIAN PESANAN:*\n`;
   items.forEach((i, idx) => {
-    const itemTotal = calculateItemTotal(i);
-    text += `${idx + 1}. ${i.name || 'Pekerjaan Cetak'} `;
-    if (i.type === 'm2') {
-      text += `(${i.length || 0}x${i.width || 0}cm) x ${i.qty || 1} = ${formatRupiah(itemTotal)}\n`;
-    } else if (i.type === 'buku') {
-      text += `x ${i.qty || 1} Eksemplar = ${formatRupiah(itemTotal)}\n`;
-      const bookDetail = formatBookDetailText(i);
-      if (bookDetail) text += `   ${bookDetail}\n`;
-    } else {
-      text += `x ${i.qty || 1} ${(i.type || 'PCS').toUpperCase()} = ${formatRupiah(itemTotal)}\n`;
-    }
-    if (i.finishing) text += `   Finishing: ${i.finishing}\n`;
-    const customDet = formatCustomDetailsText(i);
-    if (customDet) text += `   ${customDet}\n`;
+    text += `${idx + 1}. ${formatItemSummary(i, 'full')}\n`;
   });
 
   text += `--------------------------------------\n`;
@@ -229,7 +321,7 @@ export const generateCompactNotaText = (storeProfile, transaction, items, grandT
   });
 
   text += `Total: ${formatRupiah(grandTotal)} (${transaction.payStatus})`;
-  if (transaction.payStatus === 'DP' || transaction.payStatus === 'Belum Bayar') {
+  if (transaction.payStatus === 'DP' || transaction.payStatus === 'Belum Lunas' || transaction.payStatus === 'Belum Bayar') {
     text += ` Sisa:${formatRupiah(sisa)}`;
   }
 

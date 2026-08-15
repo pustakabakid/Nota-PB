@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 graphify-out
+.agents
 *.local
 .env
 .env.*

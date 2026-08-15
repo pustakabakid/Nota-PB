@@ -1,73 +1,202 @@
-import React from 'react';
-import CustomTooltip from './ui/CustomTooltip';
+import React, { useState, useRef, useEffect } from 'react';
 
-export default function Header({ storeProfile, currentPage, onNavigate, isCloudConnected, theme, onToggleTheme, onLogout, currentUser }) {
+/**
+ * Header — Responsive POS Navigation with User Profile Popover
+ *
+ * Left   : Logo + Store Name + Subtitle
+ * Center/Right : Segmented Navigation Tabs (Order Kasir, Preview [mobile], Dashboard)
+ * Right  : Unified Avatar Button → opens floating Profile / Status / Settings Popover
+ */
+export default function Header({
+  storeProfile,
+  currentPage,
+  onNavigate,
+  isCloudConnected,
+  theme,
+  onToggleTheme,
+  onLogout,
+  currentUser,
+  activeMobileTab = 'order',
+  onSwitchMobileTab,
+}) {
   const isSuperAdmin = !currentUser || currentUser.role === 'superadmin';
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  // Click outside & Escape key listeners
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isUserMenuOpen]);
+
+  const userName = currentUser?.name || currentUser?.username || 'Operator Kasir';
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <header className="app-header">
+    <header className="app-header" role="banner">
+      {/* ── Brand ── */}
       <div className="brand-container">
-        <img src="/favicon.svg" alt="Logo Toko" style={{ height: '42px', width: 'auto', objectFit: 'contain' }} />
-        <div>
-          <h1 className="brand-title">{storeProfile.name}</h1>
-          <p className="brand-subtitle">{storeProfile.subtitle}</p>
-        </div>
-      </div>
-      <div className="header-actions" style={{ gap: '0.6rem' }}>
-        {/* User Role Badge */}
-        {currentUser && (
-          <div style={{
-            fontSize: '0.725rem',
-            fontWeight: 600,
-            color: isSuperAdmin ? 'var(--primary)' : 'var(--text-color)',
-            background: isSuperAdmin ? 'rgba(27, 189, 143, 0.12)' : 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            padding: '0.25rem 0.6rem',
-            borderRadius: 'var(--radius-md)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem'
-          }}>
-            <i className={isSuperAdmin ? 'ri-shield-keyhole-line' : 'ri-user-3-line'}></i>
-            <span>{isSuperAdmin ? 'Superadmin' : 'Admin Kasir'}</span>
-          </div>
-        )}
-
-        {/* Main Page Navigation Tabs (Dashboard visible to Superadmin only) */}
-        <div style={{ display: 'flex', gap: '0.35rem', background: 'var(--bg-card)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-          <button 
-            className={`btn btn-sm ${currentPage === 'editor' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => onNavigate('editor')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
-          >
-            <i className="ri-printer-line"></i>
-            <span>Cetak Nota</span>
-          </button>
-
-          {isSuperAdmin && (
-            <button 
-              className={`btn btn-sm ${currentPage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => onNavigate('dashboard')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
-            >
-              <i className="ri-dashboard-3-line"></i>
-              <span>Dashboard</span>
-            </button>
+        <img src="/favicon.svg" alt="Logo Toko" className="brand-logo" />
+        <div className="brand-text">
+          <h1 className="brand-title">{storeProfile.name || 'Nota Percetakan'}</h1>
+          {storeProfile.subtitle && (
+            <p className="brand-subtitle">{storeProfile.subtitle}</p>
           )}
         </div>
+      </div>
 
-        <CustomTooltip text="Ganti Mode Terang / Gelap">
-          <button className="btn btn-secondary btn-sm btn-icon-only" onClick={onToggleTheme}>
-            <i className={theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'}></i>
+      {/* ── Navigation Tabs ── */}
+      <nav className="header-nav-segment" aria-label="Navigasi Utama">
+        {/* Order Kasir */}
+        <button
+          type="button"
+          className={`nav-tab-btn${currentPage === 'editor' && activeMobileTab === 'order' ? ' active' : ''}`}
+          onClick={() => {
+            onNavigate('editor');
+            if (onSwitchMobileTab) onSwitchMobileTab('order');
+          }}
+          aria-current={currentPage === 'editor' && activeMobileTab === 'order' ? 'page' : undefined}
+          aria-label="Order Kasir"
+        >
+          <i className="ri-shopping-bag-3-line" aria-hidden="true" />
+          <span className="nav-tab-label">Order Kasir</span>
+        </button>
+
+        {/* Preview Nota — mobile only */}
+        <button
+          type="button"
+          className={`nav-tab-btn mobile-only-tab${currentPage === 'editor' && activeMobileTab === 'preview' ? ' active' : ''}`}
+          onClick={() => {
+            onNavigate('editor');
+            if (onSwitchMobileTab) onSwitchMobileTab('preview');
+          }}
+          aria-current={currentPage === 'editor' && activeMobileTab === 'preview' ? 'page' : undefined}
+          aria-label="Preview Nota"
+        >
+          <i className="ri-file-text-line" aria-hidden="true" />
+          <span className="nav-tab-label">Preview</span>
+        </button>
+
+        {/* Dashboard — superadmin only */}
+        {isSuperAdmin && (
+          <button
+            type="button"
+            className={`nav-tab-btn${currentPage === 'dashboard' ? ' active' : ''}`}
+            onClick={() => onNavigate('dashboard')}
+            aria-current={currentPage === 'dashboard' ? 'page' : undefined}
+            aria-label="Dashboard"
+          >
+            <i className="ri-dashboard-3-line" aria-hidden="true" />
+            <span className="nav-tab-label">Dashboard</span>
           </button>
-        </CustomTooltip>
+        )}
+      </nav>
 
-        {onLogout && (
-          <CustomTooltip text="Keluar dari Sesi Kasir">
-            <button className="btn btn-secondary btn-sm btn-icon-only" onClick={onLogout} style={{ color: 'var(--danger)' }}>
-              <i className="ri-logout-box-r-line"></i>
+      {/* ── Right: Grouped User Profile / Avatar Dropdown ── */}
+      <div className="header-user-wrapper" ref={userMenuRef}>
+        <button
+          type="button"
+          className={`header-avatar-btn${isUserMenuOpen ? ' active' : ''}`}
+          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          aria-haspopup="true"
+          aria-expanded={isUserMenuOpen}
+          aria-label="Menu Pengguna & Pengaturan"
+        >
+          <div className="avatar-circle">
+            <span className="avatar-initial">{userInitial}</span>
+            <span className={`avatar-status-dot ${isCloudConnected ? 'online' : 'offline'}`} />
+          </div>
+          <i className={`ri-arrow-down-s-line avatar-chevron${isUserMenuOpen ? ' rotate' : ''}`} aria-hidden="true" />
+        </button>
+
+        {/* Floating User Menu Dropdown */}
+        {isUserMenuOpen && (
+          <div className="header-user-dropdown" role="menu" aria-label="Menu Akun & Pengaturan">
+            {/* Header User Profile Info */}
+            <div className="user-dropdown-profile">
+              <div className="user-dropdown-avatar">
+                <i className={isSuperAdmin ? 'ri-shield-keyhole-line' : 'ri-user-3-line'} aria-hidden="true" />
+              </div>
+              <div className="user-dropdown-details">
+                <strong className="user-dropdown-name">{userName}</strong>
+                <span className="user-dropdown-role">
+                  {isSuperAdmin ? 'Superadmin (Akses Penuh)' : 'Kasir / Operator'}
+                </span>
+              </div>
+            </div>
+
+            <div className="user-dropdown-divider" />
+
+            {/* Cloud Database Status */}
+            <div className="user-dropdown-item">
+              <div className="dropdown-item-left">
+                <span className={`pulse-dot ${isCloudConnected ? 'online' : 'offline'}`} aria-hidden="true" />
+                <div className="dropdown-item-text">
+                  <span className="dropdown-item-title">Database Sync</span>
+                  <small className="dropdown-item-desc">
+                    {isCloudConnected ? 'Supabase Cloud DB Aktif' : 'Penyimpanan Offline (Lokal)'}
+                  </small>
+                </div>
+              </div>
+              <span className={`status-pill-mini ${isCloudConnected ? 'connected' : 'local'}`}>
+                <i className={isCloudConnected ? 'ri-cloud-line' : 'ri-cloud-off-line'} aria-hidden="true" />
+                {isCloudConnected ? 'Cloud' : 'Lokal'}
+              </span>
+            </div>
+
+            <div className="user-dropdown-divider" />
+
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              className="user-dropdown-action-btn"
+              onClick={onToggleTheme}
+              role="menuitem"
+            >
+              <div className="dropdown-action-left">
+                <i className={theme === 'dark' ? 'ri-sun-line text-warning' : 'ri-moon-line text-primary'} aria-hidden="true" />
+                <span>Mode Tampilan</span>
+              </div>
+              <span className="dropdown-badge-theme">
+                {theme === 'dark' ? 'Gelap' : 'Terang'}
+              </span>
             </button>
-          </CustomTooltip>
+
+            {/* Logout Button */}
+            {onLogout && (
+              <button
+                type="button"
+                className="user-dropdown-action-btn logout-btn"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onLogout();
+                }}
+                role="menuitem"
+              >
+                <div className="dropdown-action-left">
+                  <i className="ri-logout-box-r-line" aria-hidden="true" />
+                  <span>Keluar dari Sesi</span>
+                </div>
+                <i className="ri-arrow-right-s-line" aria-hidden="true" />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </header>

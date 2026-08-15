@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import QRCode from 'qrcode';
-import html2pdf from 'html2pdf.js';
-import { formatRupiah, formatDateId, calculateItemTotal, generateNotaText, generateCompactNotaText } from '../services/storage';
+import { formatRupiah, formatDateId, calculateItemTotal, generateNotaText } from '../services/storage';
+import { exportSingleNotaPdf } from '../services/reportExporter';
+import { PAPER_TAB_OPTIONS } from '../constants/appConstants';
 import CustomTooltip from './ui/CustomTooltip';
 
-export default function NotaPreview({
+function NotaPreview({
   storeProfile,
   transaction,
   items,
@@ -17,67 +18,153 @@ export default function NotaPreview({
   onSaveTransaction,
   onResetForm,
   onShowToast,
-  hidePaperSelector = false
+  hidePaperSelector = false,
+  onSwitchMobileTab
 }) {
-  const qrCanvasRef = useRef(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const printableRef = useRef(null);
 
-  useEffect(() => {
-    if (qrCanvasRef.current) {
-      // Build compact human-readable QR content
-      const itemLines = items.map((item, i) => {
-        const total = calculateItemTotal(item);
-        const label = items.length > 1 ? `${i + 1}. ${item.name || 'Pekerjaan Cetak'}` : (item.name || 'Pekerjaan Cetak');
-        return `${label} | Qty:${item.qty} | ${formatRupiah(item.price)} | ${formatRupiah(total)}`;
-      }).join('\n');
+  // Calculate dynamic density class based on item count to fit 1-page A4 aspect ratio without scroll
+  const displayItems = useMemo(() => {
+    const rawItems = Array.isArray(items) ? items : [];
+    return rawItems.length > 0 
+      ? rawItems 
+      : (grandTotal > 0 ? [{
+          id: 'fallback-item',
+          name: 'Pekerjaan Cetak',
+          type: 'pcs',
+          qty: 1,
+          price: grandTotal + (transaction.discount || 0),
+          length: 100,
+          width: 100
+        }] : []);
+  }, [items, grandTotal, transaction.discount]);
 
+  const itemsSum = displayItems.reduce((acc, item) => acc + calculateItemTotal(item), 0);
+  const computedSubtotal = subtotal > 0 ? subtotal : (itemsSum > 0 ? itemsSum : (grandTotal + (transaction.discount || 0)));
+  const computedGrandTotal = grandTotal > 0 ? grandTotal : Math.max(0, computedSubtotal - (transaction.discount || 0));
+
+  const qrDimension = useMemo(() => {
+    const scale = storeProfile?.qrSize || 'medium';
+    if (scale === 'custom') {
+      const unit = storeProfile?.customQrUnit || 'mm';
+      const val = Number(storeProfile?.customQrSize) || (unit === 'mm' ? 24 : 80);
+      return `${val}${unit}`;
+    }
+    if (selectedPaper === '58mm') {
+      return scale === 'small' ? '16mm' : (scale === 'large' ? '24mm' : '20mm');
+    }
+    if (selectedPaper === '80mm') {
+      return scale === 'small' ? '18mm' : (scale === 'large' ? '28mm' : '24mm');
+    }
+    if (selectedPaper === 'A5') {
+      return scale === 'small' ? '18mm' : (scale === 'large' ? '26mm' : '22mm');
+    }
+    if (selectedPaper === 'custom') {
+      return scale === 'small' ? '18mm' : (scale === 'large' ? '26mm' : '22mm');
+    }
+    // A4
+    return scale === 'small' ? '20mm' : (scale === 'large' ? '30mm' : '24mm');
+  }, [selectedPaper, storeProfile?.qrSize, storeProfile?.customQrSize, storeProfile?.customQrUnit]);
+
+  const customPaperStyle = useMemo(() => {
+    if (selectedPaper !== 'custom') return {};
+    const widthMm = Number(storeProfile?.customPaperWidth) || 100;
+    const marginMm = storeProfile?.customPaperMargin !== undefined ? Number(storeProfile.customPaperMargin) : 4;
+    return {
+      width: `${widthMm}mm`,
+      maxWidth: `${widthMm}mm`,
+      padding: `${marginMm}mm`,
+      boxSizing: 'border-box'
+    };
+  }, [selectedPaper, storeProfile?.customPaperWidth, storeProfile?.customPaperMargin]);
+
+  const qrPositionClass = useMemo(() => {
+    if (storeProfile?.qrSize === 'custom' && storeProfile?.qrPosition) {
+      return `qr-pos-${storeProfile.qrPosition}`;
+    }
+    if (selectedPaper === '58mm' || selectedPaper === '80mm') return 'qr-pos-center';
+    return 'qr-pos-right';
+  }, [selectedPaper, storeProfile?.qrSize, storeProfile?.qrPosition]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    try {
+      const storeTitle = storeProfile && storeProfile.name ? storeProfile.name : 'Pustaka Bakid';
+      const custStr = transaction.custName ? transaction.custName.trim() : 'Pelanggan Umum';
+      const dateStr = formatDateId(transaction.date);
+      const totalStr = formatRupiah(computedGrandTotal);
+      const statusStr = transaction.payStatus || 'Lunas';
+
+      // Standardized, high-scannability structured QR payload
       const qrData = [
-        `Nota: ${transaction.noNota}`,
-        `Tgl : ${formatDateId(transaction.date)}`,
-        `------------------------------`,
-        itemLines,
-        `------------------------------`,
-        `Total : ${formatRupiah(grandTotal)}`,
-        `Status: ${transaction.payStatus}`,
+        storeTitle,
+        `No. Nota: ${transaction.noNota}`,
+        `Pelanggan: ${custStr}`,
+        `Tanggal: ${dateStr}`,
+        `Total: ${totalStr}`,
+        `Status: ${statusStr}`
       ].join('\n');
 
-      QRCode.toCanvas(qrCanvasRef.current, qrData, {
-        width: 80,
-        margin: 1,
+      QRCode.toDataURL(qrData, {
+        width: 320,
+        margin: 2,
         errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#ffffff'
         }
-      }, (error) => {
-        if (error) console.error('QR code generation failed:', error);
+      }, (error, url) => {
+        if (!isCancelled) {
+          if (error) {
+            console.error('QR code generation failed:', error);
+            if (onShowToast) onShowToast('Gagal memproses QR Code pada nota.', 'warning');
+          } else {
+            setQrDataUrl(url);
+          }
+        }
       });
+    } catch (err) {
+      if (!isCancelled) {
+        console.error('QR code generation sync error:', err);
+        if (onShowToast) onShowToast('Gagal memproses QR Code.', 'warning');
+      }
     }
-  }, [transaction.noNota, transaction.date, transaction.payStatus, grandTotal, items]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [transaction.noNota, transaction.custName, transaction.date, transaction.payStatus, storeProfile, computedGrandTotal, onShowToast]);
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleDownloadPdf = () => {
-    const element = printableRef.current;
-    if (!element) return;
-    const opt = {
-      margin: 5,
-      filename: `E-Nota_${transaction.noNota}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
-    if (onShowToast) {
-      onShowToast('Mengunduh berkas E-Nota PDF...', 'info');
+  const handleDownloadPdf = async () => {
+    const element = printableRef.current || document.getElementById('printableNota');
+    if (!element) {
+      if (onShowToast) onShowToast('Elemen nota tidak ditemukan.', 'danger');
+      return;
+    }
+
+    try {
+      await exportSingleNotaPdf(
+        storeProfile,
+        transaction,
+        displayItems,
+        selectedPaper,
+        computedGrandTotal,
+        sisa,
+        element
+      );
+      if (onShowToast) onShowToast('E-Nota PDF berhasil diunduh!', 'success');
+    } catch (err) {
+      console.error('PDF export error:', err);
+      if (onShowToast) onShowToast('Gagal mengunduh PDF: ' + (err?.message || 'Gunakan tombol Cetak.'), 'danger');
     }
   };
 
   const handleShareWa = () => {
-    const text = generateNotaText(storeProfile, transaction, items, grandTotal, sisa);
-
+    const text = generateNotaText(storeProfile, transaction, displayItems, computedGrandTotal, sisa);
     const encodedText = encodeURIComponent(text);
     let waUrl = `https://wa.me/?text=${encodedText}`;
     if (transaction.custPhone) {
@@ -87,101 +174,120 @@ export default function NotaPreview({
       }
       waUrl = `https://wa.me/${formattedPhone}?text=${encodedText}`;
     }
-
     window.open(waUrl, '_blank');
   };
 
-  const handleCopyText = () => {
-    const text = generateNotaText(storeProfile, transaction, items, grandTotal, sisa);
-    navigator.clipboard.writeText(text);
-    if (onShowToast) {
-      onShowToast('Teks ringkasan nota berhasil disalin ke clipboard!', 'success');
-    }
-  };
-
-  // Calculate dynamic density class based on item count to fit 1-page A4 aspect ratio without scroll
   let densityClass = 'density-normal';
-  if (items.length >= 5) {
+  if (displayItems.length >= 5) {
     densityClass = 'density-compact';
-  } else if (items.length >= 3) {
+  } else if (displayItems.length >= 3) {
     densityClass = 'density-dense';
   }
 
   return (
-    <section>
-      <div className="preview-sticky-wrapper">
-        
-        {/* Paper selector bar */}
-        {!hidePaperSelector && (
-          <div className="paper-selector-bar">
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-              <i className="ri-layout-3-line"></i> Format Cetak Kertas:
-            </span>
-            <div className="paper-tabs">
-              {['80mm', '58mm', 'A5', 'A4'].map((size) => (
-                <button
-                  key={size}
-                  className={`paper-tab ${selectedPaper === size ? 'active' : ''}`}
-                  onClick={() => onSelectPaper(size)}
-                >
-                  {size === '80mm' ? 'Thermal 80mm' : (size === '58mm' ? 'Thermal 58mm' : `Kertas ${size}`)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+    <div className="preview-sticky-wrapper">
+      {/* Mobile Return to Order Bar */}
+      {onSwitchMobileTab && (
+        <div style={{ marginBottom: '0.65rem', width: '100%', maxWidth: '680px', margin: '0 auto 0.65rem auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.25rem' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onSwitchMobileTab('order')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+          >
+            <i className="ri-arrow-left-line" aria-hidden="true" />
+            <span>Form Order Kasir</span>
+          </button>
+          <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+            PREVIEW NOTA
+          </span>
+        </div>
+      )}
 
-        {/* Printable Nota Canvas Wrapper (Proportional A4 Scaler for mobile & desktop) */}
-        <div className="nota-a4-scaler">
-          <div id="printableNota" ref={printableRef} className={`nota-canvas ${densityClass}`} data-paper={selectedPaper}>
+      {/* 1. Paper selector bar */}
+      {!hidePaperSelector && (
+        <div className="paper-selector-bar">
+          <div className="paper-selector-label">
+            <i className="ri-layout-3-line" aria-hidden="true" />
+            <span>Format Kertas:</span>
+          </div>
+          <div className="paper-tabs" role="tablist" aria-label="Pilihan Format Kertas">
+            {PAPER_TAB_OPTIONS.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                role="tab"
+                aria-selected={selectedPaper === item.id}
+                className={`paper-tab ${selectedPaper === item.id ? 'active' : ''}`}
+                onClick={() => onSelectPaper(item.id)}
+                aria-label={`Pilih format ${item.label}`}
+              >
+                <i className={item.icon} aria-hidden="true" />
+                <span>{item.id === 'custom' ? (storeProfile?.customPaperName || 'Kustom') : item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Preview Stage (Natural paper sheet display without height clipping) */}
+      <div className="preview-stage">
+        <div
+          id="printableNota"
+          ref={printableRef}
+          className={`nota-canvas ${densityClass}`}
+          data-paper={selectedPaper}
+          style={customPaperStyle}
+        >
             
-            {/* Figma Top Header Section */}
+            {/* Top Header Section */}
             <div className="nota-header-view">
               <div>
-                {/* Logo Pustaka Bakid */}
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <img src="/favicon.svg" alt="Logo Toko" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
+                  <img src="/favicon.svg" alt="Logo Toko" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} />
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div className="nota-invoice-accent">Invoice</div>
-                <div style={{ fontSize: '0.8rem', color: '#000000', marginTop: '0.4rem', lineHeight: '1.35' }}>
-                  <div>{transaction.noNota}</div>
+                <div style={{ fontSize: '0.8rem', color: '#000000', marginTop: '0.3rem', lineHeight: '1.35' }}>
+                  <div style={{ fontWeight: 600 }}>{transaction.noNota}</div>
                   <div>{formatDateId(transaction.date)}</div>
                 </div>
               </div>
             </div>
 
             {/* Store Name Title & Greeting Message */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#000000', margin: '0 0 0.4rem 0' }}>
-                {storeProfile.name}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#000000', margin: '0 0 0.3rem 0' }}>
+                {storeProfile.name || 'Nota Percetakan'}
               </h3>
-              <div style={{ fontSize: '0.8rem', color: '#000000', lineHeight: '1.45', maxWidth: '320px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#000000', lineHeight: '1.4', maxWidth: '340px' }}>
                 Halo, {transaction.custName || 'Customer'}.<br />
                 Terima Kasih Telah Menggunakan Jasa Kami.
               </div>
             </div>
 
-            {/* Figma Two Column Metadata (BILLING INFORMATION & PAYMENT METHOD) */}
+            {/* Responsive Billing Metadata (BILLING INFORMATION & PAYMENT METHOD) */}
             <div className="nota-meta-grid">
-              <div style={{ width: '48%' }}>
+              <div>
                 <div className="nota-meta-section-title">BILLING INFORMATION</div>
                 <div style={{ fontSize: '0.8rem', color: '#000000', lineHeight: '1.45' }}>
-                  <div>{transaction.custName || 'Pelanggan'}</div>
+                  <div style={{ fontWeight: 600 }}>{transaction.custName || 'Pelanggan Umum'}</div>
                   {transaction.custAddress && <div>{transaction.custAddress}</div>}
                   <div>No: {transaction.custPhone || '-'}</div>
                 </div>
               </div>
-              <div style={{ width: '48%', textAlign: 'right' }}>
+              <div>
                 <div className="nota-meta-section-title">PAYMENT METHOD</div>
                 <div style={{ fontSize: '0.8rem', color: '#000000', lineHeight: '1.45' }}>
                   <div>{transaction.payMethod || 'Transfer'}</div>
-                  {transaction.payMethod === 'Transfer' && transaction.bankName && (
-                    <div>Nama Bank: {transaction.bankName}</div>
+                  {transaction.payMethod === 'Transfer' && (transaction.bankName || storeProfile.bankName) && (
+                    <div style={{ fontSize: '0.75rem', color: '#1e293b', fontWeight: 600 }}>
+                      Rek: {transaction.bankName || storeProfile.bankName} {storeProfile.bankAccount ? storeProfile.bankAccount : ''} {storeProfile.bankHolder ? `(a.n ${storeProfile.bankHolder})` : ''}
+                    </div>
                   )}
                   <div>
-                    Status Pembayaran: {' '}
+                    Status: {' '}
                     <u style={{ color: transaction.payStatus === 'Lunas' ? '#1BBD8F' : (transaction.payStatus === 'DP' ? '#b45309' : '#b91c1c'), fontWeight: 700 }}>
                       {transaction.payStatus === 'Lunas' ? 'LUNAS' : transaction.payStatus.toUpperCase()}
                     </u>
@@ -191,18 +297,18 @@ export default function NotaPreview({
               </div>
             </div>
 
-            {/* Figma Items Table */}
+            {/* Items Table */}
             <table className="nota-table">
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left' }}>Nama Barang</th>
-                  <th className="text-right" style={{ width: '60px', textAlign: 'center' }}>Jumlah</th>
-                  <th className="text-right" style={{ width: '100px' }}>Harga</th>
-                  <th className="text-right" style={{ width: '110px' }}>Total Harga</th>
+                  <th className="text-right" style={{ width: '50px', textAlign: 'center' }}>Qty</th>
+                  <th className="text-right" style={{ width: '90px' }}>Harga</th>
+                  <th className="text-right" style={{ width: '100px' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, idx) => {
+                {displayItems.map((item, idx) => {
                   const itemTotal = calculateItemTotal(item);
                   const areaM2 = item.type === 'm2' ? (item.length / 100) * (item.width / 100) : 0;
 
@@ -220,7 +326,7 @@ export default function NotaPreview({
                     specsParts.push(item.type.toUpperCase());
                   }
 
-                  // Finishing & Opsi Tambahan (Form Extras) - Italic separated by commas without quotes
+                  // Finishing & Opsi Tambahan
                   const extraDetails = [];
                   if (item.finishing) {
                     extraDetails.push(`Finishing: ${item.finishing}`);
@@ -239,7 +345,7 @@ export default function NotaPreview({
                       <tr className="nota-item-main-row">
                         <td>
                           <strong className="nota-item-title">
-                            {items.length > 1 ? `${idx + 1}. ` : ''}{item.name || 'Pekerjaan Cetak'}
+                            {displayItems.length > 1 ? `${idx + 1}. ` : ''}{item.name || 'Pekerjaan Cetak'}
                           </strong>
                         </td>
                         <td className="text-right num-tabular" style={{ textAlign: 'center', color: '#646A6E' }}>
@@ -257,17 +363,17 @@ export default function NotaPreview({
                           <td colSpan="4">
                             <div className="nota-item-detail-box">
                               {bookTitle && (
-                                <div className="nota-detail-title" style={{ fontWeight: 600, color: '#334155', marginBottom: '0.15rem' }}>
+                                <div style={{ fontWeight: 600, color: '#334155', marginBottom: '0.15rem' }}>
                                   {bookTitle}
                                 </div>
                               )}
                               {specsParts.length > 0 && (
-                                <div className="nota-detail-specs">
+                                <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 500 }}>
                                   {specsParts.join('  |  ')}
                                 </div>
                               )}
                               {extraDetails.length > 0 && (
-                                <div className="nota-detail-extras" style={{ fontStyle: 'italic', color: '#475569', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                                <div style={{ fontStyle: 'italic', color: '#475569', fontSize: '0.75rem', marginTop: '0.15rem' }}>
                                   {extraDetails.join(', ')}
                                 </div>
                               )}
@@ -281,29 +387,41 @@ export default function NotaPreview({
               </tbody>
             </table>
 
-            {/* Figma Totals View */}
+            {/* Totals & Payment Summary */}
             <div className="nota-totals-view">
               <div className="nota-total-row">
-                <span>Sub Total</span>
-                <span className="num-tabular">{formatRupiah(subtotal)}</span>
+                <span>Subtotal</span>
+                <span className="num-tabular">{formatRupiah(computedSubtotal)}</span>
               </div>
               {transaction.discount > 0 && (
-                <div className="nota-total-row">
-                  <span>Diskon</span>
+                <div className="nota-total-row" style={{ color: 'var(--figma-accent-red)' }}>
+                  <span>Potongan Harga (Diskon)</span>
                   <span className="num-tabular">- {formatRupiah(transaction.discount)}</span>
                 </div>
               )}
               <div className="nota-total-row grand-total">
-                <span>Total Harga</span>
-                <span className="num-tabular">{formatRupiah(grandTotal)}</span>
+                <span>TOTAL HARGA</span>
+                <span className="num-tabular">{formatRupiah(computedGrandTotal)}</span>
               </div>
-              <div className="nota-total-row">
-                <span>Bayar</span>
-                <span className="num-tabular">
-                  {formatRupiah(transaction.payStatus === 'Lunas' ? grandTotal : (transaction.payStatus === 'DP' ? transaction.dp : 0))}
+              <div className="nota-total-row" style={{ borderTop: '1px dotted #ccc', paddingTop: '0.3rem', marginTop: '0.3rem' }}>
+                <span>Status Pembayaran</span>
+                <span style={{ fontWeight: 700, color: transaction.payStatus === 'Lunas' ? '#008800' : '#cc0000' }}>
+                  {transaction.payStatus === 'Lunas' ? '✓ LUNAS' : (transaction.payStatus === 'DP' ? `UANG MUKA (DP ${formatRupiah(transaction.dp)})` : 'BELUM BAYAR')}
                 </span>
               </div>
-              <div className="nota-total-row" style={{ fontWeight: 700, color: '#000000', fontSize: '0.95rem' }}>
+              {transaction.payMethod && (
+                <div className="nota-total-row" style={{ fontSize: '0.75rem', color: '#555555' }}>
+                  <span>Metode Pembayaran</span>
+                  <span>{transaction.payMethod} {transaction.bankName ? `(${transaction.bankName})` : ''}</span>
+                </div>
+              )}
+              <div className="nota-total-row" style={{ fontWeight: 600 }}>
+                <span>Jumlah Dibayar</span>
+                <span className="num-tabular" style={{ color: transaction.payStatus === 'Lunas' ? '#000000' : '#cc0000' }}>
+                  {formatRupiah(transaction.payStatus === 'Lunas' ? computedGrandTotal : (transaction.payStatus === 'DP' ? transaction.dp : 0))}
+                </span>
+              </div>
+              <div className="nota-total-row" style={{ fontWeight: 700, color: '#000000', fontSize: '0.9rem' }}>
                 <span>{transaction.payStatus === 'Lunas' ? 'Kembali' : 'Sisa Pelunasan'}</span>
                 <span className="num-tabular" style={{ color: transaction.payStatus === 'Lunas' ? '#000000' : '#cc0000' }}>
                   {formatRupiah(transaction.payStatus === 'Lunas' ? 0 : sisa)}
@@ -312,68 +430,120 @@ export default function NotaPreview({
             </div>
 
             {transaction.catatan && (
-              <div style={{ fontSize: '0.8rem', background: '#F9FAFB', padding: '0.6rem 0.75rem', borderRadius: '6px', marginBottom: '1rem', borderLeft: '3.5px solid var(--figma-primary)' }}>
+              <div style={{ fontSize: '0.8rem', background: '#F9FAFB', padding: '0.6rem 0.75rem', borderRadius: '6px', marginBottom: '1rem', borderLeft: '3.5px solid var(--figma-primary)', wordBreak: 'break-word' }}>
                 <strong>Catatan:</strong> {transaction.catatan}
               </div>
             )}
 
             {/* Footer & QR Code */}
-            <div className="nota-footer-view">
+            <div className={`nota-footer-view ${qrPositionClass}`}>
               <div>
-                <p style={{ fontSize: '0.8rem', color: '#5B5B5B', margin: 0, fontWeight: 500 }}>
-                  {storeProfile.footerMsg || 'Terima kasih.'}
+                <p style={{ fontSize: '0.775rem', color: '#5B5B5B', margin: 0, fontWeight: 500 }}>
+                  {storeProfile.footerMsg || 'Terima kasih atas kunjungan Anda.'}
                 </p>
               </div>
-              <div className="qr-code-box">
-                <canvas ref={qrCanvasRef} />
-                <span style={{ fontSize: '0.65rem', color: '#666', display: 'block', marginTop: '2px' }}>E-Nota Verifikasi</span>
-              </div>
+              {storeProfile.showQrCode !== false && qrDataUrl && (
+                <div
+                  className="qr-code-box"
+                  style={{
+                    width: qrDimension,
+                    height: qrDimension,
+                    minWidth: qrDimension,
+                    minHeight: qrDimension,
+                    maxWidth: qrDimension,
+                    maxHeight: qrDimension,
+                    flexShrink: 0
+                  }}
+                >
+                  <img
+                    src={qrDataUrl}
+                    alt="QR Code Verifikasi Nota"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      display: 'block',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </div>
+              )}
             </div>
-
           </div>
         </div>
 
-        {/* Action Buttons Section */}
-        {!isSaved ? (
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', width: '100%', maxWidth: '680px' }}>
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={onSaveTransaction}>
-              <i className="ri-save-line"></i>
-              <span>Simpan Transaksi & Terbitkan Nota</span>
-            </button>
-            <CustomTooltip text="Reset Form">
-              <button className="btn btn-secondary" onClick={onResetForm}>
-                <i className="ri-refresh-line"></i> Reset
+      {/* 3. Save & Quick Action Buttons Section */}
+      {onSaveTransaction && (
+        <div className="preview-actions-bar">
+          {!isSaved ? (
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+              <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={onSaveTransaction}>
+                <i className="ri-save-line" aria-hidden="true"></i>
+                <span>Simpan Transaksi & Terbitkan Nota</span>
               </button>
-            </CustomTooltip>
-          </div>
-        ) : (
-          <div className="quick-action-toolbar">
-            <div className="quick-action-toolbar-inner">
-              <CustomTooltip text="Cetak Langsung Ke Printer">
-                <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={handlePrint}>
-                  <i className="ri-printer-line"></i> Cetak
-                </button>
-              </CustomTooltip>
-              <CustomTooltip text="Unduh Dokumen PDF">
-                <button className="btn btn-success btn-sm" style={{ width: '100%' }} onClick={handleDownloadPdf}>
-                  <i className="ri-file-pdf-line"></i> PDF
-                </button>
-              </CustomTooltip>
-              <CustomTooltip text="Kirim Nota via WhatsApp">
-                <button className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={handleShareWa}>
-                  <i className="ri-whatsapp-line"></i> WA
-                </button>
-              </CustomTooltip>
-              <CustomTooltip text="Salin Teks Nota Ke Clipboard">
-                <button className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={handleCopyText}>
-                  <i className="ri-file-copy-line"></i> Salin
-                </button>
-              </CustomTooltip>
+              {onResetForm && (
+                <CustomTooltip text="Reset Form">
+                  <button type="button" className="btn btn-secondary" onClick={onResetForm} aria-label="Reset Form">
+                    <i className="ri-refresh-line" aria-hidden="true"></i> Reset
+                  </button>
+                </CustomTooltip>
+              )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', width: '100%' }}>
+              {/* 4 Quick Action Buttons: Cetak, PDF, WA, Review - Replaces Save button after nota is saved */}
+              <div className="quick-action-toolbar" style={{ margin: 0 }}>
+                <div className="quick-action-toolbar-inner">
+                  <CustomTooltip text="Cetak Langsung Ke Printer">
+                    <button type="button" className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={handlePrint}>
+                      <i className="ri-printer-line" aria-hidden="true"></i> Cetak
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Unduh Dokumen PDF">
+                    <button type="button" className="btn btn-success btn-sm" style={{ width: '100%' }} onClick={handleDownloadPdf}>
+                      <i className="ri-file-pdf-line" aria-hidden="true"></i> PDF
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Kirim Nota via WhatsApp">
+                    <button type="button" className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={handleShareWa}>
+                      <i className="ri-whatsapp-line" aria-hidden="true"></i> WA
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Review / Buka E-Nota Publik">
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ width: '100%' }}
+                      onClick={() => window.open(`?nota=${encodeURIComponent(transaction.noNota)}`, '_blank')}
+                    >
+                      <i className="ri-eye-line" aria-hidden="true"></i> Review
+                    </button>
+                  </CustomTooltip>
+                </div>
+              </div>
 
-      </div>
-    </section>
+              {/* Secondary Update & New Nota Actions */}
+              <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                <button type="button" className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={onSaveTransaction}>
+                  <i className="ri-save-line" aria-hidden="true"></i>
+                  <span>Update & Simpan Perubahan Nota</span>
+                </button>
+                {onResetForm && (
+                  <CustomTooltip text="Buat Nota Baru">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={onResetForm} aria-label="Buat Nota Baru">
+                      <i className="ri-add-line" aria-hidden="true"></i> Nota Baru
+                    </button>
+                  </CustomTooltip>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+    </div>
   );
 }
+
+export default memo(NotaPreview);

@@ -1,6 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { formatDateId } from '../../services/storage';
 
+/**
+ * CustomDatePicker — Calendar popup with viewport collision detection
+ *
+ * Positioning:  Fixed positioning to escape overflow:hidden parents.
+ *               Auto-flips UP if insufficient space below.
+ *               Clamps horizontally to stay within viewport.
+ *
+ * Hover states: Background/color only — no transforms that shift layout.
+ *
+ * Z-index:      var(--z-datepicker) = 1060
+ */
 export default function CustomDatePicker({
   value = '',
   onChange,
@@ -9,31 +20,68 @@ export default function CustomDatePicker({
   style = {}
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef(null);
+  const [popoverStyle, setPopoverStyle] = useState({});
+  const triggerRef = useRef(null);
+  const popoverRef = useRef(null);
 
-  // Parse YYYY-MM-DD string into Date object
+  // Parse YYYY-MM-DD string → Date object (no timezone shift)
   const parseDate = (dateStr) => {
     if (!dateStr) return new Date();
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
-    return new Date();
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
   };
 
   const selectedDate = value ? parseDate(value) : null;
   const [viewDate, setViewDate] = useState(() => selectedDate || new Date());
 
   useEffect(() => {
-    if (value) {
-      setViewDate(parseDate(value));
-    }
+    if (value) setViewDate(parseDate(value));
   }, [value]);
 
-  // Click outside listener
+  const CALENDAR_WIDTH = 280;
+  const CALENDAR_HEIGHT = 300; // approximate
+  const GAP = 4;
+
+  /**
+   * Calculate fixed position using viewport collision detection.
+   */
+  const calculatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
+    const spaceBelow = vh - rect.bottom - GAP;
+    const spaceAbove = rect.top - GAP;
+    const showAbove = spaceBelow < CALENDAR_HEIGHT && spaceAbove > spaceBelow;
+
+    // Clamp horizontal position
+    let left = rect.left;
+    if (left + CALENDAR_WIDTH > vw - 8) {
+      left = vw - CALENDAR_WIDTH - 8;
+    }
+    left = Math.max(8, left);
+
+    setPopoverStyle({
+      position: 'fixed',
+      left,
+      width: Math.min(CALENDAR_WIDTH, vw - 16),
+      zIndex: 'var(--z-datepicker, 1060)',
+      ...(showAbove
+        ? { bottom: vh - rect.top + GAP, top: 'auto' }
+        : { top: rect.bottom + GAP, bottom: 'auto' }
+      ),
+    });
+  }, []);
+
+  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target) &&
+        popoverRef.current && !popoverRef.current.contains(e.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -41,153 +89,145 @@ export default function CustomDatePicker({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Recalculate on scroll/resize while open
+  useEffect(() => {
+    if (!isOpen) return;
+    calculatePosition();
+
+    const update = () => calculatePosition();
+    window.addEventListener('scroll', update, { passive: true, capture: true });
+    window.addEventListener('resize', update, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', update, { capture: true });
+      window.removeEventListener('resize', update);
+    };
+  }, [isOpen, calculatePosition]);
+
+  // Calendar math
   const currentYear = viewDate.getFullYear();
   const currentMonth = viewDate.getMonth();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   const monthNames = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
-
   const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
-  // Calendar math
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-  const handlePrevMonth = () => {
-    setViewDate(new Date(currentYear, currentMonth - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setViewDate(new Date(currentYear, currentMonth + 1, 1));
-  };
 
   const handleSelectDay = (day) => {
     const mm = String(currentMonth + 1).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
-    const dateStr = `${currentYear}-${mm}-${dd}`;
-    onChange(dateStr);
+    onChange(`${currentYear}-${mm}-${dd}`);
     setIsOpen(false);
   };
 
   const handleQuickSelect = (type) => {
     const today = new Date();
-    let targetDate = new Date();
-
-    if (type === 'today') {
-      targetDate = today;
-    } else if (type === 'yesterday') {
-      targetDate.setDate(today.getDate() - 1);
-    } else if (type === 'clear') {
+    if (type === 'clear') {
       onChange('');
       setIsOpen(false);
       return;
     }
-
-    const yyyy = targetDate.getFullYear();
-    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-    const dd = String(targetDate.getDate()).padStart(2, '0');
+    const target = type === 'today' ? today : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const yyyy = target.getFullYear();
+    const mm = String(target.getMonth() + 1).padStart(2, '0');
+    const dd = String(target.getDate()).padStart(2, '0');
     onChange(`${yyyy}-${mm}-${dd}`);
     setIsOpen(false);
   };
 
+  const todayStr = (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  })();
+
   const formatDisplayValue = () => {
-    if (!value) return placeholder;
+    if (!value) return <span style={{ color: 'var(--text-muted)' }}>{placeholder}</span>;
     return formatDateId(value);
   };
 
-  const todayStr = () => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const handleToggle = () => {
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      calculatePosition();
+      setIsOpen(true);
+    }
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={`custom-datepicker-container ${className}`}
-      style={{ position: 'relative', display: 'inline-block', ...style }}
-    >
-      {/* Trigger Button */}
-      <button
-        type="button"
-        className="form-control"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.5rem',
-          cursor: 'pointer',
-          padding: '0.4rem 0.65rem',
-          fontSize: '0.8rem',
-          height: '34px',
-          minWidth: '130px',
-          background: 'var(--bg-card)',
-          color: value ? 'var(--text-color)' : 'var(--text-muted)'
-        }}
-        onClick={() => setIsOpen(!isOpen)}
+    <>
+      {/* Trigger — stays in document flow */}
+      <div
+        ref={triggerRef}
+        className={`custom-datepicker-container ${className}`}
+        style={style}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-          <i className="ri-calendar-event-line" style={{ color: 'var(--primary)', fontSize: '0.9rem' }}></i>
-          {formatDisplayValue()}
-        </span>
-        <i className={`ri-arrow-down-s-line`} style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}></i>
-      </button>
+        <button
+          type="button"
+          className="custom-datepicker-trigger form-control"
+          onClick={handleToggle}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+        >
+          <span className="cdp-trigger-content">
+            <i className="ri-calendar-event-line cdp-trigger-icon" aria-hidden="true" />
+            <span className="cdp-trigger-label">{formatDisplayValue()}</span>
+          </span>
+          <i
+            className="ri-arrow-down-s-line cdp-trigger-chevron"
+            style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
 
-      {/* Popover Calendar */}
+      {/* Calendar Popover — fixed position, escapes any overflow:hidden */}
       {isOpen && (
         <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            zIndex: 1000,
-            width: '260px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-md)',
-            padding: '0.75rem',
-            animation: 'fadeIn 0.15s ease-out'
-          }}
+          ref={popoverRef}
+          className="custom-datepicker-popover"
+          style={popoverStyle}
+          role="dialog"
+          aria-label="Pilih Tanggal"
+          aria-modal="false"
         >
-          {/* Header Month / Year & Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          {/* Month / Year Navigation */}
+          <div className="cdp-month-nav">
             <button
               type="button"
-              className="page-btn"
-              style={{ width: '26px', height: '26px' }}
-              onClick={handlePrevMonth}
+              className="btn-icon-action cdp-nav-btn"
+              onClick={() => setViewDate(new Date(currentYear, currentMonth - 1, 1))}
+              aria-label="Bulan Sebelumnya"
             >
-              <i className="ri-arrow-left-s-line"></i>
+              <i className="ri-arrow-left-s-line" aria-hidden="true" />
             </button>
-            <strong style={{ fontSize: '0.825rem', color: 'var(--text-color)' }}>
+            <strong className="cdp-month-label">
               {monthNames[currentMonth]} {currentYear}
             </strong>
             <button
               type="button"
-              className="page-btn"
-              style={{ width: '26px', height: '26px' }}
-              onClick={handleNextMonth}
+              className="btn-icon-action cdp-nav-btn"
+              onClick={() => setViewDate(new Date(currentYear, currentMonth + 1, 1))}
+              aria-label="Bulan Berikutnya"
             >
-              <i className="ri-arrow-right-s-line"></i>
+              <i className="ri-arrow-right-s-line" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Days Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', textAlign: 'center', marginBottom: '0.25rem' }}>
-            {daysOfWeek.map((day, idx) => (
-              <div key={idx} style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                {day}
-              </div>
+          {/* Day-of-week headers */}
+          <div className="cdp-dow-grid">
+            {daysOfWeek.map((d, i) => (
+              <div key={i} className="cdp-dow-cell">{d}</div>
             ))}
           </div>
 
-          {/* Days Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+          {/* Day grid */}
+          <div className="cdp-day-grid">
             {/* Empty slots for previous month */}
             {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-              <div key={`empty-${i}`} />
+              <div key={`e-${i}`} />
             ))}
 
             {/* Day buttons */}
@@ -196,32 +236,16 @@ export default function CustomDatePicker({
               const dd = String(day).padStart(2, '0');
               const dateStr = `${currentYear}-${mm}-${dd}`;
               const isSelected = value === dateStr;
-              const isToday = todayStr() === dateStr;
+              const isToday = todayStr === dateStr;
 
               return (
                 <button
                   key={day}
                   type="button"
+                  className={`cdp-day-btn${isSelected ? ' selected' : ''}${isToday ? ' today' : ''}`}
                   onClick={() => handleSelectDay(day)}
-                  style={{
-                    height: '28px',
-                    width: '100%',
-                    padding: 0,
-                    border: 'none',
-                    borderRadius: '4px',
-                    background: isSelected ? 'var(--primary)' : (isToday ? 'rgba(27, 189, 143, 0.15)' : 'transparent'),
-                    color: isSelected ? 'var(--primary-text)' : (isToday ? 'var(--primary)' : 'var(--text-color)'),
-                    fontWeight: isSelected || isToday ? 700 : 400,
-                    fontSize: '0.775rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) e.currentTarget.style.background = 'var(--bg-surface-solid)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) e.currentTarget.style.background = isToday ? 'rgba(27, 189, 143, 0.15)' : 'transparent';
-                  }}
+                  aria-label={`${day} ${monthNames[currentMonth]} ${currentYear}`}
+                  aria-pressed={isSelected}
                 >
                   {day}
                 </button>
@@ -229,25 +253,25 @@ export default function CustomDatePicker({
             })}
           </div>
 
-          {/* Quick Action Footer */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', paddingTop: '0.4rem' }}>
+          {/* Quick action footer */}
+          <div className="cdp-footer">
             <button
               type="button"
-              style={{ background: 'none', border: 'none', fontSize: '0.725rem', color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+              className="cdp-quick-btn cdp-quick-today"
               onClick={() => handleQuickSelect('today')}
             >
               Hari Ini
             </button>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', fontSize: '0.725rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+              className="cdp-quick-btn cdp-quick-clear"
               onClick={() => handleQuickSelect('clear')}
             >
-              Hapus Filter
+              Hapus
             </button>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
