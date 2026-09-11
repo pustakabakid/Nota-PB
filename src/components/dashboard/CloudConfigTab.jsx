@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { getSupabaseConfig, saveSupabaseConfig, isSupabaseConnected, SQL_SCHEMA_QUERY } from '../../services/supabaseClient';
+import { getAppsScriptConfig, saveAppsScriptConfig, isAppsScriptConnected } from '../../services/appsScriptClient';
 
 export default function CloudConfigTab({
   onReloadData,
   onShowToast
 }) {
-  const [cloudUrl, setCloudUrl] = useState('');
-  const [cloudKey, setCloudKey] = useState('');
-  const [showCloudKey, setShowCloudKey] = useState(false);
-  const [showSql, setShowSql] = useState(false);
-  const [copiedSql, setCopiedSql] = useState(false);
+  const [webAppUrl, setWebAppUrl] = useState('');
 
   useEffect(() => {
-    const config = getSupabaseConfig();
-    setCloudUrl(config.url);
-    setCloudKey(config.key);
+    const config = getAppsScriptConfig();
+    setWebAppUrl(config.url);
   }, []);
 
-  const isConnected = isSupabaseConnected();
+  const isConnected = isAppsScriptConnected();
 
   const handleSaveCloudConfig = async () => {
-    saveSupabaseConfig(cloudUrl, cloudKey);
+    saveAppsScriptConfig(webAppUrl);
     if (onShowToast) {
-      if (cloudUrl && cloudKey) {
-        onShowToast('Pengaturan database cloud berhasil disimpan!', 'success');
+      if (webAppUrl) {
+        onShowToast('Pengaturan Google Apps Script Web App berhasil disimpan!', 'success');
       } else {
         onShowToast('Mode database diubah ke Penyimpanan Lokal (Browser).', 'info');
       }
@@ -32,18 +27,10 @@ export default function CloudConfigTab({
   };
 
   const handleClearCloudConfig = async () => {
-    setCloudUrl('');
-    setCloudKey('');
-    saveSupabaseConfig('', '');
+    setWebAppUrl('');
+    saveAppsScriptConfig('');
     if (onShowToast) onShowToast('Koneksi Cloud dihapus. Kembali ke Penyimpanan Lokal.', 'info');
     if (onReloadData) await onReloadData();
-  };
-
-  const handleCopySqlScript = () => {
-    navigator.clipboard.writeText(SQL_SCHEMA_QUERY);
-    setCopiedSql(true);
-    if (onShowToast) onShowToast('Script SQL Schema berhasil disalin!', 'success');
-    setTimeout(() => setCopiedSql(false), 3000);
   };
 
   return (
@@ -54,11 +41,11 @@ export default function CloudConfigTab({
           <span className={`pulse-dot ${isConnected ? 'online' : 'offline'}`} />
           <div>
             <strong className="cloud-status-title">
-              {isConnected ? 'Terhubung ke Database Cloud (Supabase)' : 'Mode Penyimpanan Lokal (Browser)'}
+              {isConnected ? 'Terhubung ke Database Cloud (Google Sheets + Apps Script)' : 'Mode Penyimpanan Lokal (Browser)'}
             </strong>
             <p className="cloud-status-desc">
               {isConnected 
-                ? 'Data toko, katalog produk, riwayat transaksi, dan akun tersinkronisasi otomatis secara realtime.' 
+                ? 'Data toko, katalog produk, riwayat transaksi, dan akun tersinkronisasi otomatis ke Google Sheets.' 
                 : 'Data hanya tersimpan di penyimpanan lokal browser perangkat ini (belum tersinkronisasi ke cloud).'}
             </p>
           </div>
@@ -69,22 +56,22 @@ export default function CloudConfigTab({
         </span>
       </div>
 
-      {/* 2-Column Responsive Grid (Warning Left, Form Right) */}
+      {/* 2-Column Responsive Grid */}
       <div className="cloud-main-grid">
-        {/* Column 1: CRITICAL WARNING BANNER */}
+        {/* Column 1: WARNING BANNER */}
         <div className="cloud-critical-warning">
           <div className="warning-icon-box">
             <i className="ri-alarm-warning-fill" aria-hidden="true" />
           </div>
           <div className="warning-text-content">
-            <h4 className="warning-title">PERINGATAN PENTING & KRITIS</h4>
+            <h4 className="warning-title">PERINGATAN KONFIGURASI BACKEND</h4>
             <p className="warning-desc">
-              Konfigurasi ini menghubungkan seluruh sistem kasir ke server database produksi. 
-              <strong> DILARANG KERAS melakukan uji coba, merubah, atau menghapus</strong> kredensial URL & API Key ini secara sembarangan.
+              Konfigurasi ini menghubungkan aplikasi ke Google Apps Script Web App. 
+              <strong> DILARANG KERAS merubah atau menghapus URL ini</strong> secara sembarangan.
             </p>
             <ul className="warning-bullet-list">
               <li>Perubahan sembarangan akan <strong>memutuskan koneksi transaksi seluruh kasir seketika</strong>.</li>
-              <li>Dapat mengakibatkan kegagalan penyimpanan nota baru dan data tidak tersinkronisasi.</li>
+              <li>Data nota baru akan tersimpan lokal di browser kasir (Offline-First Dexie.js).</li>
               <li>Hanya ubah jika Anda adalah Administrator Database yang berwenang.</li>
             </ul>
           </div>
@@ -94,115 +81,42 @@ export default function CloudConfigTab({
         <div className="cloud-form-card">
           <div className="cloud-form-header">
             <h4 className="cloud-form-title">
-              <i className="ri-database-2-line" style={{ color: 'var(--primary)' }} /> Parameter Kredensial Supabase
+              <i className="ri-google-line" style={{ color: 'var(--primary)' }} /> Parameter Google Apps Script Web App
             </h4>
             <span className="cloud-form-subtitle">
-              Masukkan Project URL dan API Key anon dari dashboard project Supabase Anda.
+              Masukkan Deployment Web App URL dari Apps Script Editor project Google Sheets Anda.
             </span>
           </div>
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label" htmlFor="cloud-url">
-              <i className="ri-link-m" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Supabase Project URL
+              <i className="ri-link-m" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Web App Deployment URL
             </label>
             <input
               type="text"
               id="cloud-url"
               className="form-control"
-              placeholder="https://xyzcompany.supabase.co"
-              value={cloudUrl}
-              onChange={(e) => setCloudUrl(e.target.value)}
+              placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+              value={webAppUrl}
+              onChange={(e) => setWebAppUrl(e.target.value)}
               spellCheck="false"
               autoComplete="off"
             />
           </div>
-
-          <div className="form-group" style={{ marginBottom: '0.25rem' }}>
-            <label className="form-label" htmlFor="cloud-key">
-              <i className="ri-key-2-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Supabase Anon / Public API Key
-            </label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input
-                type={showCloudKey ? "text" : "password"}
-                id="cloud-key"
-                className="form-control"
-                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                value={cloudKey}
-                onChange={(e) => setCloudKey(e.target.value)}
-                spellCheck="false"
-                autoComplete="off"
-                style={{ paddingRight: '2.5rem', fontFamily: showCloudKey ? 'var(--font-mono, monospace)' : 'inherit', fontSize: 'var(--text-xs)' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowCloudKey(!showCloudKey)}
-                aria-label={showCloudKey ? "Sembunyikan API Key" : "Tampilkan API Key"}
-                style={{
-                  position: 'absolute',
-                  right: '0.65rem',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: '0.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.1rem'
-                }}
-              >
-                <i className={showCloudKey ? "ri-eye-off-line" : "ri-eye-line"} />
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* SQL Script Schema Box (Full Width) */}
-      <div className="cloud-sql-box">
-        <div className="cloud-sql-header">
-          <span className="cloud-sql-title">
-            <i className="ri-code-s-slash-line" style={{ color: 'var(--primary)' }} /> Script SQL Schema Database
-          </span>
-          <div className="cloud-sql-actions">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => setShowSql(!showSql)}
-            >
-              <i className={showSql ? "ri-eye-off-line" : "ri-eye-line"} /> {showSql ? 'Sembunyikan' : 'Lihat SQL'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={handleCopySqlScript}
-            >
-              <i className={copiedSql ? "ri-check-line" : "ri-file-copy-line"} /> {copiedSql ? 'Tersalin!' : 'Salin Script SQL'}
-            </button>
-          </div>
-        </div>
-        <p className="cloud-sql-desc">
-          Jalankan script SQL ini di menu <strong>SQL Editor</strong> pada Dashboard Supabase Anda untuk membuat tabel & hak akses otomatis.
-        </p>
-
-        {showSql && (
-          <div className="cloud-sql-code-wrapper">
-            <pre className="cloud-sql-code">
-              {SQL_SCHEMA_QUERY}
-            </pre>
-          </div>
-        )}
       </div>
 
       {/* Action Buttons */}
       <div className="cloud-action-bar">
         {isConnected ? (
           <button type="button" className="btn btn-danger btn-sm" onClick={handleClearCloudConfig}>
-            <i className="ri-delete-bin-line" /> Putus Koneksi
+            <i className="ri-link-unlink-m" /> Putuskan Koneksi
           </button>
-        ) : <div />}
+        ) : (
+          <div />
+        )}
         <button type="button" className="btn btn-primary" onClick={handleSaveCloudConfig}>
-          <i className="ri-save-line" /> Simpan Koneksi DB
+          <i className="ri-save-line" /> Simpan Pengaturan Cloud
         </button>
       </div>
     </div>

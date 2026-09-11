@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatRupiah } from '../services/storage';
-import { isSupabaseConnected } from '../services/supabaseClient';
+import { isSupabaseConnected } from '../services/api';
 import HistoryTab from './dashboard/HistoryTab';
 import CatalogTab from './dashboard/CatalogTab';
 import StoreProfileTab from './dashboard/StoreProfileTab';

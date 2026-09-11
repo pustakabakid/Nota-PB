@@ -12,7 +12,7 @@ import {
   saveAccountApi,
   deleteAccountApi
 } from '../services/api';
-import { isSupabaseConnected } from '../services/supabaseClient';
+import { isSupabaseConnected } from '../services/api';
 import { generateReceiptNumber, calculateItemTotal, getLocalDateString } from '../services/storage';
 import { TransactionContext } from './transactionContextInstance';
 import { useAuth } from '../hooks/useAuth';
