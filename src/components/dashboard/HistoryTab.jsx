@@ -79,47 +79,48 @@ export default function HistoryTab({
           />
         </div>
 
-        {/* Date Range */}
-        <div className="toolbar-date-range">
-          <div className="toolbar-date-item">
-            <span className="toolbar-date-label">Dari:</span>
+        {/* Date Filters */}
+        <div className="toolbar-date-group">
+          <div className="toolbar-date-field">
             <CustomDatePicker
               value={historyDateFrom}
-              onChange={(val) => {
-                setHistoryDateFrom(val);
+              onChange={(dateStr) => {
+                setHistoryDateFrom(dateStr);
                 setVisibleCount(50);
               }}
-              placeholder="Dari tgl..."
+              placeholder="Dari Tanggal"
             />
           </div>
 
-          <div className="toolbar-date-item">
-            <span className="toolbar-date-label">s/d:</span>
+          <span className="toolbar-date-separator">-</span>
+
+          <div className="toolbar-date-field">
             <CustomDatePicker
               value={historyDateTo}
-              onChange={(val) => {
-                setHistoryDateTo(val);
+              onChange={(dateStr) => {
+                setHistoryDateTo(dateStr);
                 setVisibleCount(50);
               }}
-              placeholder="Sampai tgl..."
+              placeholder="Sampai Tanggal"
             />
-            {(historyDateFrom || historyDateTo) && (
-              <CustomTooltip text="Reset Filter Tanggal">
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm toolbar-btn-reset-date"
-                  onClick={() => {
-                    setHistoryDateFrom('');
-                    setHistoryDateTo('');
-                    setVisibleCount(50);
-                  }}
-                  aria-label="Reset tanggal"
-                >
-                  <i className="ri-close-line" aria-hidden="true"></i>
-                </button>
-              </CustomTooltip>
-            )}
           </div>
+
+          {(historyDateFrom || historyDateTo) && (
+            <CustomTooltip text="Reset Filter Tanggal">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm toolbar-btn-reset-date"
+                onClick={() => {
+                  setHistoryDateFrom('');
+                  setHistoryDateTo('');
+                  setVisibleCount(50);
+                }}
+                aria-label="Reset tanggal"
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">close</span>
+              </button>
+            </CustomTooltip>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -130,7 +131,7 @@ export default function HistoryTab({
               className="btn btn-success btn-sm toolbar-action-btn"
               onClick={() => exportTransactionsToExcel(filteredHistory, storeProfile, onShowToast)}
             >
-              <i className="ri-file-excel-line" aria-hidden="true"></i> <span>Excel</span>
+              <span className="material-symbols-outlined" aria-hidden="true">table_chart</span> <span>Excel</span>
             </button>
           </CustomTooltip>
 
@@ -140,7 +141,7 @@ export default function HistoryTab({
               className="btn btn-primary btn-sm toolbar-action-btn"
               onClick={() => exportTransactionsToPdf(filteredHistory, storeProfile, onShowToast)}
             >
-              <i className="ri-file-pdf-line" aria-hidden="true"></i> <span>Laporan PDF</span>
+              <span className="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span> <span>Laporan PDF</span>
             </button>
           </CustomTooltip>
 
@@ -150,7 +151,7 @@ export default function HistoryTab({
               className="btn btn-primary btn-sm toolbar-action-btn"
               onClick={() => onNavigate && onNavigate('editor')}
             >
-              <i className="ri-add-line" aria-hidden="true"></i> <span>Nota Baru</span>
+              <span className="material-symbols-outlined" aria-hidden="true">add</span> <span>Nota Baru</span>
             </button>
           </CustomTooltip>
 
@@ -161,7 +162,7 @@ export default function HistoryTab({
               onClick={onExportDataJSON}
               aria-label="Backup JSON"
             >
-              <i className="ri-download-cloud-line" aria-hidden="true"></i>
+              <span className="material-symbols-outlined" aria-hidden="true">cloud_download</span>
             </button>
           </CustomTooltip>
         </div>
@@ -170,7 +171,7 @@ export default function HistoryTab({
       {/* Empty State vs Table View */}
       {filteredHistory.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'var(--bg-surface-solid)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
-          <i className="ri-inbox-archive-line" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}></i>
+          <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}>inventory_2</span>
           <h4 style={{ margin: '0.75rem 0 0.25rem 0', color: 'var(--text-main)', fontSize: 'var(--text-md)' }}>
             Tidak Ada Transaksi Nota
           </h4>
@@ -262,7 +263,7 @@ export default function HistoryTab({
                             onClick={() => window.open(`?nota=${encodeURIComponent(rec.noNota)}`, '_blank')}
                             aria-label="Lihat E-Nota Publik"
                           >
-                            <i className="ri-external-link-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>open_in_new</span>
                           </button>
                         </CustomTooltip>
                         <CustomTooltip text="Cetak Nota Langsung">
@@ -272,7 +273,7 @@ export default function HistoryTab({
                             onClick={() => onLoadTransaction(rec, true)}
                             aria-label="Cetak Nota"
                           >
-                            <i className="ri-printer-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>print</span>
                           </button>
                         </CustomTooltip>
                         <CustomTooltip text="Edit Form Transaksi">
@@ -282,7 +283,7 @@ export default function HistoryTab({
                             onClick={() => onLoadTransaction(rec, false)}
                             aria-label="Edit Transaksi"
                           >
-                            <i className="ri-edit-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                           </button>
                         </CustomTooltip>
                         <CustomTooltip text="Hapus Nota">
@@ -292,7 +293,7 @@ export default function HistoryTab({
                             onClick={() => onDeleteTransaction(idx)}
                             aria-label="Hapus Nota"
                           >
-                            <i className="ri-delete-bin-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
                           </button>
                         </CustomTooltip>
                       </div>

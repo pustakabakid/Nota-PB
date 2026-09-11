@@ -161,7 +161,7 @@ export default function CustomSelect({
           <span className="custom-select-value">
             {selectedOption ? selectedOption.label : <span className="custom-select-placeholder">{placeholder}</span>}
           </span>
-          <i className={`ri-arrow-down-s-line custom-select-chevron${isOpen ? ' rotate' : ''}`} aria-hidden="true" />
+          <span className={`material-symbols-outlined custom-select-chevron${isOpen ? ' rotate' : ''}`} aria-hidden="true">expand_more</span>
         </button>
       </div>
 
@@ -196,7 +196,7 @@ export default function CustomSelect({
                     {opt.label}
                     {opt.sublabel && <small className="custom-select-sublabel">{opt.sublabel}</small>}
                   </span>
-                  {isSelected && <i className="ri-check-line custom-select-check" aria-hidden="true" />}
+                  {isSelected && <span className="material-symbols-outlined custom-select-check" aria-hidden="true">check</span>}
                 </li>
               );
             })

@@ -6,13 +6,13 @@ import CustomSelect from '../ui/CustomSelect';
 
 const getProductCueIcon = (name = '', type = '') => {
   const n = (name || '').toLowerCase();
-  if (type === 'buku' || n.includes('buku') || n.includes('booklet') || n.includes('novel') || n.includes('majalah')) return 'ri-book-3-line';
-  if (n.includes('brosur') || n.includes('flyer') || n.includes('leaflets') || n.includes('poster')) return 'ri-file-text-line';
-  if (n.includes('card') || n.includes('kartu') || n.includes('id card') || n.includes('namecard')) return 'ri-id-card-line';
-  if (n.includes('modul') || n.includes('katalog') || n.includes('proposal')) return 'ri-file-list-3-line';
-  if (type === 'pack' || n.includes('box') || n.includes('kemasan') || n.includes('dus')) return 'ri-box-3-line';
-  if (type === 'm2' || n.includes('banner') || n.includes('mmt') || n.includes('spanduk') || n.includes('stiker')) return 'ri-flag-line';
-  return 'ri-price-tag-3-line';
+  if (type === 'buku' || n.includes('buku') || n.includes('booklet') || n.includes('novel') || n.includes('majalah')) return 'menu_book';
+  if (n.includes('brosur') || n.includes('flyer') || n.includes('leaflets') || n.includes('poster')) return 'description';
+  if (n.includes('card') || n.includes('kartu') || n.includes('id card') || n.includes('namecard')) return 'badge';
+  if (n.includes('modul') || n.includes('katalog') || n.includes('proposal')) return 'format_list_bulleted';
+  if (type === 'pack' || n.includes('box') || n.includes('kemasan') || n.includes('dus')) return 'inventory_2';
+  if (type === 'm2' || n.includes('banner') || n.includes('mmt') || n.includes('spanduk') || n.includes('stiker')) return 'flag';
+  return 'sell';
 };
 
 const parseFinishingChips = (finishingStr) => {
@@ -90,7 +90,7 @@ export default function CatalogTab({
       <div className="dense-toolbar catalog-toolbar">
         {/* Search */}
         <div className="toolbar-search-box">
-          <i className="ri-search-line toolbar-search-icon" aria-hidden="true"></i>
+          <span className="material-symbols-outlined toolbar-search-icon" aria-hidden="true">search</span>
           <input
             type="text"
             className="form-control toolbar-search-input"
@@ -117,7 +117,7 @@ export default function CatalogTab({
             className="btn btn-primary btn-sm toolbar-btn-add"
             onClick={() => handleOpenPresetForm()}
           >
-            <i className="ri-add-line" aria-hidden="true"></i> <span>Tambah Preset Baru</span>
+            <span className="material-symbols-outlined" aria-hidden="true">add</span> <span>Tambah Preset Baru</span>
           </button>
         </div>
       </div>
@@ -134,10 +134,10 @@ export default function CatalogTab({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
             <h4 style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <i className="ri-edit-box-line"></i> {editingPreset ? 'Edit Preset Produk' : 'Tambah Preset Produk Baru'}
+              <span className="material-symbols-outlined">edit_note</span> {editingPreset ? 'Edit Preset Produk' : 'Tambah Preset Produk Baru'}
             </h4>
             <button type="button" className="btn-close-modal" onClick={() => setEditingPreset(null)} aria-label="Tutup">
-              <i className="ri-close-line"></i>
+              <span className="material-symbols-outlined">close</span>
             </button>
           </div>
 
@@ -192,7 +192,7 @@ export default function CatalogTab({
               Batal
             </button>
             <button type="submit" className="btn btn-primary btn-sm">
-              <i className="ri-save-line"></i> Simpan Preset
+              <span className="material-symbols-outlined">save</span> Simpan Preset
             </button>
           </div>
         </form>
@@ -201,7 +201,7 @@ export default function CatalogTab({
       {/* Empty State vs Table View */}
       {filteredCatalog.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'var(--bg-surface-solid)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
-          <i className="ri-price-tag-3-line" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}></i>
+          <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}>sell</span>
           <h4 style={{ margin: '0.75rem 0 0.25rem 0', color: 'var(--text-main)', fontSize: 'var(--text-md)' }}>
             Tidak Ada Preset Produk
           </h4>
@@ -233,7 +233,7 @@ export default function CatalogTab({
                   <tr key={item.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <i className={cueIcon} style={{ color: 'var(--primary)', fontSize: '1rem' }} aria-hidden="true"></i>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.2rem' }} aria-hidden="true">{cueIcon}</span>
                         <strong style={{ color: 'var(--text-main)', fontSize: 'var(--text-xs)' }} className="text-wrap-break">{item.name}</strong>
                       </div>
                     </td>
@@ -253,7 +253,7 @@ export default function CatalogTab({
                       </div>
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                      {item.updatedAt ? formatDateId(item.updatedAt.slice(0, 10)) : '—'}
+                      {formatDateId(item.updatedAt || new Date().toISOString())}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem' }}>
@@ -264,7 +264,7 @@ export default function CatalogTab({
                             onClick={() => handleOpenPresetForm(item)}
                             aria-label="Edit Preset"
                           >
-                            <i className="ri-edit-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                           </button>
                         </CustomTooltip>
                         <CustomTooltip text="Duplikat Preset">
@@ -274,7 +274,7 @@ export default function CatalogTab({
                             onClick={() => handleDuplicatePreset(item)}
                             aria-label="Duplikat Preset"
                           >
-                            <i className="ri-file-copy-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>content_copy</span>
                           </button>
                         </CustomTooltip>
                         <CustomTooltip text="Hapus Preset">
@@ -284,7 +284,7 @@ export default function CatalogTab({
                             onClick={() => onDeletePreset(item.id)}
                             aria-label="Hapus Preset"
                           >
-                            <i className="ri-delete-bin-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
                           </button>
                         </CustomTooltip>
                       </div>

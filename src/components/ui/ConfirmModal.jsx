@@ -27,7 +27,9 @@ export default function ConfirmModal({
       <div className="modal-content confirm-modal-content">
         <div className="confirm-modal-header">
           <div className={`confirm-icon-box confirm-icon-${variant}`} aria-hidden="true">
-            <i className={variant === 'danger' ? 'ri-error-warning-line' : 'ri-question-line'}></i>
+            <span className="material-symbols-outlined">
+              {variant === 'danger' ? 'warning' : 'help'}
+            </span>
           </div>
           <div>
             <h3 id="confirm-modal-title" className="confirm-modal-title">{title}</h3>

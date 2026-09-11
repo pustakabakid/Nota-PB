@@ -74,7 +74,7 @@ export default function Header({
           aria-current={currentPage === 'editor' && activeMobileTab === 'order' ? 'page' : undefined}
           aria-label="Order Kasir"
         >
-          <i className={currentPage === 'editor' && activeMobileTab === 'order' ? 'ri-shopping-bag-3-fill' : 'ri-shopping-bag-3-line'} aria-hidden="true" />
+          <span className="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
           <span className="nav-tab-label">Order Kasir</span>
         </button>
 
@@ -89,7 +89,7 @@ export default function Header({
           aria-current={currentPage === 'editor' && activeMobileTab === 'preview' ? 'page' : undefined}
           aria-label="Preview Nota"
         >
-          <i className={currentPage === 'editor' && activeMobileTab === 'preview' ? 'ri-file-text-fill' : 'ri-file-text-line'} aria-hidden="true" />
+          <span className="material-symbols-outlined" aria-hidden="true">description</span>
           <span className="nav-tab-label">Preview</span>
         </button>
 
@@ -102,7 +102,7 @@ export default function Header({
             aria-current={currentPage === 'dashboard' ? 'page' : undefined}
             aria-label="Dashboard"
           >
-            <i className={currentPage === 'dashboard' ? 'ri-dashboard-3-fill' : 'ri-dashboard-3-line'} aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">dashboard</span>
             <span className="nav-tab-label">Dashboard</span>
           </button>
         )}
@@ -122,7 +122,7 @@ export default function Header({
             <span className="avatar-initial">{userInitial}</span>
             <span className={`avatar-status-dot ${isCloudConnected ? 'online' : 'offline'}`} />
           </div>
-          <i className={`ri-arrow-down-s-line avatar-chevron${isUserMenuOpen ? ' rotate' : ''}`} aria-hidden="true" />
+          <span className={`material-symbols-outlined avatar-chevron${isUserMenuOpen ? ' rotate' : ''}`} aria-hidden="true">expand_more</span>
         </button>
 
         {/* Floating User Menu Dropdown */}
@@ -131,7 +131,9 @@ export default function Header({
             {/* Header User Profile Info */}
             <div className="user-dropdown-profile">
               <div className="user-dropdown-avatar">
-                <i className={isSuperAdmin ? 'ri-shield-keyhole-line' : 'ri-user-3-line'} aria-hidden="true" />
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  {isSuperAdmin ? 'admin_panel_settings' : 'person'}
+                </span>
               </div>
               <div className="user-dropdown-details">
                 <strong className="user-dropdown-name">{userName}</strong>
@@ -155,7 +157,9 @@ export default function Header({
                 </div>
               </div>
               <span className={`status-pill-mini ${isCloudConnected ? 'connected' : 'local'}`}>
-                <i className={isCloudConnected ? 'ri-cloud-line' : 'ri-cloud-off-line'} aria-hidden="true" />
+                <span className="material-symbols-outlined" style={{ fontSize: '1rem' }} aria-hidden="true">
+                  {isCloudConnected ? 'cloud' : 'cloud_off'}
+                </span>
                 {isCloudConnected ? 'Cloud' : 'Lokal'}
               </span>
             </div>
@@ -170,7 +174,9 @@ export default function Header({
               role="menuitem"
             >
               <div className="dropdown-action-left">
-                <i className={theme === 'dark' ? 'ri-sun-line text-warning' : 'ri-moon-line text-primary'} aria-hidden="true" />
+                <span className={`material-symbols-outlined ${theme === 'dark' ? 'text-warning' : 'text-primary'}`} aria-hidden="true">
+                  {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+                </span>
                 <span>Mode Tampilan</span>
               </div>
               <span className="dropdown-badge-theme">
@@ -190,10 +196,10 @@ export default function Header({
                 role="menuitem"
               >
                 <div className="dropdown-action-left">
-                  <i className="ri-logout-box-r-line" aria-hidden="true" />
+                  <span className="material-symbols-outlined" aria-hidden="true">logout</span>
                   <span>Keluar dari Sesi</span>
                 </div>
-                <i className="ri-arrow-right-s-line" aria-hidden="true" />
+                <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
               </button>
             )}
           </div>

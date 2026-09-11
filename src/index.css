@@ -3,6 +3,7 @@
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0');
 @import 'remixicon/fonts/remixicon.css';
 
 /* --------------------------------------------------------------------------
@@ -194,46 +195,53 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   2.1. Global Icon Outline-to-Bold & Hover System
+   2.1. Global Icon System — Google Material Symbols Outlined (Light 300)
    -------------------------------------------------------------------------- */
-i[class*="ri-"],
-.nav-tab-btn i,
-.dashboard-tab i,
-.btn i,
-.mbb-btn i,
-.user-dropdown-action-btn i,
-.action-btn i {
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 300;
+  font-style: normal;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
   display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  transition: font-variation-settings 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s ease,
+              filter 0.2s ease;
   vertical-align: middle;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.22s ease,
-              font-weight 0.22s ease,
-              opacity 0.22s ease;
-  will-change: transform;
+  user-select: none;
 }
 
-button:hover i[class*="ri-"],
-button:active i[class*="ri-"],
-.nav-tab-btn:hover i,
-.nav-tab-btn.active i,
-.dashboard-tab:hover i,
-.dashboard-tab.active i,
-.btn:hover i,
-.btn:active i,
-.user-dropdown-action-btn:hover i,
-.mbb-btn:hover i,
-.mbb-btn:active i,
-a:hover i[class*="ri-"] {
-  transform: scale(1.18);
-  font-weight: 700;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+/* Hover & Active / Selected State Automation (Fill 1 + Weight 500) */
+button:hover .material-symbols-outlined,
+button:active .material-symbols-outlined,
+.nav-tab-btn:hover .material-symbols-outlined,
+.nav-tab-btn.active .material-symbols-outlined,
+.dashboard-tab:hover .material-symbols-outlined,
+.dashboard-tab.active .material-symbols-outlined,
+.btn:hover .material-symbols-outlined,
+.btn:active .material-symbols-outlined,
+.user-dropdown-action-btn:hover .material-symbols-outlined,
+.mbb-btn:hover .material-symbols-outlined,
+.mbb-btn:active .material-symbols-outlined,
+a:hover .material-symbols-outlined,
+.ms-fill-active {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  transform: scale(1.12);
 }
 
-button:active i[class*="ri-"],
-.nav-tab-btn:active i,
-.dashboard-tab:active i,
-.btn:active i {
-  transform: scale(1.05);
+button:active .material-symbols-outlined,
+.nav-tab-btn:active .material-symbols-outlined,
+.dashboard-tab:active .material-symbols-outlined,
+.btn:active .material-symbols-outlined {
+  transform: scale(1.02);
 }
 
 /* --------------------------------------------------------------------------

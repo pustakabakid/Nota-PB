@@ -39,7 +39,7 @@ export default function MobileBottomBar({
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <span className="mbb-total num-tabular">{formatRupiah(grandTotal)}</span>
-                <i className="ri-arrow-right-s-line" style={{ fontSize: '0.9rem', opacity: 0.7 }} aria-hidden="true" />
+                <span className="material-symbols-outlined" style={{ fontSize: '1rem', opacity: 0.7 }} aria-hidden="true">chevron_right</span>
               </div>
               <div className="mbb-meta">
                 <span className="mbb-count">{itemCount} Item</span>
@@ -50,7 +50,7 @@ export default function MobileBottomBar({
             </>
           ) : (
             <span className="mbb-empty-hint">
-              <i className="ri-shopping-basket-line" aria-hidden="true" />
+              <span className="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
               Belum ada item
             </span>
           )}
@@ -65,7 +65,7 @@ export default function MobileBottomBar({
             onClick={onAddItem}
             aria-label="Tambah item baru"
           >
-            <i className="ri-add-line" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">add</span>
           </button>
 
           {/* Save / Update */}
@@ -75,10 +75,9 @@ export default function MobileBottomBar({
             onClick={onSaveTransaction}
             aria-label={isSaved ? 'Update nota' : 'Simpan nota'}
           >
-            <i
-              className={isSaved ? 'ri-checkbox-circle-fill' : 'ri-save-line'}
-              aria-hidden="true"
-            />
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {isSaved ? 'check_circle' : 'save'}
+            </span>
             <span>{isSaved ? 'Update' : 'Simpan'}</span>
           </button>
         </div>

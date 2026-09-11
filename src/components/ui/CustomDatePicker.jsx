@@ -172,14 +172,16 @@ export default function CustomDatePicker({
           aria-expanded={isOpen}
         >
           <span className="cdp-trigger-content">
-            <i className="ri-calendar-event-line cdp-trigger-icon" aria-hidden="true" />
+            <span className="material-symbols-outlined cdp-trigger-icon" aria-hidden="true">calendar_today</span>
             <span className="cdp-trigger-label">{formatDisplayValue()}</span>
           </span>
-          <i
-            className="ri-arrow-down-s-line cdp-trigger-chevron"
+          <span
+            className="material-symbols-outlined cdp-trigger-chevron"
             style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
             aria-hidden="true"
-          />
+          >
+            expand_more
+          </span>
         </button>
       </div>
 
@@ -201,7 +203,7 @@ export default function CustomDatePicker({
               onClick={() => setViewDate(new Date(currentYear, currentMonth - 1, 1))}
               aria-label="Bulan Sebelumnya"
             >
-              <i className="ri-arrow-left-s-line" aria-hidden="true" />
+              <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
             </button>
             <strong className="cdp-month-label">
               {monthNames[currentMonth]} {currentYear}
@@ -212,7 +214,7 @@ export default function CustomDatePicker({
               onClick={() => setViewDate(new Date(currentYear, currentMonth + 1, 1))}
               aria-label="Bulan Berikutnya"
             >
-              <i className="ri-arrow-right-s-line" aria-hidden="true" />
+              <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
             </button>
           </div>
 
