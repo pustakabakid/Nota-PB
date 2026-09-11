@@ -1,6 +1,6 @@
 /* ==========================================================================
    Google Sheets & Apps Script Repository Layer
-   Offline-First Dexie.js + Cloud Synchronization
+   Offline-First Dexie.js + Fast Stale-While-Revalidate Cloud Synchronization
    ========================================================================== */
 
 import {
@@ -23,40 +23,31 @@ import {
 // STORE PROFILE REPOSITORY
 // --------------------------------------------------------------------------
 export const fetchStoreProfileApi = async () => {
+  const localProfile = getStoredStoreProfile();
+  
   if (isAppsScriptConnected()) {
-    try {
-      const res = await callAppsScriptApi('getStoreProfile');
-      if (res.success && res.data) {
+    // Background async revalidation
+    callAppsScriptApi('getStoreProfile').then(res => {
+      if (res && res.success && res.data) {
         const cloudStore = res.data;
         const profile = {
-          name: cloudStore.name || 'PUSTAKA BAKID',
+          ...localProfile,
+          name: cloudStore.name || localProfile.name || 'PUSTAKA BAKID',
           subtitle: cloudStore.subtitle || '',
           address: cloudStore.address || '',
           phone: cloudStore.phone || '',
           footerMsg: cloudStore.footerMsg || 'Terima kasih. Cetakan tidak dapat dibatalkan.',
           logoUrl: cloudStore.logoUrl || '',
-          qrisUrl: cloudStore.qrisUrl || '',
-          defaultPaper: 'A4',
-          customPaperName: 'Kustom',
-          customPaperWidth: 100,
-          customPaperHeight: 150,
-          customPaperMargin: 4,
-          qrSize: 'medium',
-          customQrSize: 24,
-          customQrUnit: 'mm',
-          customQrSizePx: 80,
-          qrPosition: 'right',
-          showQrCode: true,
-          density: 'normal'
+          qrisUrl: cloudStore.qrisUrl || ''
         };
         saveStoredStoreProfile(profile);
-        return profile;
       }
-    } catch (err) {
-      console.warn('AppsScript store profile fetch failed, fallback to local:', err);
-    }
+    }).catch(err => {
+      console.warn('Background store profile sync failed:', err);
+    });
   }
-  return getStoredStoreProfile();
+
+  return localProfile;
 };
 
 export const saveStoreProfileApi = async (profile) => {
@@ -75,10 +66,12 @@ export const saveStoreProfileApi = async (profile) => {
 // CATALOG PRESETS REPOSITORY
 // --------------------------------------------------------------------------
 export const fetchCatalogApi = async () => {
+  const localCatalog = getStoredCatalog();
+
   if (isAppsScriptConnected()) {
-    try {
-      const res = await callAppsScriptApi('getCatalog');
-      if (res.success && Array.isArray(res.data)) {
+    // Background async revalidation
+    callAppsScriptApi('getCatalog').then(res => {
+      if (res && res.success && Array.isArray(res.data)) {
         const catalog = res.data.map(item => ({
           id: item.id,
           name: item.name,
@@ -88,13 +81,13 @@ export const fetchCatalogApi = async () => {
           finishing: item.description || ''
         }));
         saveStoredCatalog(catalog);
-        return catalog;
       }
-    } catch (err) {
-      console.warn('AppsScript catalog fetch failed, using local backup:', err);
-    }
+    }).catch(err => {
+      console.warn('Background catalog sync failed:', err);
+    });
   }
-  return getStoredCatalog();
+
+  return localCatalog;
 };
 
 export const saveCatalogPresetApi = async (preset, currentCatalog) => {
@@ -141,12 +134,13 @@ export const deleteCatalogPresetApi = async (id, currentCatalog) => {
 // TRANSACTIONS & HISTORY REPOSITORY
 // --------------------------------------------------------------------------
 export const fetchHistoryApi = async (limit = 50, offset = 0) => {
+  const localHistory = getStoredHistory();
+
   if (isAppsScriptConnected()) {
-    try {
-      const page = Math.floor(offset / limit) + 1;
-      const res = await callAppsScriptApi('getNotes', { limit, page });
-      
-      if (res.success && res.data && Array.isArray(res.data.notes)) {
+    // Trigger background sync to refresh local cache
+    const page = Math.floor(offset / limit) + 1;
+    callAppsScriptApi('getNotes', { limit, page }).then(res => {
+      if (res && res.success && res.data && Array.isArray(res.data.notes)) {
         const cloudNotes = res.data.notes.map(note => ({
           id: note.id,
           noNota: note.noNota,
@@ -167,29 +161,32 @@ export const fetchHistoryApi = async (limit = 50, offset = 0) => {
           items: note.items || []
         }));
 
-        const localHistory = getStoredHistory();
-        const unsynced = localHistory.filter(loc => loc && loc.id && !cloudNotes.some(c => c.id === loc.id || c.noNota === loc.noNota));
+        const currentLocal = getStoredHistory();
+        const unsynced = currentLocal.filter(loc => loc && loc.id && !cloudNotes.some(c => c.id === loc.id || c.noNota === loc.noNota));
         const merged = [...unsynced, ...cloudNotes];
         saveStoredHistory(merged);
-        return merged;
       }
-    } catch (err) {
-      console.warn('AppsScript history fetch failed, using local backup:', err);
-    }
+    }).catch(err => {
+      console.warn('Background history sync failed:', err);
+    });
   }
-  return getStoredHistory();
+
+  return localHistory;
 };
 
 export const fetchTransactionByNoNotaApi = async (noNota) => {
   if (!noNota) return null;
   const cleanNota = String(noNota).trim();
 
+  const localHistory = getStoredHistory();
+  const foundLocal = localHistory.find(h => String(h.noNota).trim().toUpperCase() === cleanNota.toUpperCase());
+
   if (isAppsScriptConnected()) {
     try {
       const res = await callAppsScriptApi('getPublicNote', { public_token: cleanNota });
       if (res.success && res.data && res.data.note) {
         const note = res.data.note;
-        return {
+        const mapped = {
           id: note.id,
           noNota: note.noNota,
           publicToken: note.publicToken,
@@ -208,15 +205,14 @@ export const fetchTransactionByNoNotaApi = async (noNota) => {
           catatan: note.catatan || '',
           items: note.items || []
         };
+        return mapped;
       }
     } catch (err) {
       console.warn('AppsScript single transaction fetch failed, fallback to local:', err);
     }
   }
 
-  const localHistory = getStoredHistory();
-  const found = localHistory.find(h => String(h.noNota).trim().toUpperCase() === cleanNota.toUpperCase());
-  return found || null;
+  return foundLocal || null;
 };
 
 export const saveTransactionApi = async (transactionRecord, currentHistory) => {
