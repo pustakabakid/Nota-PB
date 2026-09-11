@@ -53,7 +53,7 @@ export default class ErrorBoundary extends React.Component {
               fontSize: '1.75rem',
               margin: '0 auto 1.25rem auto'
             }}>
-              <i className="ri-error-warning-line" aria-hidden="true"></i>
+              <span className="material-symbols-outlined" aria-hidden="true">warning</span>
             </div>
             <h2 style={{
               fontSize: 'var(--text-lg, 1.25rem)',
@@ -87,7 +87,7 @@ export default class ErrorBoundary extends React.Component {
                 cursor: 'pointer'
               }}
             >
-              <i className="ri-refresh-line" aria-hidden="true"></i>
+              <span className="material-symbols-outlined" aria-hidden="true">refresh</span>
               Muat Ulang Aplikasi
             </button>
           </div>

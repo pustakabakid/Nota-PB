@@ -98,7 +98,7 @@ export default function StoreProfileTab({
       <div className="store-profile-header-card">
         <div className="store-header-left">
           <div className="store-avatar-icon">
-            <i className="ri-store-2-fill" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">storefront</span>
           </div>
           <div>
             <h3 className="store-header-title">Pengaturan Toko, Format Cetak & QR Code</h3>
@@ -115,7 +115,7 @@ export default function StoreProfileTab({
         <div className="store-card">
           <div className="store-card-header">
             <h4 className="store-card-title">
-              <i className="ri-building-line" style={{ color: 'var(--primary)' }} /> Identitas Bisnis & Kontak
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>business</span> Identitas Bisnis & Kontak
             </h4>
             <span className="store-card-desc">Informasi utama toko yang tampil pada kop nota kasir.</span>
           </div>
@@ -123,7 +123,7 @@ export default function StoreProfileTab({
           <div className="store-card-body">
             <div className="form-group" style={{ marginBottom: '1.15rem' }}>
               <label className="form-label" htmlFor="store-name">
-                <i className="ri-store-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Nama Toko / Usaha Percetakan <span className="text-danger">*</span>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>storefront</span> Nama Toko / Usaha Percetakan <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -138,7 +138,7 @@ export default function StoreProfileTab({
 
             <div className="form-group" style={{ marginBottom: '1.15rem' }}>
               <label className="form-label" htmlFor="store-subtitle">
-                <i className="ri-quote-text" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Sub-Judul / Tagline Toko
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>format_quote</span> Sub-Judul / Tagline Toko
               </label>
               <input
                 type="text"
@@ -152,7 +152,7 @@ export default function StoreProfileTab({
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="store-phone">
-                <i className="ri-whatsapp-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Nomor Telepon / WhatsApp Toko
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>phone</span> Nomor Telepon / WhatsApp Toko
               </label>
               <input
                 type="text"
@@ -170,7 +170,7 @@ export default function StoreProfileTab({
         <div className="store-card">
           <div className="store-card-header">
             <h4 className="store-card-title">
-              <i className="ri-map-pin-line" style={{ color: 'var(--primary)' }} /> Alamat Fisik & Catatan Nota
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>location_on</span> Alamat Fisik & Catatan Nota
             </h4>
             <span className="store-card-desc">Lokasi workshop percetakan dan pesan penutup pada nota cetak.</span>
           </div>
@@ -178,7 +178,7 @@ export default function StoreProfileTab({
           <div className="store-card-body">
             <div className="form-group" style={{ marginBottom: '1.15rem' }}>
               <label className="form-label" htmlFor="store-address">
-                <i className="ri-map-pin-user-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Alamat Lengkap Toko / Workshop
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>pin_drop</span> Alamat Lengkap Toko / Workshop
               </label>
               <textarea
                 id="store-address"
@@ -193,7 +193,7 @@ export default function StoreProfileTab({
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="store-footer-msg">
-                <i className="ri-chat-smile-2-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Pesan Catatan Footer Nota
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>chat</span> Pesan Catatan Footer Nota
               </label>
               <input
                 type="text"
@@ -211,7 +211,7 @@ export default function StoreProfileTab({
         <div className="store-card">
           <div className="store-card-header">
             <h4 className="store-card-title">
-              <i className="ri-printer-line" style={{ color: 'var(--primary)' }} /> Ukuran Kertas & Kerapatan
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>print</span> Ukuran Kertas & Kerapatan
             </h4>
             <span className="store-card-desc">Pengaturan ukuran kertas default dan kepadatan baris nota.</span>
           </div>
@@ -219,7 +219,7 @@ export default function StoreProfileTab({
           <div className="store-card-body">
             <div className="form-group" style={{ marginBottom: '1.15rem' }}>
               <label className="form-label">
-                <i className="ri-file-paper-2-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Ukuran Kertas Bawaan (Default Paper)
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>description</span> Ukuran Kertas Bawaan (Default Paper)
               </label>
               <CustomSelect
                 options={PAPER_OPTIONS}
@@ -232,7 +232,7 @@ export default function StoreProfileTab({
             {storeForm.defaultPaper === 'custom' && (
               <div style={{ background: 'var(--bg-input, rgba(0,0,0,0.03))', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px dashed var(--primary)', marginBottom: '1.15rem' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.65rem' }}>
-                  <i className="ri-ruler-2-line" /> Konfigurasi Ukuran Kertas Kustom
+                  <span className="material-symbols-outlined">straighten</span> Konfigurasi Ukuran Kertas Kustom
                 </span>
                 <div style={{ marginBottom: '0.5rem' }}>
                   <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Label / Nama Kertas</label>
@@ -284,7 +284,7 @@ export default function StoreProfileTab({
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">
-                <i className="ri-line-height" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Kerapatan Tata Letak Nota (Density)
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>format_line_spacing</span> Kerapatan Tata Letak Nota (Density)
               </label>
               <CustomSelect
                 options={DENSITY_OPTIONS}
@@ -299,7 +299,7 @@ export default function StoreProfileTab({
         <div className="store-card">
           <div className="store-card-header">
             <h4 className="store-card-title">
-              <i className="ri-qr-code-line" style={{ color: 'var(--primary)' }} /> Pengaturan QR Code & Rekening
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>qr_code_2</span> Pengaturan QR Code & Rekening
             </h4>
             <span className="store-card-desc">Ukuran QR Code nota dan detail rekening untuk pembayaran transfer.</span>
           </div>
@@ -325,7 +325,7 @@ export default function StoreProfileTab({
               <>
                 <div className="form-group" style={{ marginBottom: '0.85rem' }}>
                   <label className="form-label">
-                    <i className="ri-aspect-ratio-line" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Ukuran / Skala QR Code
+                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>aspect_ratio</span> Ukuran / Skala QR Code
                   </label>
                   <CustomSelect
                     options={QR_SIZE_OPTIONS}
@@ -338,7 +338,7 @@ export default function StoreProfileTab({
                 {storeForm.qrSize === 'custom' && (
                   <div style={{ background: 'var(--bg-input, rgba(0,0,0,0.03))', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px dashed var(--primary)', marginBottom: '1.15rem' }}>
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.65rem' }}>
-                      <i className="ri-ruler-line" /> Konfigurasi QR Code Kustom
+                      <span className="material-symbols-outlined">straighten</span> Konfigurasi QR Code Kustom
                     </span>
                     <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: '0.5rem', marginBottom: '0.4rem' }}>
                       <div>
@@ -454,7 +454,7 @@ export default function StoreProfileTab({
       <div className="store-preview-card">
         <div className="store-preview-header">
           <span className="store-preview-title">
-            <i className="ri-file-text-line" style={{ color: 'var(--primary)' }} /> Live Preview Kop, Rekening & Footer Nota
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>description</span> Live Preview Kop, Rekening & Footer Nota
           </span>
           <span className="store-preview-badge">Live Preview</span>
         </div>
@@ -462,17 +462,17 @@ export default function StoreProfileTab({
           <div className="store-preview-kop">
             <strong className="store-preview-store-name">{storeForm.name || 'Nama Toko Percetakan'}</strong>
             {storeForm.subtitle && <span className="store-preview-subtitle">{storeForm.subtitle}</span>}
-            {storeForm.address && <span className="store-preview-address"><i className="ri-map-pin-line" /> {storeForm.address}</span>}
-            {storeForm.phone && <span className="store-preview-phone"><i className="ri-phone-line" /> Telp/WA: {storeForm.phone}</span>}
+            {storeForm.address && <span className="store-preview-address"><span className="material-symbols-outlined">location_on</span> {storeForm.address}</span>}
+            {storeForm.phone && <span className="store-preview-phone"><span className="material-symbols-outlined">phone</span> Telp/WA: {storeForm.phone}</span>}
             {storeForm.bankName && storeForm.bankAccount && (
               <span className="store-preview-phone" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                <i className="ri-bank-card-line" /> {storeForm.bankName} {storeForm.bankAccount} {storeForm.bankHolder ? `(a.n ${storeForm.bankHolder})` : ''}
+                <span className="material-symbols-outlined">credit_card</span> {storeForm.bankName} {storeForm.bankAccount} {storeForm.bankHolder ? `(a.n ${storeForm.bankHolder})` : ''}
               </span>
             )}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border-color)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
             <span>
-              {storeForm.footerMsg && <span><i className="ri-information-line" /> {storeForm.footerMsg}</span>}
+              {storeForm.footerMsg && <span><span className="material-symbols-outlined">info</span> {storeForm.footerMsg}</span>}
             </span>
             <span style={{ fontSize: '0.72rem', background: 'var(--bg-input, #eee)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
               Kertas: {storeForm.defaultPaper === 'custom' ? `${storeForm.customPaperName || 'Kustom'} (${storeForm.customPaperWidth}×${storeForm.customPaperHeight || 'Auto'}mm)` : storeForm.defaultPaper} | QR: {storeForm.showQrCode ? (storeForm.qrSize === 'custom' ? `${storeForm.customQrSize}${storeForm.customQrUnit.toUpperCase()} (${storeForm.qrPosition.toUpperCase()})` : storeForm.qrSize.toUpperCase()) : 'NONAKTIF'} | Layout: {storeForm.density.toUpperCase()}
@@ -484,10 +484,10 @@ export default function StoreProfileTab({
       {/* Action Bar (Full Width, Right-aligned Save Button) */}
       <div className="store-action-bar">
         <div className="store-action-tip">
-          <i className="ri-information-line" /> Perubahan profil dan preferensi cetak kustom akan langsung diterapkan pada seluruh dokumen nota kasir.
+          <span className="material-symbols-outlined">info</span> Perubahan profil dan preferensi cetak kustom akan langsung diterapkan pada seluruh dokumen nota kasir.
         </div>
         <button type="submit" className="btn btn-primary store-btn-save">
-          <i className="ri-save-line" aria-hidden="true" /> Simpan Pengaturan
+          <span className="material-symbols-outlined" aria-hidden="true">save</span> Simpan Pengaturan
         </button>
       </div>
     </form>

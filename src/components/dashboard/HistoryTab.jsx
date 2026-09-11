@@ -53,7 +53,7 @@ export default function HistoryTab({
       <div className="dense-toolbar history-toolbar">
         {/* Search input */}
         <div className="toolbar-search-box">
-          <i className="ri-search-line toolbar-search-icon" aria-hidden="true"></i>
+          <span className="material-symbols-outlined toolbar-search-icon" aria-hidden="true">search</span>
           <input
             type="text"
             className="form-control toolbar-search-input"
@@ -325,7 +325,7 @@ export default function HistoryTab({
                 onClick={handleLoadMore}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                <i className="ri-arrow-down-line" aria-hidden="true"></i>
+                <span className="material-symbols-outlined" aria-hidden="true">expand_more</span>
                 Muat 50 Transaksi Lebih Banyak
               </button>
             )}

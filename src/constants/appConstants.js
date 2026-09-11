@@ -12,11 +12,11 @@ export const PAPER_SIZES = {
 };
 
 export const PAPER_TAB_OPTIONS = [
-  { id: '80mm', label: 'Thermal 80mm', icon: 'ri-printer-line' },
-  { id: '58mm', label: 'Thermal 58mm', icon: 'ri-receipt-line' },
-  { id: 'A5', label: 'Kertas A5', icon: 'ri-file-list-2-line' },
-  { id: 'A4', label: 'Kertas A4', icon: 'ri-file-text-line' },
-  { id: 'custom', label: 'Kustom', icon: 'ri-ruler-2-line' }
+  { id: '80mm', label: 'Thermal 80mm', icon: 'print' },
+  { id: '58mm', label: 'Thermal 58mm', icon: 'receipt' },
+  { id: 'A5', label: 'Kertas A5', icon: 'description' },
+  { id: 'A4', label: 'Kertas A4', icon: 'article' },
+  { id: 'custom', label: 'Kustom', icon: 'straighten' }
 ];
 
 export const PAY_STATUS = {

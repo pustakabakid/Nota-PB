@@ -70,7 +70,7 @@ export default function PublicNotaView({
           flexDirection: 'column',
           alignItems: 'center'
         }}>
-          <i className="ri-file-search-line" style={{ fontSize: '3.5rem', color: 'var(--danger)' }} aria-hidden="true"></i>
+          <span className="material-symbols-outlined" style={{ fontSize: '3.5rem', color: 'var(--danger)' }} aria-hidden="true">manage_search</span>
           <h3 style={{ margin: '1rem 0 0.5rem 0', fontSize: 'var(--text-lg)', color: 'var(--text-main)' }}>
             Nota Digital Tidak Ditemukan
           </h3>
@@ -84,7 +84,7 @@ export default function PublicNotaView({
               style={{ marginTop: '1.5rem' }}
               onClick={onBackToApp}
             >
-              <i className="ri-arrow-left-line" aria-hidden="true"></i> Kembali ke Aplikasi
+              <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span> Kembali ke Aplikasi
             </button>
           )}
         </div>
@@ -152,7 +152,7 @@ export default function PublicNotaView({
         boxShadow: 'var(--shadow-sm)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-          <i className="ri-file-text-line" style={{ color: 'var(--primary)', fontSize: '1.25rem' }} aria-hidden="true"></i>
+          <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.25rem' }} aria-hidden="true">description</span>
           <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-main)' }} className="text-ellipsis-single">
             E-Nota Digital #{transaction.noNota}
           </span>
@@ -161,13 +161,13 @@ export default function PublicNotaView({
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', width: 'auto' }}>
           <CustomTooltip text="Cetak E-Nota">
             <button type="button" className="btn btn-secondary btn-sm" onClick={handlePrint}>
-              <i className="ri-printer-line" aria-hidden="true"></i> Cetak
+              <span className="material-symbols-outlined" aria-hidden="true">print</span> Cetak
             </button>
           </CustomTooltip>
 
           <CustomTooltip text="Unduh berkas PDF E-Nota">
             <button type="button" className="btn btn-primary btn-sm" onClick={handleDownloadPdf}>
-              <i className="ri-file-download-line" aria-hidden="true"></i> Unduh PDF
+              <span className="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span> Unduh PDF
             </button>
           </CustomTooltip>
         </div>

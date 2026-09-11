@@ -200,7 +200,7 @@ function NotaPreview({
             onClick={() => onSwitchMobileTab('order')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
           >
-            <i className="ri-arrow-left-line" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
             <span>Form Order Kasir</span>
           </button>
           <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
@@ -213,7 +213,7 @@ function NotaPreview({
       {!hidePaperSelector && (
         <div className="paper-selector-bar">
           <div className="paper-selector-label">
-            <i className="ri-layout-3-line" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
             <span>Format Kertas:</span>
           </div>
           <div className="paper-tabs" role="tablist" aria-label="Pilihan Format Kertas">
@@ -227,7 +227,7 @@ function NotaPreview({
                 onClick={() => onSelectPaper(item.id)}
                 aria-label={`Pilih format ${item.label}`}
               >
-                <i className={item.icon} aria-hidden="true" />
+                <span className="material-symbols-outlined" aria-hidden="true">{item.icon}</span>
                 <span>{item.id === 'custom' ? (storeProfile?.customPaperName || 'Kustom') : item.label}</span>
               </button>
             ))}
@@ -484,13 +484,13 @@ function NotaPreview({
           {!isSaved ? (
             <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
               <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={onSaveTransaction}>
-                <i className="ri-save-line" aria-hidden="true"></i>
+                <span className="material-symbols-outlined" aria-hidden="true">save</span>
                 <span>Simpan Transaksi & Terbitkan Nota</span>
               </button>
               {onResetForm && (
                 <CustomTooltip text="Reset Form">
                   <button type="button" className="btn btn-secondary" onClick={onResetForm} aria-label="Reset Form">
-                    <i className="ri-refresh-line" aria-hidden="true"></i> Reset
+                    <span className="material-symbols-outlined" aria-hidden="true">refresh</span> Reset
                   </button>
                 </CustomTooltip>
               )}
@@ -502,17 +502,17 @@ function NotaPreview({
                 <div className="quick-action-toolbar-inner">
                   <CustomTooltip text="Cetak Langsung Ke Printer">
                     <button type="button" className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={handlePrint}>
-                      <i className="ri-printer-line" aria-hidden="true"></i> Cetak
+                      <span className="material-symbols-outlined" aria-hidden="true">print</span> Cetak
                     </button>
                   </CustomTooltip>
                   <CustomTooltip text="Unduh Dokumen PDF">
                     <button type="button" className="btn btn-success btn-sm" style={{ width: '100%' }} onClick={handleDownloadPdf}>
-                      <i className="ri-file-pdf-line" aria-hidden="true"></i> PDF
+                      <span className="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span> PDF
                     </button>
                   </CustomTooltip>
                   <CustomTooltip text="Kirim Nota via WhatsApp">
                     <button type="button" className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={handleShareWa}>
-                      <i className="ri-whatsapp-line" aria-hidden="true"></i> WA
+                      <span className="material-symbols-outlined" aria-hidden="true">share</span> WA
                     </button>
                   </CustomTooltip>
                   <CustomTooltip text="Review / Buka E-Nota Publik">
@@ -522,7 +522,7 @@ function NotaPreview({
                       style={{ width: '100%' }}
                       onClick={() => window.open(`?nota=${encodeURIComponent(transaction.noNota)}`, '_blank')}
                     >
-                      <i className="ri-eye-line" aria-hidden="true"></i> Review
+                      <span className="material-symbols-outlined" aria-hidden="true">visibility</span> Review
                     </button>
                   </CustomTooltip>
                 </div>
@@ -531,13 +531,13 @@ function NotaPreview({
               {/* Secondary Update & New Nota Actions */}
               <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                 <button type="button" className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={onSaveTransaction}>
-                  <i className="ri-save-line" aria-hidden="true"></i>
+                  <span className="material-symbols-outlined" aria-hidden="true">save</span>
                   <span>Update & Simpan Perubahan Nota</span>
                 </button>
                 {onResetForm && (
                   <CustomTooltip text="Buat Nota Baru">
                     <button type="button" className="btn btn-secondary btn-sm" onClick={onResetForm} aria-label="Buat Nota Baru">
-                      <i className="ri-add-line" aria-hidden="true"></i> Nota Baru
+                      <span className="material-symbols-outlined" aria-hidden="true">add</span> Nota Baru
                     </button>
                   </CustomTooltip>
                 )}

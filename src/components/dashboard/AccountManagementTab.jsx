@@ -130,7 +130,7 @@ export default function AccountManagementTab({
             className="btn btn-primary btn-sm"
             onClick={handleOpenAddAccount}
           >
-            <i className="ri-user-add-line"></i> Tambah Akun Kasir
+            <span className="material-symbols-outlined">person_add</span> Tambah Akun Kasir
           </button>
         )}
       </div>
@@ -147,11 +147,13 @@ export default function AccountManagementTab({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 700, margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <i className={editingAccount.isNew ? "ri-user-add-line" : "ri-edit-line"} style={{ color: 'var(--primary)' }}></i>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>
+                {editingAccount.isNew ? 'person_add' : 'edit'}
+              </span>
               {editingAccount.isNew ? 'Tambah Akun Pengguna Baru' : `Edit Akun: ${editingAccount.username}`}
             </h4>
             <button type="button" className="btn-close-modal" onClick={() => setEditingAccount(null)} aria-label="Batal">
-              <i className="ri-close-line"></i>
+              <span className="material-symbols-outlined">close</span>
             </button>
           </div>
 
@@ -225,7 +227,7 @@ export default function AccountManagementTab({
               Batal
             </button>
             <button type="submit" className="btn btn-primary btn-sm">
-              <i className="ri-save-line"></i> Simpan Akun ke Database
+              <span className="material-symbols-outlined">save</span> Simpan Akun ke Database
             </button>
           </div>
         </form>
@@ -295,18 +297,18 @@ export default function AccountManagementTab({
                   </td>
                   <td>
                     <span className={`status-pill ${isSuper ? 'status-lunas' : 'status-proses'}`}>
-                      <i className={isSuper ? 'ri-shield-keyhole-line' : 'ri-user-3-line'}></i>
+                      <span className="material-symbols-outlined">{isSuper ? 'admin_panel_settings' : 'person'}</span>
                       {isSuper ? 'Superadmin' : 'Admin Kasir'}
                     </span>
                   </td>
                   <td>
                     {acc.isActive !== false ? (
                       <span className="status-pill status-lunas" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
-                        <i className="ri-checkbox-circle-line" /> Aktif
+                        <span className="material-symbols-outlined">check_circle</span> Aktif
                       </span>
                     ) : (
                       <span className="status-pill status-cancelled" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
-                        <i className="ri-close-circle-line" /> Nonaktif
+                        <span className="material-symbols-outlined">cancel</span> Nonaktif
                       </span>
                     )}
                   </td>
@@ -314,19 +316,19 @@ export default function AccountManagementTab({
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
                       <CustomTooltip text="Edit Akun & Password">
                         <button type="button" className="btn-icon-action" onClick={() => handleOpenEditAccount(acc)} aria-label="Edit Akun">
-                          <i className="ri-edit-line"></i>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                         </button>
                       </CustomTooltip>
                       {!isCurrent && !isLastSuper ? (
                         <CustomTooltip text="Hapus Akun">
                           <button type="button" className="btn-icon-action danger" onClick={() => onDeleteAccount && onDeleteAccount(acc.id)} aria-label="Hapus Akun">
-                            <i className="ri-delete-bin-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
                           </button>
                         </CustomTooltip>
                       ) : (
                         <CustomTooltip text={isCurrent ? "Akun Anda yang sedang aktif" : "Superadmin utama terakhir tidak dapat dihapus"}>
                           <button type="button" className="btn-icon-action" disabled style={{ opacity: 0.3, cursor: 'not-allowed' }} aria-label="Terkunci">
-                            <i className="ri-lock-line"></i>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>lock</span>
                           </button>
                         </CustomTooltip>
                       )}
@@ -369,7 +371,7 @@ export default function AccountManagementTab({
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className={`status-pill ${isSuper ? 'status-lunas' : 'status-proses'}`}>
-                    <i className={isSuper ? 'ri-shield-keyhole-line' : 'ri-user-3-line'}></i>
+                    <span className="material-symbols-outlined">{isSuper ? 'admin_panel_settings' : 'person'}</span>
                     {isSuper ? 'Superadmin' : 'Admin Kasir'}
                   </span>
                   {acc.isActive === false && (
@@ -405,7 +407,7 @@ export default function AccountManagementTab({
                     aria-label="Edit Akun"
                     style={{ padding: '0.35rem 0.75rem', fontSize: 'var(--text-xs)' }}
                   >
-                    <i className="ri-edit-line" aria-hidden="true" /> Edit
+                    <span className="material-symbols-outlined" aria-hidden="true">edit</span> Edit
                   </button>
                   {!isCurrent && !isLastSuper ? (
                     <button
@@ -415,7 +417,7 @@ export default function AccountManagementTab({
                       aria-label="Hapus Akun"
                       style={{ padding: '0.35rem 0.65rem', fontSize: 'var(--text-xs)' }}
                     >
-                      <i className="ri-delete-bin-line" aria-hidden="true" />
+                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                     </button>
                   ) : (
                     <button
@@ -425,7 +427,7 @@ export default function AccountManagementTab({
                       style={{ opacity: 0.4, cursor: 'not-allowed', padding: '0.35rem 0.65rem' }}
                       aria-label="Terkunci"
                     >
-                      <i className="ri-lock-line" aria-hidden="true" />
+                      <span className="material-symbols-outlined" aria-hidden="true">lock</span>
                     </button>
                   )}
                 </div>

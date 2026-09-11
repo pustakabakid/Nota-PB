@@ -51,7 +51,7 @@ export default function CloudConfigTab({
           </div>
         </div>
         <span className={`status-pill-mini ${isConnected ? 'connected' : 'local'}`}>
-          <i className={isConnected ? 'ri-cloud-line' : 'ri-cloud-off-line'} />
+          <span className="material-symbols-outlined">{isConnected ? 'cloud' : 'cloud_off'}</span>
           {isConnected ? 'Online Sync' : 'Offline'}
         </span>
       </div>
@@ -61,7 +61,7 @@ export default function CloudConfigTab({
         {/* Column 1: WARNING BANNER */}
         <div className="cloud-critical-warning">
           <div className="warning-icon-box">
-            <i className="ri-alarm-warning-fill" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">warning</span>
           </div>
           <div className="warning-text-content">
             <h4 className="warning-title">PERINGATAN KONFIGURASI BACKEND</h4>
@@ -81,7 +81,7 @@ export default function CloudConfigTab({
         <div className="cloud-form-card">
           <div className="cloud-form-header">
             <h4 className="cloud-form-title">
-              <i className="ri-google-line" style={{ color: 'var(--primary)' }} /> Parameter Google Apps Script Web App
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>dns</span> Parameter Google Apps Script Web App
             </h4>
             <span className="cloud-form-subtitle">
               Masukkan Deployment Web App URL dari Apps Script Editor project Google Sheets Anda.
@@ -90,7 +90,7 @@ export default function CloudConfigTab({
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label" htmlFor="cloud-url">
-              <i className="ri-link-m" style={{ color: 'var(--primary)', marginRight: '4px' }} /> Web App Deployment URL
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginRight: '4px' }}>link</span> Web App Deployment URL
             </label>
             <input
               type="text"
@@ -110,13 +110,13 @@ export default function CloudConfigTab({
       <div className="cloud-action-bar">
         {isConnected ? (
           <button type="button" className="btn btn-danger btn-sm" onClick={handleClearCloudConfig}>
-            <i className="ri-link-unlink-m" /> Putuskan Koneksi
+            <span className="material-symbols-outlined">link_off</span> Putuskan Koneksi
           </button>
         ) : (
           <div />
         )}
         <button type="button" className="btn btn-primary" onClick={handleSaveCloudConfig}>
-          <i className="ri-save-line" /> Simpan Pengaturan Cloud
+          <span className="material-symbols-outlined">save</span> Simpan Pengaturan Cloud
         </button>
       </div>
     </div>

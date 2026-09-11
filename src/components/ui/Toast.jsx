@@ -6,10 +6,10 @@ export default function Toast({ toasts = [], onDismiss }) {
   return (
     <div className="toast-container" role="region" aria-label="Notifikasi">
       {toasts.map(toast => {
-        let iconClass = 'ri-information-line';
-        if (toast.type === 'success') iconClass = 'ri-checkbox-circle-line';
-        if (toast.type === 'warning') iconClass = 'ri-alert-line';
-        if (toast.type === 'error' || toast.type === 'danger') iconClass = 'ri-close-circle-line';
+        let iconName = 'info';
+        if (toast.type === 'success') iconName = 'check_circle';
+        if (toast.type === 'warning') iconName = 'warning';
+        if (toast.type === 'error' || toast.type === 'danger') iconName = 'cancel';
 
         return (
           <div 
@@ -18,7 +18,7 @@ export default function Toast({ toasts = [], onDismiss }) {
             role="alert"
             aria-live="polite"
           >
-            <i className={`${iconClass} toast-icon`} aria-hidden="true" />
+            <span className="material-symbols-outlined toast-icon" aria-hidden="true">{iconName}</span>
             <span className="toast-message">{toast.message}</span>
             <button
               type="button"
@@ -26,7 +26,7 @@ export default function Toast({ toasts = [], onDismiss }) {
               onClick={() => onDismiss(toast.id)}
               aria-label="Tutup"
             >
-              <i className="ri-close-line" aria-hidden="true" />
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </div>
         );

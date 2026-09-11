@@ -62,10 +62,10 @@ function ItemCalculator({
     <div className="fluent-card item-calculator-card compact-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h2 className="card-title" style={{ marginBottom: 0, border: 'none', padding: 0 }}>
-          <i className="ri-calculator-line" aria-hidden="true"></i> Rincian Pesanan Percetakan
+          <span className="material-symbols-outlined" aria-hidden="true">calculate</span> Rincian Pesanan Percetakan
         </h2>
         <button type="button" className="btn btn-secondary btn-sm" onClick={onAddItem}>
-          <i className="ri-add-line" aria-hidden="true"></i> Tambah Item
+          <span className="material-symbols-outlined" aria-hidden="true">add</span> Tambah Item
         </button>
       </div>
 
@@ -80,12 +80,12 @@ function ItemCalculator({
             border: '1px dashed var(--border-color)',
             marginBottom: '1rem'
           }}>
-            <i className="ri-shopping-basket-line" style={{ fontSize: '2.5rem', color: 'var(--text-muted)' }}></i>
+            <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: 'var(--text-muted)' }}>shopping_basket</span>
             <p style={{ margin: '0.5rem 0 1rem 0', color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>
               Belum ada item pesanan pada nota ini.
             </p>
             <button type="button" className="btn btn-primary btn-sm" onClick={onAddItem}>
-              <i className="ri-add-line"></i> Tambah Item Pesanan Baru
+              <span className="material-symbols-outlined">add</span> Tambah Item Pesanan Baru
             </button>
           </div>
         ) : (
@@ -120,14 +120,14 @@ function ItemCalculator({
                       }}
                     />
                   </div>
-                  <CustomTooltip text="Hapus Item Ini">
+                  <CustomTooltip text="Hapus item pesanan">
                     <button
                       type="button"
                       className="btn-remove-item"
                       onClick={() => onRemoveItem(index)}
                       aria-label={`Hapus item #${index + 1}`}
                     >
-                      <i className="ri-delete-bin-line" aria-hidden="true"></i>
+                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                     </button>
                   </CustomTooltip>
                 </div>
@@ -216,8 +216,8 @@ function ItemCalculator({
                       onClick={() => toggleAccordion(index, 'book')}
                       aria-expanded={isBookDetailOpen}
                     >
-                      <span><i className="ri-book-open-line"></i> Detail Cetak Buku & Jilid</span>
-                      <i className={`ri-arrow-down-s-line accordion-chevron ${isBookDetailOpen ? 'open' : ''}`}></i>
+                      <span><span className="material-symbols-outlined">menu_book</span> Detail Cetak Buku & Jilid</span>
+                      <span className={`material-symbols-outlined accordion-chevron ${isBookDetailOpen ? 'open' : ''}`}>expand_more</span>
                     </button>
                     {isBookDetailOpen && (
                       <div className="accordion-content">
@@ -318,8 +318,8 @@ function ItemCalculator({
                     onClick={() => toggleAccordion(index, 'custom')}
                     aria-expanded={isCustomDetailOpen}
                   >
-                    <span><i className="ri-list-settings-line"></i> Detail Tambahan Specs ({(item.customDetails || []).length})</span>
-                    <i className={`ri-arrow-down-s-line accordion-chevron ${isCustomDetailOpen ? 'open' : ''}`}></i>
+                    <span><span className="material-symbols-outlined">tune</span> Detail Tambahan Specs ({(item.customDetails || []).length})</span>
+                    <span className={`material-symbols-outlined accordion-chevron ${isCustomDetailOpen ? 'open' : ''}`}>expand_more</span>
                   </button>
                   {isCustomDetailOpen && (
                     <div className="accordion-content">
@@ -335,7 +335,7 @@ function ItemCalculator({
                               });
                             }}
                           >
-                            <i className="ri-add-line" aria-hidden="true"></i> Tambah Detail Specs
+                            <span className="material-symbols-outlined" aria-hidden="true">add</span> Tambah Detail Specs
                           </button>
                         </div>
                         {(item.customDetails || []).map((detail, dIdx) => (
@@ -371,7 +371,7 @@ function ItemCalculator({
                               }}
                               aria-label="Hapus detail"
                             >
-                              <i className="ri-close-line" aria-hidden="true"></i>
+                              <span className="material-symbols-outlined" aria-hidden="true">close</span>
                             </button>
                           </div>
                         ))}
@@ -449,8 +449,8 @@ function ItemCalculator({
           onClick={() => toggleAccordion('global', 'catatan')}
           aria-expanded={!!openAccordions['global-catatan']}
         >
-          <span><i className="ri-file-text-line"></i> Catatan Tambahan Pesanan</span>
-          <i className={`ri-arrow-down-s-line accordion-chevron ${openAccordions['global-catatan'] ? 'open' : ''}`}></i>
+          <span><span className="material-symbols-outlined">description</span> Catatan Tambahan Pesanan</span>
+          <span className={`material-symbols-outlined accordion-chevron ${openAccordions['global-catatan'] ? 'open' : ''}`}>expand_more</span>
         </button>
         {openAccordions['global-catatan'] && (
           <div className="accordion-content">

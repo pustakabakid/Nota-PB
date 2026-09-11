@@ -17,7 +17,7 @@ function CustomerFormMobile({ transaction, onChange, onSwitchMobileTab }) {
       <div className="cf-mobile-priority">
         <div className="form-group">
           <label className="form-label" htmlFor="custName-m">
-            <i className="ri-user-3-line" aria-hidden="true" /> Nama Pelanggan
+            <span className="material-symbols-outlined" aria-hidden="true">person</span> Nama Pelanggan
           </label>
           <input
             type="text"
@@ -34,7 +34,7 @@ function CustomerFormMobile({ transaction, onChange, onSwitchMobileTab }) {
         <div className="cf-mobile-row2">
           <div className="form-group">
             <label className="form-label" htmlFor="custPhone-m">
-              <i className="ri-whatsapp-line" aria-hidden="true" /> No. WA / HP
+              <span className="material-symbols-outlined" aria-hidden="true">phone</span> No. WA / HP
             </label>
             <input
               type="tel"
@@ -48,7 +48,7 @@ function CustomerFormMobile({ transaction, onChange, onSwitchMobileTab }) {
           </div>
           <div className="form-group">
             <label className="form-label">
-              <i className="ri-calendar-line" aria-hidden="true" /> Tanggal
+              <span className="material-symbols-outlined" aria-hidden="true">calendar_today</span> Tanggal
             </label>
             <CustomDatePicker
               value={transaction.date}
@@ -67,16 +67,18 @@ function CustomerFormMobile({ transaction, onChange, onSwitchMobileTab }) {
         aria-controls="cf-detail-panel"
       >
         <span>
-          <i className="ri-settings-3-line" aria-hidden="true" />
+          <span className="material-symbols-outlined" aria-hidden="true">tune</span>
           {isDetailOpen ? 'Sembunyikan Detail' : 'Detail Transaksi'}
           {!isDetailOpen && transaction.orderStatus && (
             <span className="cf-status-preview"> · {transaction.orderStatus}</span>
           )}
         </span>
-        <i
-          className={`ri-arrow-down-s-line cf-expand-chevron${isDetailOpen ? ' open' : ''}`}
+        <span
+          className={`material-symbols-outlined cf-expand-chevron${isDetailOpen ? ' open' : ''}`}
           aria-hidden="true"
-        />
+        >
+          expand_more
+        </span>
       </button>
 
       {/* ── Expanded Detail Fields ── */}
@@ -147,9 +149,9 @@ function CustomerFormMobile({ transaction, onChange, onSwitchMobileTab }) {
             style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}
             onClick={() => onSwitchMobileTab('preview')}
           >
-            <i className="ri-file-text-line" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">description</span>
             <span>Lihat Preview Dokumen Nota</span>
-            <i className="ri-arrow-right-line" aria-hidden="true" />
+            <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
           </button>
         </div>
       )}
@@ -164,7 +166,7 @@ function CustomerFormDesktop({ transaction, onChange }) {
   return (
     <div className="fluent-card">
       <h2 className="card-title">
-        <i className="ri-user-3-line" aria-hidden="true" /> Informasi Pelanggan &amp; Transaksi
+        <span className="material-symbols-outlined" aria-hidden="true">person</span> Informasi Pelanggan &amp; Transaksi
       </h2>
       <div className="form-grid">
         <div className="form-group">

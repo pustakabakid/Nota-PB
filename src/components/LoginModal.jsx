@@ -68,7 +68,7 @@ export default function LoginModal({ onLoginSuccess }) {
             justifyContent: 'center',
             fontSize: '1.75rem'
           }}>
-            <i className="ri-shield-user-line" aria-hidden="true"></i>
+            <span className="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
           </div>
           <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.35rem 0' }}>
             Login Kasir Percetakan
@@ -93,7 +93,7 @@ export default function LoginModal({ onLoginSuccess }) {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            <i className="ri-error-warning-line" style={{ fontSize: '1.1rem' }} aria-hidden="true"></i>
+            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }} aria-hidden="true">warning</span>
             <span>{errorMsg}</span>
           </div>
         )}
@@ -115,14 +115,14 @@ export default function LoginModal({ onLoginSuccess }) {
                 autoFocus
                 autoComplete="username"
               />
-              <i className="ri-user-3-line" style={{
+              <span className="material-symbols-outlined" style={{
                 position: 'absolute',
                 left: '0.85rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)',
-                fontSize: '1.05rem'
-              }} aria-hidden="true"></i>
+                fontSize: '1.2rem'
+              }} aria-hidden="true">person</span>
             </div>
           </div>
 
@@ -140,14 +140,14 @@ export default function LoginModal({ onLoginSuccess }) {
                 required
                 autoComplete="current-password"
               />
-              <i className="ri-lock-2-line" style={{
+              <span className="material-symbols-outlined" style={{
                 position: 'absolute',
                 left: '0.85rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)',
-                fontSize: '1.05rem'
-              }} aria-hidden="true"></i>
+                fontSize: '1.2rem'
+              }} aria-hidden="true">lock</span>
               <button
                 type="button"
                 style={{
@@ -170,7 +170,9 @@ export default function LoginModal({ onLoginSuccess }) {
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
               >
-                <i className={showPassword ? 'ri-eye-off-line' : 'ri-eye-line'} aria-hidden="true"></i>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
               </button>
             </div>
           </div>
@@ -182,9 +184,13 @@ export default function LoginModal({ onLoginSuccess }) {
             disabled={isLoading}
           >
             {isLoading ? (
-              <span><i className="ri-loader-4-line ri-spin" aria-hidden="true"></i> Memverifikasi...</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span className="material-symbols-outlined spin-animation" aria-hidden="true">sync</span> Memverifikasi...
+              </span>
             ) : (
-              <span><i className="ri-login-box-line" aria-hidden="true"></i> Masuk Aplikasi</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span className="material-symbols-outlined" aria-hidden="true">login</span> Masuk Aplikasi
+              </span>
             )}
           </button>
         </form>
