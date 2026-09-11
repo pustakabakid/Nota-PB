@@ -167,12 +167,17 @@ function NotaPreview({
     const text = generateNotaText(storeProfile, transaction, displayItems, computedGrandTotal, sisa);
     const encodedText = encodeURIComponent(text);
     let waUrl = `https://wa.me/?text=${encodedText}`;
-    if (transaction.custPhone) {
-      let formattedPhone = transaction.custPhone.replace(/\D/g, '');
+    if (transaction && transaction.custPhone) {
+      const rawPhone = String(transaction.custPhone || '').trim();
+      let formattedPhone = rawPhone.replace(/\D/g, '');
       if (formattedPhone.startsWith('0')) {
         formattedPhone = '62' + formattedPhone.slice(1);
+      } else if (formattedPhone.startsWith('8')) {
+        formattedPhone = '628' + formattedPhone.slice(1);
       }
-      waUrl = `https://wa.me/${formattedPhone}?text=${encodedText}`;
+      if (formattedPhone) {
+        waUrl = `https://wa.me/${formattedPhone}?text=${encodedText}`;
+      }
     }
     window.open(waUrl, '_blank');
   };
