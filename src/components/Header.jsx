@@ -74,7 +74,7 @@ export default function Header({
           aria-current={currentPage === 'editor' && activeMobileTab === 'order' ? 'page' : undefined}
           aria-label="Order Kasir"
         >
-          <i className="ri-shopping-bag-3-line" aria-hidden="true" />
+          <i className={currentPage === 'editor' && activeMobileTab === 'order' ? 'ri-shopping-bag-3-fill' : 'ri-shopping-bag-3-line'} aria-hidden="true" />
           <span className="nav-tab-label">Order Kasir</span>
         </button>
 
@@ -89,7 +89,7 @@ export default function Header({
           aria-current={currentPage === 'editor' && activeMobileTab === 'preview' ? 'page' : undefined}
           aria-label="Preview Nota"
         >
-          <i className="ri-file-text-line" aria-hidden="true" />
+          <i className={currentPage === 'editor' && activeMobileTab === 'preview' ? 'ri-file-text-fill' : 'ri-file-text-line'} aria-hidden="true" />
           <span className="nav-tab-label">Preview</span>
         </button>
 
@@ -102,7 +102,7 @@ export default function Header({
             aria-current={currentPage === 'dashboard' ? 'page' : undefined}
             aria-label="Dashboard"
           >
-            <i className="ri-dashboard-3-line" aria-hidden="true" />
+            <i className={currentPage === 'dashboard' ? 'ri-dashboard-3-fill' : 'ri-dashboard-3-line'} aria-hidden="true" />
             <span className="nav-tab-label">Dashboard</span>
           </button>
         )}

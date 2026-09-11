@@ -194,6 +194,49 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   2.1. Global Icon Outline-to-Bold & Hover System
+   -------------------------------------------------------------------------- */
+i[class*="ri-"],
+.nav-tab-btn i,
+.dashboard-tab i,
+.btn i,
+.mbb-btn i,
+.user-dropdown-action-btn i,
+.action-btn i {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.22s ease,
+              font-weight 0.22s ease,
+              opacity 0.22s ease;
+  will-change: transform;
+}
+
+button:hover i[class*="ri-"],
+button:active i[class*="ri-"],
+.nav-tab-btn:hover i,
+.nav-tab-btn.active i,
+.dashboard-tab:hover i,
+.dashboard-tab.active i,
+.btn:hover i,
+.btn:active i,
+.user-dropdown-action-btn:hover i,
+.mbb-btn:hover i,
+.mbb-btn:active i,
+a:hover i[class*="ri-"] {
+  transform: scale(1.18);
+  font-weight: 700;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+}
+
+button:active i[class*="ri-"],
+.nav-tab-btn:active i,
+.dashboard-tab:active i,
+.btn:active i {
+  transform: scale(1.05);
+}
+
+/* --------------------------------------------------------------------------
    3. Header & Navigation (Mobile-First Safe Area Layout)
    -------------------------------------------------------------------------- */
 .app-header {

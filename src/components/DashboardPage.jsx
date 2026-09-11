@@ -194,28 +194,28 @@ export default function DashboardPage({
             className={`dashboard-tab ${activeTab === 'history' ? 'active' : ''}`}
             onClick={() => setActiveTab('history')}
           >
-            <i className="ri-history-line" aria-hidden="true"></i> Riwayat Transaksi ({history.length})
+            <i className={activeTab === 'history' ? "ri-history-fill" : "ri-history-line"} aria-hidden="true"></i> Riwayat Transaksi ({history.length})
           </button>
           <button
             type="button"
             className={`dashboard-tab ${activeTab === 'catalog' ? 'active' : ''}`}
             onClick={() => setActiveTab('catalog')}
           >
-            <i className="ri-price-tag-3-line" aria-hidden="true"></i> Katalog Preset Tarif ({catalog.length})
+            <i className={activeTab === 'catalog' ? "ri-price-tag-3-fill" : "ri-price-tag-3-line"} aria-hidden="true"></i> Katalog Preset Tarif ({catalog.length})
           </button>
           <button
             type="button"
             className={`dashboard-tab ${activeTab === 'store' ? 'active' : ''}`}
             onClick={() => setActiveTab('store')}
           >
-            <i className="ri-store-2-line" aria-hidden="true"></i> Profil Toko
+            <i className={activeTab === 'store' ? "ri-store-2-fill" : "ri-store-2-line"} aria-hidden="true"></i> Profil Toko
           </button>
           <button
             type="button"
             className={`dashboard-tab ${activeTab === 'cloud' ? 'active' : ''}`}
             onClick={() => setActiveTab('cloud')}
           >
-            <i className={isConnected ? "ri-cloud-fill" : "ri-cloud-line"} style={{ color: isConnected ? 'var(--primary)' : 'inherit' }} aria-hidden="true"></i> 
+            <i className={activeTab === 'cloud' || isConnected ? "ri-cloud-fill" : "ri-cloud-line"} style={{ color: isConnected ? 'var(--primary)' : 'inherit' }} aria-hidden="true"></i> 
             Koneksi Cloud DB {isConnected && <span className="tab-badge-online">Active</span>}
           </button>
           <button
@@ -223,7 +223,7 @@ export default function DashboardPage({
             className={`dashboard-tab ${activeTab === 'accounts' ? 'active' : ''}`}
             onClick={() => setActiveTab('accounts')}
           >
-            <i className="ri-user-settings-line" aria-hidden="true"></i> Manajemen Akun ({accounts.length})
+            <i className={activeTab === 'accounts' ? "ri-user-settings-fill" : "ri-user-settings-line"} aria-hidden="true"></i> Manajemen Akun ({accounts.length})
           </button>
         </div>
 

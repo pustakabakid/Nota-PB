@@ -76,7 +76,7 @@ export default function MobileBottomBar({
             aria-label={isSaved ? 'Update nota' : 'Simpan nota'}
           >
             <i
-              className={isSaved ? 'ri-checkbox-circle-line' : 'ri-save-line'}
+              className={isSaved ? 'ri-checkbox-circle-fill' : 'ri-save-line'}
               aria-hidden="true"
             />
             <span>{isSaved ? 'Update' : 'Simpan'}</span>
