@@ -3,7 +3,7 @@ import json
 
 SUPABASE_URL = "https://thkwdclcupfxrmseewlf.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoa3dkY2xjdXBmeHJtc2Vld2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNzEwMTQsImV4cCI6MjEwMTc0NzAxNH0.sGxUvpa-AIOBpg5EI5T-r5v0LPzVKv9mMK1u5TW1Uhw"
-GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyd3IRIUuron6NKVC_BjM34-68Ueh42kMDaM2hsDDdruhlERvyb6sr3FEYY7o9UcvlF/exec"
+GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyDl15sOXpZ4RcTZDYJjfgmau_xoPQob-EnSiLQYlGsEo8hhQkb1s21tCBv3tXnPSWQ/exec"
 
 def fetch_supabase_table(table_name):
     headers = {"apikey": SUPABASE_ANON_KEY}

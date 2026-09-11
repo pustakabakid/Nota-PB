@@ -15,7 +15,7 @@
  */
 
 // Global Constant Configuration
-const SHEET_NAMES = {
+var SHEET_NAMES = {
   USERS: 'users',
   STORE_PROFILE: 'store_profile',
   CATALOG_PRESETS: 'catalog_presets',
@@ -27,13 +27,21 @@ const SHEET_NAMES = {
   AUDIT_LOGS: 'audit_logs'
 };
 
-const SPREADSHEET_ID = '1Qzh4XR8Eu3Pfp-LjurqZkI0pb1gI2kzHQmWjvGOqImk';
+var SPREADSHEET_ID = '1Qzh4XR8Eu3Pfp-LjurqZkI0pb1gI2kzHQmWjvGOqImk';
+var SECRET_SALT = 'NOTA_PUSTAKA_BAKI_SECURE_SALT_2026';
+
+function getSecretSalt() {
+  if (typeof SECRET_SALT !== 'undefined' && SECRET_SALT) {
+    return SECRET_SALT;
+  }
+  return 'NOTA_PUSTAKA_BAKI_SECURE_SALT_2026';
+}
 
 /**
  * Helper: Gets target spreadsheet DB
  */
 function getDB() {
-  if (SPREADSHEET_ID && SPREADSHEET_ID.trim().length > 0) {
+  if (typeof SPREADSHEET_ID !== 'undefined' && SPREADSHEET_ID && SPREADSHEET_ID.trim().length > 0) {
     try {
       return SpreadsheetApp.openById(SPREADSHEET_ID.trim());
     } catch (e) {
@@ -47,7 +55,7 @@ function getDB() {
  * Helper: Password Hashing using Apps Script Utilities (SHA-256 with Salt)
  */
 function hashPassword(password, salt) {
-  const textToHash = (salt || SECRET_SALT) + ':' + (password || '');
+  const textToHash = (salt || getSecretSalt()) + ':' + (password || '');
   const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, textToHash, Utilities.Charset.UTF_8);
   return digest.map(function(byte) {
     const v = (byte < 0 ? byte + 256 : byte).toString(16);
@@ -61,7 +69,7 @@ function hashPassword(password, salt) {
 function generateSessionToken(userId, role) {
   const timestamp = new Date().getTime();
   const raw = userId + '|' + role + '|' + timestamp + '|' + Math.random();
-  const signature = Utilities.computeHmacSha256Signature(raw, SECRET_SALT);
+  const signature = Utilities.computeHmacSha256Signature(raw, getSecretSalt());
   const sigHex = signature.map(function(byte) {
     const v = (byte < 0 ? byte + 256 : byte).toString(16);
     return v.length === 1 ? '0' + v : v;
@@ -79,7 +87,7 @@ function verifySessionToken(token) {
   try {
     const parts = token.split('.');
     const raw = Utilities.newBlob(Utilities.base64Decode(parts[0])).getDataAsString();
-    const expectedSig = Utilities.computeHmacSha256Signature(raw, SECRET_SALT).map(function(byte) {
+    const expectedSig = Utilities.computeHmacSha256Signature(raw, getSecretSalt()).map(function(byte) {
       const v = (byte < 0 ? byte + 256 : byte).toString(16);
       return v.length === 1 ? '0' + v : v;
     }).join('');

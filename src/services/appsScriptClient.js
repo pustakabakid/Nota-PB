@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
  * Gets configured Google Apps Script Web App URL from env or LocalStorage
  */
 export const getAppsScriptConfig = () => {
-  const defaultUrl = 'https://script.google.com/macros/s/AKfycbyd3IRIUuron6NKVC_BjM34-68Ueh42kMDaM2hsDDdruhlERvyb6sr3FEYY7o9UcvlF/exec';
+  const defaultUrl = 'https://script.google.com/macros/s/AKfycbyDl15sOXpZ4RcTZDYJjfgmau_xoPQob-EnSiLQYlGsEo8hhQkb1s21tCBv3tXnPSWQ/exec';
   const envUrl = import.meta.env.VITE_GAS_WEB_APP_URL || '';
   const localUrl = localStorage.getItem(STORAGE_KEYS.URL) || '';
   return {
