@@ -7,10 +7,16 @@ import {
   deleteCatalogPresetApi,
   fetchHistoryApi,
   saveTransactionApi,
-  deleteTransactionApi,
   fetchAccountsApi,
   saveAccountApi,
-  deleteAccountApi
+  deleteAccountApi,
+  fetchFinancesApi,
+  savePurchaseApi,
+  deletePurchaseApi,
+  saveExpenseApi,
+  deleteExpenseApi,
+  saveOtherIncomeApi,
+  deleteOtherIncomeApi
 } from '../services/api';
 import { isSupabaseConnected } from '../services/api';
 import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredHistory, saveStoredHistory, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
@@ -104,6 +110,17 @@ export function TransactionProvider({
         }
         return prev;
       });
+    }
+
+    try {
+      const fin = await fetchFinancesApi();
+      if (fin) {
+        if (Array.isArray(fin.purchases)) setPurchases(fin.purchases);
+        if (Array.isArray(fin.expenses)) setExpenses(fin.expenses);
+        if (Array.isArray(fin.otherIncome)) setOtherIncome(fin.otherIncome);
+      }
+    } catch (err) {
+      console.warn('Finance data load failed:', err);
     }
   }, [setAccounts]);
 
@@ -422,7 +439,14 @@ export function TransactionProvider({
       saveStoredPurchases(next);
       return next;
     });
-  }, []);
+
+    try {
+      await savePurchaseApi(purchase);
+    } catch (err) {
+      console.warn('Sync purchase to Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Catatan disimpan lokal. Sinkronisasi cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const handleDeletePurchase = useCallback(async (id) => {
     setPurchases(prev => {
@@ -430,7 +454,14 @@ export function TransactionProvider({
       saveStoredPurchases(next);
       return next;
     });
-  }, []);
+
+    try {
+      await deletePurchaseApi(id);
+    } catch (err) {
+      console.warn('Delete purchase from Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Penghapusan cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const handleSaveExpense = useCallback(async (expense) => {
     setExpenses(prev => {
@@ -440,7 +471,14 @@ export function TransactionProvider({
       saveStoredExpenses(next);
       return next;
     });
-  }, []);
+
+    try {
+      await saveExpenseApi(expense);
+    } catch (err) {
+      console.warn('Sync expense to Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Pengeluaran disimpan lokal. Sinkronisasi cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const handleDeleteExpense = useCallback(async (id) => {
     setExpenses(prev => {
@@ -448,7 +486,14 @@ export function TransactionProvider({
       saveStoredExpenses(next);
       return next;
     });
-  }, []);
+
+    try {
+      await deleteExpenseApi(id);
+    } catch (err) {
+      console.warn('Delete expense from Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Penghapusan cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const handleSaveOtherIncome = useCallback(async (inc) => {
     setOtherIncome(prev => {
@@ -458,7 +503,14 @@ export function TransactionProvider({
       saveStoredOtherIncome(next);
       return next;
     });
-  }, []);
+
+    try {
+      await saveOtherIncomeApi(inc);
+    } catch (err) {
+      console.warn('Sync other income to Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Pemasukan disimpan lokal. Sinkronisasi cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const handleDeleteOtherIncome = useCallback(async (id) => {
     setOtherIncome(prev => {
@@ -466,7 +518,14 @@ export function TransactionProvider({
       saveStoredOtherIncome(next);
       return next;
     });
-  }, []);
+
+    try {
+      await deleteOtherIncomeApi(id);
+    } catch (err) {
+      console.warn('Delete other income from Google Sheets warning:', err);
+      if (onShowToast) onShowToast('Penghapusan cloud tertunda: ' + err.message, 'warning');
+    }
+  }, [onShowToast]);
 
   const value = {
     currentPage,

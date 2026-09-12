@@ -23,7 +23,14 @@ import {
   fetchAccountsApi,
   saveAccountApi,
   deleteAccountApi,
-  uploadDriveAssetApi
+  uploadDriveAssetApi,
+  fetchFinancesApi,
+  savePurchaseApi,
+  deletePurchaseApi,
+  saveExpenseApi,
+  deleteExpenseApi,
+  saveOtherIncomeApi,
+  deleteOtherIncomeApi
 } from './googleSheetsApi';
 
 // --------------------------------------------------------------------------
@@ -57,5 +64,12 @@ export {
   fetchAccountsApi,
   saveAccountApi,
   deleteAccountApi,
-  uploadDriveAssetApi
+  uploadDriveAssetApi,
+  fetchFinancesApi,
+  savePurchaseApi,
+  deletePurchaseApi,
+  saveExpenseApi,
+  deleteExpenseApi,
+  saveOtherIncomeApi,
+  deleteOtherIncomeApi
 };

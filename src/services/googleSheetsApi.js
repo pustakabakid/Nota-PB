@@ -19,7 +19,10 @@ import {
   deleteNoteDirect,
   uploadDriveFileDirect,
   saveUserDirect,
-  deleteUserDirect
+  deleteUserDirect,
+  fetchFinancesDirect,
+  saveFinanceDirect,
+  deleteFinanceDirect
 } from './googleSheetsDirectApi';
 
 import {
@@ -28,7 +31,13 @@ import {
   getStoredCatalog,
   saveStoredCatalog,
   getStoredHistory,
-  saveStoredHistory
+  saveStoredHistory,
+  getStoredPurchases,
+  saveStoredPurchases,
+  getStoredExpenses,
+  saveStoredExpenses,
+  getStoredOtherIncome,
+  saveStoredOtherIncome
 } from './storage';
 
 // --------------------------------------------------------------------------
@@ -495,60 +504,166 @@ export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
   return res.data; // { fileId, fileUrl, previewUrl, thumbnailUrl }
 };
 
+// --------------------------------------------------------------------------
+// 7. FAST CLOUD FINANCE REPOSITORY (Purchases, Expenses, Other Income)
+// --------------------------------------------------------------------------
+
 /**
- * Saves a single purchase to localStorage (offline-first).
- * Cloud sync to GAS can be added in future.
+ * Fetches all financial books from Google Sheets with offline-first localStorage fallback
+ */
+export const fetchFinancesApi = async () => {
+  const localPurchases = getStoredPurchases();
+  const localExpenses = getStoredExpenses();
+  const localOtherIncome = getStoredOtherIncome();
+
+  try {
+    const cloudFinances = await fetchFinancesDirect();
+    if (cloudFinances) {
+      const { purchases = [], expenses = [], otherIncome = [] } = cloudFinances;
+
+      // Update local storage caches
+      saveStoredPurchases(purchases);
+      saveStoredExpenses(expenses);
+      saveStoredOtherIncome(otherIncome);
+
+      // Auto-migrate any local-only items that are not in cloud yet
+      const cloudPurchaseIds = new Set(purchases.map(p => p.id));
+      const cloudExpenseIds = new Set(expenses.map(e => e.id));
+      const cloudIncomeIds = new Set(otherIncome.map(i => i.id));
+
+      const pendingPurchases = localPurchases.filter(p => p.id && !cloudPurchaseIds.has(p.id));
+      const pendingExpenses = localExpenses.filter(e => e.id && !cloudExpenseIds.has(e.id));
+      const pendingIncome = localOtherIncome.filter(i => i.id && !cloudIncomeIds.has(i.id));
+
+      if (pendingPurchases.length > 0 || pendingExpenses.length > 0 || pendingIncome.length > 0) {
+        Promise.all([
+          ...pendingPurchases.map(p => saveFinanceDirect({ ...p, type: 'purchase' })),
+          ...pendingExpenses.map(e => saveFinanceDirect({ ...e, type: 'expense' })),
+          ...pendingIncome.map(i => saveFinanceDirect({ ...i, type: 'income' }))
+        ]).catch(err => {
+          console.warn('Background auto-migration of local finance records failed:', err);
+        });
+
+        return {
+          purchases: [...pendingPurchases, ...purchases],
+          expenses: [...pendingExpenses, ...expenses],
+          otherIncome: [...pendingIncome, ...otherIncome]
+        };
+      }
+
+      return { purchases, expenses, otherIncome };
+    }
+  } catch (err) {
+    console.warn('Direct fetchFinances failed, using local storage cache:', err);
+  }
+
+  return {
+    purchases: localPurchases,
+    expenses: localExpenses,
+    otherIncome: localOtherIncome
+  };
+};
+
+/**
+ * Saves a single purchase to Google Sheets & local cache (offline-first)
  */
 export const savePurchaseApi = async (purchase) => {
-  const { getStoredPurchases, saveStoredPurchases } = await import('./storage');
   const all = getStoredPurchases();
   const idx = all.findIndex(p => p.id === purchase.id);
-  if (idx >= 0) {
-    all[idx] = purchase;
-  } else {
-    all.unshift(purchase);
+  const next = idx >= 0 ? all.map(p => p.id === purchase.id ? purchase : p) : [purchase, ...all];
+  saveStoredPurchases(next);
+
+  try {
+    await saveFinanceDirect({ ...purchase, type: 'purchase' });
+  } catch (err) {
+    console.error('Failed to sync purchase to Google Sheets:', err);
+    throw err;
   }
-  saveStoredPurchases(all);
-  return all;
+  return next;
 };
 
 /**
- * Deletes a purchase by id from localStorage.
+ * Deletes a purchase by id from Google Sheets & local cache
  */
 export const deletePurchaseApi = async (id) => {
-  const { getStoredPurchases, saveStoredPurchases } = await import('./storage');
   const all = getStoredPurchases().filter(p => p.id !== id);
   saveStoredPurchases(all);
+
+  try {
+    await deleteFinanceDirect(id);
+  } catch (err) {
+    console.error('Failed to delete purchase from Google Sheets:', err);
+    throw err;
+  }
   return all;
 };
 
-// --------------------------------------------------------------------------
-// EXPENSES — Pengeluaran lain
-// --------------------------------------------------------------------------
-
 /**
- * Saves a single expense to localStorage (offline-first).
+ * Saves a single expense to Google Sheets & local cache (offline-first)
  */
 export const saveExpenseApi = async (expense) => {
-  const { getStoredExpenses, saveStoredExpenses } = await import('./storage');
   const all = getStoredExpenses();
   const idx = all.findIndex(e => e.id === expense.id);
-  if (idx >= 0) {
-    all[idx] = expense;
-  } else {
-    all.unshift(expense);
+  const next = idx >= 0 ? all.map(e => e.id === expense.id ? expense : e) : [expense, ...all];
+  saveStoredExpenses(next);
+
+  try {
+    await saveFinanceDirect({ ...expense, type: 'expense' });
+  } catch (err) {
+    console.error('Failed to sync expense to Google Sheets:', err);
+    throw err;
   }
+  return next;
+};
+
+/**
+ * Deletes an expense by id from Google Sheets & local cache
+ */
+export const deleteExpenseApi = async (id) => {
+  const all = getStoredExpenses().filter(e => e.id !== id);
   saveStoredExpenses(all);
+
+  try {
+    await deleteFinanceDirect(id);
+  } catch (err) {
+    console.error('Failed to delete expense from Google Sheets:', err);
+    throw err;
+  }
   return all;
 };
 
 /**
- * Deletes an expense by id from localStorage.
+ * Saves other income to Google Sheets & local cache (offline-first)
  */
-export const deleteExpenseApi = async (id) => {
-  const { getStoredExpenses, saveStoredExpenses } = await import('./storage');
-  const all = getStoredExpenses().filter(e => e.id !== id);
-  saveStoredExpenses(all);
+export const saveOtherIncomeApi = async (income) => {
+  const all = getStoredOtherIncome();
+  const idx = all.findIndex(i => i.id === income.id);
+  const next = idx >= 0 ? all.map(i => i.id === income.id ? income : i) : [income, ...all];
+  saveStoredOtherIncome(next);
+
+  try {
+    await saveFinanceDirect({ ...income, type: 'income' });
+  } catch (err) {
+    console.error('Failed to sync other income to Google Sheets:', err);
+    throw err;
+  }
+  return next;
+};
+
+/**
+ * Deletes other income by id from Google Sheets & local cache
+ */
+export const deleteOtherIncomeApi = async (id) => {
+  const all = getStoredOtherIncome().filter(i => i.id !== id);
+  saveStoredOtherIncome(all);
+
+  try {
+    await deleteFinanceDirect(id);
+  } catch (err) {
+    console.error('Failed to delete other income from Google Sheets:', err);
+    throw err;
+  }
   return all;
 };
+
 

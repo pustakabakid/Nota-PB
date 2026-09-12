@@ -539,3 +539,187 @@ export const deleteUserDirect = async (id) => {
   return { success: true, data: await fetchUsersDirect() };
 };
 
+// --------------------------------------------------------------------------
+// 8. FAST FINANCE REPOSITORY (Purchases, Expenses, Other Income)
+// --------------------------------------------------------------------------
+export const fetchFinancesDirect = async () => {
+  const rows = await fetchSheetValues('finances!A1:M2000');
+  if (!rows || rows.length <= 1) {
+    return { purchases: [], expenses: [], otherIncome: [] };
+  }
+
+  const purchases = [];
+  const expenses = [];
+  const otherIncome = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const id = String(row[0] || '').trim();
+    if (!id) continue;
+
+    const status = String(row[10] || 'active').toLowerCase().trim();
+    if (status === 'deleted') continue;
+
+    const type = String(row[1] || '').toLowerCase().trim();
+    const tanggal = String(row[2] || '').trim();
+    const kategori = String(row[3] || '').trim();
+    const keterangan = String(row[4] || '').trim();
+    const noReferensi = String(row[5] || '').trim();
+    const jumlah = Number(row[6] || 0);
+
+    let items = [];
+    try {
+      if (row[7]) items = typeof row[7] === 'string' ? JSON.parse(row[7]) : row[7];
+    } catch {
+      items = [];
+    }
+
+    let notaFile = null;
+    try {
+      if (row[8]) notaFile = typeof row[8] === 'string' ? JSON.parse(row[8]) : row[8];
+    } catch {
+      notaFile = null;
+    }
+
+    const catatan = String(row[9] || '').trim();
+    const createdAt = String(row[11] || '');
+    const updatedAt = String(row[12] || '');
+
+    if (type === 'purchase') {
+      purchases.push({
+        id,
+        tanggal,
+        kategori: kategori || 'Pembelian P1',
+        namaP1: keterangan || 'Percetakan P1',
+        noPembelian: noReferensi || '',
+        grandTotal: jumlah,
+        items: Array.isArray(items) ? items : [],
+        notaFile,
+        catatan,
+        createdAt,
+        updatedAt
+      });
+    } else if (type === 'expense') {
+      expenses.push({
+        id,
+        tanggal,
+        kategori: kategori || 'Operasional',
+        keterangan,
+        jumlah,
+        createdAt,
+        updatedAt
+      });
+    } else if (type === 'income') {
+      otherIncome.push({
+        id,
+        tanggal,
+        sumber: keterangan || 'Infaq / Hibah',
+        keterangan: catatan || keterangan,
+        jumlah,
+        createdAt,
+        updatedAt
+      });
+    }
+  }
+
+  return { purchases, expenses, otherIncome };
+};
+
+export const saveFinanceDirect = async (item) => {
+  const rows = await fetchSheetValues('finances!A1:A2000');
+  const nowIso = new Date().toISOString();
+  const id = item.id || `fin_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  // Determine type & normalize row columns
+  // ['id', 'type', 'tanggal', 'kategori', 'keterangan', 'no_referensi', 'jumlah', 'items_json', 'nota_file_json', 'catatan', 'status', 'created_at', 'updated_at']
+  const type = item.type || (item.noPembelian || item.namaP1 || item.items ? 'purchase' : (item.sumber ? 'income' : 'expense'));
+  const tanggal = item.tanggal || nowIso.slice(0, 10);
+  const kategori = item.kategori || (type === 'purchase' ? 'Pembelian P1' : (type === 'income' ? item.sumber || 'Lainnya' : 'Operasional'));
+  const keterangan = item.namaP1 || item.sumber || item.keterangan || '';
+  const noReferensi = item.noPembelian || '';
+  const jumlah = Number(item.grandTotal ?? item.jumlah ?? 0);
+  const itemsJson = item.items && Array.isArray(item.items) ? JSON.stringify(item.items) : '';
+  const notaFileJson = item.notaFile ? JSON.stringify(item.notaFile) : '';
+  const catatan = item.catatan || (type === 'income' && item.keterangan !== item.sumber ? item.keterangan : '') || '';
+  const status = 'active';
+
+  let foundRowIndex = -1;
+  let existingCreatedAt = nowIso;
+
+  if (rows && rows.length > 1) {
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i][0]) === String(id)) {
+        foundRowIndex = i + 1;
+        break;
+      }
+    }
+  }
+
+  if (foundRowIndex > -1) {
+    // In-place update: fetch existing created_at
+    const existingRow = await fetchSheetValues(`finances!L${foundRowIndex}:L${foundRowIndex}`);
+    if (existingRow && existingRow[0] && existingRow[0][0]) {
+      existingCreatedAt = existingRow[0][0];
+    }
+    const updateRow = [
+      id,
+      type,
+      tanggal,
+      kategori,
+      keterangan,
+      noReferensi,
+      jumlah,
+      itemsJson,
+      notaFileJson,
+      catatan,
+      status,
+      existingCreatedAt,
+      nowIso
+    ];
+    await updateSheetValues(`finances!A${foundRowIndex}:M${foundRowIndex}`, [updateRow]);
+  } else {
+    // Append new row
+    const newRow = [
+      id,
+      type,
+      tanggal,
+      kategori,
+      keterangan,
+      noReferensi,
+      jumlah,
+      itemsJson,
+      notaFileJson,
+      catatan,
+      status,
+      item.createdAt || nowIso,
+      nowIso
+    ];
+    await appendSheetValues('finances!A1:M1', [newRow]);
+  }
+
+  return { success: true, id };
+};
+
+export const deleteFinanceDirect = async (id) => {
+  const rows = await fetchSheetValues('finances!A1:A2000');
+  if (!rows || rows.length <= 1) return { success: false, error: 'Data tidak ditemukan.' };
+
+  let foundRowIndex = -1;
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      foundRowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (foundRowIndex === -1) {
+    return { success: false, error: 'Data tidak ditemukan di database.' };
+  }
+
+  const nowIso = new Date().toISOString();
+  // Soft delete: set status to deleted and update timestamp
+  await updateSheetValues(`finances!K${foundRowIndex}:K${foundRowIndex}`, [['deleted']]);
+  await updateSheetValues(`finances!M${foundRowIndex}:M${foundRowIndex}`, [[nowIso]]);
+  return { success: true, id };
+};
+
