@@ -90,6 +90,23 @@ async function appendSheetValues(range, values) {
   return await res.json();
 }
 
+async function generateSessionTokenJs(userId, role) {
+  const timestamp = Date.now();
+  const raw = `${userId}|${role}|${timestamp}|${Math.random()}`;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(SECRET_SALT),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(raw));
+  const sigHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const base64Raw = btoa(raw);
+  return `${base64Raw}.${sigHex}`;
+}
+
 // --------------------------------------------------------------------------
 // 1. FAST INSTANT LOGIN
 // --------------------------------------------------------------------------
@@ -121,7 +138,8 @@ export const loginDirect = async (username, password) => {
       const inputHash = await hashPasswordJs(cleanPass, salt);
 
       if (storedHash === inputHash || storedHash.startsWith('$2a$') || storedHash.startsWith('$2b$')) {
-        const token = `token-${row[0]}-${Date.now()}`;
+        const role = row[5] || 'kasir';
+        const token = await generateSessionTokenJs(row[0], role);
         return {
           success: true,
           token: token,
@@ -129,7 +147,7 @@ export const loginDirect = async (username, password) => {
             id: row[0],
             username: row[1],
             name: row[4] || row[1],
-            role: row[5] || 'kasir',
+            role: role,
             is_active: isActive
           }
         };
@@ -373,4 +391,113 @@ export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'im
     fileUrl: fileUrl,
     downloadUrl: `https://drive.google.com/uc?id=${fileId}&export=download`
   };
+};
+
+// --------------------------------------------------------------------------
+// 7. DIRECT SAVE / DELETE USER ACCOUNT (v4 REST API)
+// --------------------------------------------------------------------------
+export const saveUserDirect = async (payload) => {
+  const isNew = !!payload.isNew;
+  const username = String(payload.username || '').trim();
+  const name = String(payload.name || username).trim();
+  const role = payload.role || 'kasir';
+  const isActive = payload.isActive !== false;
+
+  if (username.length < 3) {
+    return { success: false, error: 'Username minimal 3 karakter.' };
+  }
+
+  const rows = await fetchSheetValues('users!A1:I50');
+  const data = rows || [];
+
+  // Check duplicate username
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[1]).toLowerCase() === username.toLowerCase()) {
+      if (isNew || String(row[0]) !== String(payload.id)) {
+        return { success: false, error: 'Username sudah digunakan oleh akun lain.' };
+      }
+    }
+  }
+
+  const nowIso = new Date().toISOString();
+
+  if (isNew) {
+    if (!payload.password || payload.password.length < 8) {
+      return { success: false, error: 'Password minimal 8 karakter.' };
+    }
+    const newId = payload.id || ('usr-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
+    const salt = 'salt_' + Math.random().toString(36).substring(2);
+    const passHash = await hashPasswordJs(payload.password, salt);
+
+    const newRow = [newId, username, passHash, salt, name, role, isActive, nowIso, nowIso];
+    await appendSheetValues('users!A1:I50', [newRow]);
+  } else {
+    // Update existing user
+    let foundRowIndex = -1;
+    let existingSalt = SECRET_SALT;
+    let existingPassHash = '';
+    let existingCreatedAt = nowIso;
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(payload.id)) {
+        foundRowIndex = i + 1; // 1-indexed for sheet
+        existingPassHash = data[i][2];
+        existingSalt = data[i][3] || SECRET_SALT;
+        existingCreatedAt = data[i][7] || nowIso;
+        break;
+      }
+    }
+
+    if (foundRowIndex === -1) {
+      return { success: false, error: 'Akun user tidak ditemukan.' };
+    }
+
+    let passHash = existingPassHash;
+    let salt = existingSalt;
+
+    if (payload.password && payload.password.trim().length >= 8) {
+      salt = 'salt_' + Math.random().toString(36).substring(2);
+      passHash = await hashPasswordJs(payload.password.trim(), salt);
+    }
+
+    const updatedRow = [
+      payload.id,
+      username,
+      passHash,
+      salt,
+      name,
+      role,
+      isActive,
+      existingCreatedAt,
+      nowIso
+    ];
+
+    await updateSheetValues(`users!A${foundRowIndex}:I${foundRowIndex}`, [updatedRow]);
+  }
+
+  return { success: true, data: await fetchUsersDirect() };
+};
+
+export const deleteUserDirect = async (id) => {
+  const rows = await fetchSheetValues('users!A1:I50');
+  if (!rows) return { success: false, error: 'User tidak ditemukan.' };
+
+  let foundRowIndex = -1;
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      foundRowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (foundRowIndex === -1) {
+    return { success: false, error: 'User tidak ditemukan.' };
+  }
+
+  // Deactivate user or update status via direct REST API
+  const nowIso = new Date().toISOString();
+  await updateSheetValues(`users!G${foundRowIndex}:I${foundRowIndex}`, [false, rows[foundRowIndex - 1][7] || nowIso, nowIso]);
+
+  return { success: true, data: await fetchUsersDirect() };
 };

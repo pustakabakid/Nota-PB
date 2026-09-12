@@ -17,7 +17,9 @@ import {
   fetchCatalogDirect,
   fetchStoreProfileDirect,
   deleteNoteDirect,
-  uploadDriveFileDirect
+  uploadDriveFileDirect,
+  saveUserDirect,
+  deleteUserDirect
 } from './googleSheetsDirectApi';
 
 import {
@@ -395,26 +397,47 @@ export const fetchAccountsApi = async () => {
 };
 
 export const saveAccountApi = async (accountData) => {
-  if (!isAppsScriptConnected()) {
-    throw new Error('Google Apps Script belum terhubung.');
+  try {
+    const directRes = await saveUserDirect(accountData);
+    if (directRes.success) {
+      return directRes.data;
+    } else if (directRes.error) {
+      throw new Error(directRes.error);
+    }
+  } catch (err) {
+    if (err.message && err.message.includes('Username')) {
+      throw err;
+    }
+    console.warn('Direct saveUser failed, fallback to AppsScript:', err);
   }
 
-  const res = await callAppsScriptApi('saveUser', accountData);
-  if (!res.success) {
-    throw new Error(res.error || 'Gagal menyimpan akun.');
+  if (isAppsScriptConnected()) {
+    const res = await callAppsScriptApi('saveUser', accountData);
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal menyimpan akun.');
+    }
+    return await fetchAccountsApi();
   }
 
   return await fetchAccountsApi();
 };
 
 export const deleteAccountApi = async (id) => {
-  if (!isAppsScriptConnected()) {
-    throw new Error('Google Apps Script belum terhubung.');
+  try {
+    const directRes = await deleteUserDirect(id);
+    if (directRes.success) {
+      return directRes.data;
+    }
+  } catch (err) {
+    console.warn('Direct deleteUser failed, fallback to AppsScript:', err);
   }
 
-  const res = await callAppsScriptApi('deleteUser', { id });
-  if (!res.success) {
-    throw new Error(res.error || 'Gagal menghapus akun.');
+  if (isAppsScriptConnected()) {
+    const res = await callAppsScriptApi('deleteUser', { id });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal menghapus akun.');
+    }
+    return await fetchAccountsApi();
   }
 
   return await fetchAccountsApi();
