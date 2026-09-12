@@ -1508,7 +1508,10 @@ export default function FinanceTab({
                   <div className="receipt-no-preview-box">
                     <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
                     <p><strong>{previewReceipt.file?.fileName || 'Berkas Nota'}</strong></p>
-                    <p className="text-muted">Pratinjau visual belum tersimpan di memori peramban.</p>
+                    <p className="text-muted">Berkas fisik belum tersimpan di Google Drive atau cache lokal.</p>
+                    <p className="receipt-no-preview-hint">
+                      💡 <em>File ini dicatat sebelum fitur cache aktif atau saat koneksi cloud terputus. Anda dapat mengunggah berkas fisik nota ini melalui tombol <strong>Edit</strong> pada baris transaksi.</em>
+                    </p>
                   </div>
                 )}
               </div>

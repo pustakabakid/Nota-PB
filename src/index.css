@@ -5826,6 +5826,20 @@ textarea.form-control {
   opacity: 0.6;
 }
 
+.receipt-no-preview-hint {
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--bg-app);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.4;
+}
+
 .receipt-modal-footer {
   display: flex;
   align-items: center;
