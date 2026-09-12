@@ -11,6 +11,14 @@ import {
 } from './appsScriptClient';
 
 import {
+  loginDirect,
+  fetchNotesDirect,
+  fetchCatalogDirect,
+  fetchStoreProfileDirect,
+  deleteNoteDirect
+} from './googleSheetsDirectApi';
+
+import {
   getStoredStoreProfile,
   saveStoredStoreProfile,
   getStoredCatalog,
@@ -24,9 +32,29 @@ import {
 // --------------------------------------------------------------------------
 export const fetchStoreProfileApi = async () => {
   const localProfile = getStoredStoreProfile();
-  
+
+  try {
+    const cloudStore = await fetchStoreProfileDirect();
+    if (cloudStore) {
+      const profile = {
+        ...localProfile,
+        name: cloudStore.name || localProfile.name || 'PUSTAKA BAKID',
+        subtitle: cloudStore.subtitle || '',
+        address: cloudStore.address || '',
+        phone: cloudStore.phone || '',
+        footerMsg: cloudStore.footerMsg || 'Terima kasih. Cetakan tidak dapat dibatalkan.',
+        logoUrl: cloudStore.logoUrl || '',
+        qrisUrl: cloudStore.qrisUrl || ''
+      };
+      saveStoredStoreProfile(profile);
+      return profile;
+    }
+  } catch (err) {
+    console.warn('Direct store profile fetch failed, using fallback:', err);
+  }
+
   if (isAppsScriptConnected()) {
-    // Background async revalidation
+    // Background async revalidation fallback
     callAppsScriptApi('getStoreProfile').then(res => {
       if (res && res.success && res.data) {
         const cloudStore = res.data;
@@ -68,8 +96,18 @@ export const saveStoreProfileApi = async (profile) => {
 export const fetchCatalogApi = async () => {
   const localCatalog = getStoredCatalog();
 
+  try {
+    const cloudCatalog = await fetchCatalogDirect();
+    if (Array.isArray(cloudCatalog) && cloudCatalog.length > 0) {
+      saveStoredCatalog(cloudCatalog);
+      return cloudCatalog;
+    }
+  } catch (err) {
+    console.warn('Direct catalog fetch failed, using fallback:', err);
+  }
+
   if (isAppsScriptConnected()) {
-    // Background async revalidation
+    // Background async revalidation fallback
     callAppsScriptApi('getCatalog').then(res => {
       if (res && res.success && Array.isArray(res.data)) {
         const catalog = res.data.map(item => ({
@@ -135,6 +173,20 @@ export const deleteCatalogPresetApi = async (id, currentCatalog) => {
 // --------------------------------------------------------------------------
 export const fetchHistoryApi = async (limit = 50, offset = 0) => {
   const localHistory = getStoredHistory();
+
+  // Try Ultra-Fast Direct REST API first (No cold start!)
+  try {
+    const cloudNotes = await fetchNotesDirect();
+    if (Array.isArray(cloudNotes) && cloudNotes.length > 0) {
+      const currentLocal = getStoredHistory();
+      const unsynced = currentLocal.filter(loc => loc && loc.id && !cloudNotes.some(c => c.id === loc.id || c.noNota === loc.noNota));
+      const merged = [...unsynced, ...cloudNotes];
+      saveStoredHistory(merged);
+      return merged;
+    }
+  } catch (err) {
+    console.warn('Direct Google Sheets notes fetch failed, fallback to AppsScript:', err);
+  }
 
   if (isAppsScriptConnected()) {
     try {
@@ -239,12 +291,12 @@ export const deleteTransactionApi = async (id, currentHistory) => {
   const updatedHistory = currentHistory.filter(h => h.id !== id);
   saveStoredHistory(updatedHistory);
 
+  // Trigger both Direct API and AppsScript in background for instant UI response & redundancy
+  deleteNoteDirect(id).catch(err => console.warn('Direct delete note warning:', err));
   if (isAppsScriptConnected()) {
-    try {
-      await callAppsScriptApi('deleteNote', { id: id, reason: 'Manual delete from history tab' });
-    } catch (err) {
+    callAppsScriptApi('deleteNote', { id: id, reason: 'Manual delete from history tab' }).catch(err => {
       console.error('Failed to delete transaction from AppsScript:', err);
-    }
+    });
   }
 
   return updatedHistory;
@@ -254,13 +306,6 @@ export const deleteTransactionApi = async (id, currentHistory) => {
 // AUTHENTICATION REPOSITORY
 // --------------------------------------------------------------------------
 export const loginApi = async (username, password) => {
-  if (!isAppsScriptConnected()) {
-    return {
-      success: false,
-      error: 'Google Apps Script belum terkonfigurasi. Buka Tab Cloud Config untuk mengonfigurasi Web App URL.'
-    };
-  }
-
   const cleanUser = String(username || '').trim();
   const cleanPass = String(password || '');
 
@@ -271,25 +316,49 @@ export const loginApi = async (username, password) => {
     };
   }
 
+  // ⚡ Try Instant Direct Google Sheets REST API Login (< 300ms, no cold start!)
   try {
-    const res = await callAppsScriptApi('login', { username: cleanUser, password: cleanPass });
-    if (res.success && res.token && res.user) {
-      saveSessionToken(res.token);
+    const directRes = await loginDirect(cleanUser, cleanPass);
+    if (directRes.success && directRes.user) {
+      saveSessionToken(directRes.token);
       return {
         success: true,
-        user: res.user
+        user: directRes.user
+      };
+    } else if (directRes.error) {
+      return directRes;
+    }
+  } catch (err) {
+    console.warn('Direct REST login failed, fallback to AppsScript:', err);
+  }
+
+  // Fallback to AppsScript Gateway
+  if (isAppsScriptConnected()) {
+    try {
+      const res = await callAppsScriptApi('login', { username: cleanUser, password: cleanPass });
+      if (res.success && res.token && res.user) {
+        saveSessionToken(res.token);
+        return {
+          success: true,
+          user: res.user
+        };
+      }
+      return {
+        success: false,
+        error: res.error || 'Username atau Password salah.'
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: 'Gagal menghubungkan ke server Google Apps Script: ' + err.message
       };
     }
-    return {
-      success: false,
-      error: res.error || 'Username atau Password salah.'
-    };
-  } catch (err) {
-    return {
-      success: false,
-      error: 'Gagal menghubungkan ke server Google Apps Script: ' + err.message
-    };
   }
+
+  return {
+    success: false,
+    error: 'Sistem database tidak terhubung. Periksa konfigurasi Google API / AppsScript.'
+  };
 };
 
 export const logoutApi = async () => {
