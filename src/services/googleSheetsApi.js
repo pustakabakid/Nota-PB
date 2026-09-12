@@ -137,9 +137,9 @@ export const fetchHistoryApi = async (limit = 50, offset = 0) => {
   const localHistory = getStoredHistory();
 
   if (isAppsScriptConnected()) {
-    // Trigger background sync to refresh local cache
-    const page = Math.floor(offset / limit) + 1;
-    callAppsScriptApi('getNotes', { limit, page }).then(res => {
+    try {
+      const page = Math.floor(offset / limit) + 1;
+      const res = await callAppsScriptApi('getNotes', { limit, page });
       if (res && res.success && res.data && Array.isArray(res.data.notes)) {
         const cloudNotes = res.data.notes.map(note => ({
           id: note.id,
@@ -165,10 +165,11 @@ export const fetchHistoryApi = async (limit = 50, offset = 0) => {
         const unsynced = currentLocal.filter(loc => loc && loc.id && !cloudNotes.some(c => c.id === loc.id || c.noNota === loc.noNota));
         const merged = [...unsynced, ...cloudNotes];
         saveStoredHistory(merged);
+        return merged;
       }
-    }).catch(err => {
-      console.warn('Background history sync failed:', err);
-    });
+    } catch (err) {
+      console.warn('History cloud sync error:', err);
+    }
   }
 
   return localHistory;
