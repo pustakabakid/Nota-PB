@@ -355,7 +355,8 @@ export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'im
 
   const metadata = {
     name: filename || `file-${Date.now()}`,
-    mimeType: detectedMime
+    mimeType: detectedMime,
+    parents: ['1oWayragc2gZQ6VoThNVvejUKyNFpMToS']
   };
 
   const boundary = '-------314159265358979323846';

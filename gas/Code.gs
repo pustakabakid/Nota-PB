@@ -28,6 +28,7 @@ var SHEET_NAMES = {
 };
 
 var SPREADSHEET_ID = '1Qzh4XR8Eu3Pfp-LjurqZkI0pb1gI2kzHQmWjvGOqImk';
+var DRIVE_FOLDER_ID = '1oWayragc2gZQ6VoThNVvejUKyNFpMToS';
 var SECRET_SALT = 'NOTA_PUSTAKA_BAKI_SECURE_SALT_2026';
 
 function getSecretSalt() {
@@ -1109,15 +1110,26 @@ function handleUploadDriveFile(payload, session) {
   }
 
   try {
-    // Support custom folder name per upload context (e.g. Nota_Vendor_P1)
-    var folderName = payload.folderName || 'Nota_Assets_Storage';
+    // Pastikan selalu menggunakan folder target tetap
+    var targetFolderId = payload.folderId || (typeof DRIVE_FOLDER_ID !== 'undefined' && DRIVE_FOLDER_ID ? DRIVE_FOLDER_ID : '1oWayragc2gZQ6VoThNVvejUKyNFpMToS');
     var folder;
-    var folders = DriveApp.getFoldersByName(folderName);
-    if (folders.hasNext()) {
-      folder = folders.next();
-    } else {
-      folder = DriveApp.createFolder(folderName);
-      folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    try {
+      folder = DriveApp.getFolderById(targetFolderId);
+    } catch (fErr) {
+      Logger.log('Gagal getFolderById: ' + fErr.toString());
+      var folderName = payload.folderName || 'Nota_Vendor_P1';
+      var folders = DriveApp.getFoldersByName(folderName);
+      if (folders.hasNext()) {
+        folder = folders.next();
+      } else {
+        folder = DriveApp.createFolder(folderName);
+      }
+    }
+
+    if (folder) {
+      try {
+        folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (e) {}
     }
 
     var contentType = payload.mimeType || 'image/png';
@@ -1126,7 +1138,9 @@ function handleUploadDriveFile(payload, session) {
     var decoded = Utilities.base64Decode(base64Clean);
     var blob = Utilities.newBlob(decoded, contentType, payload.filename);
     var file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (e) {}
 
     // Use Drive viewer URL so both PDF and images open correctly in browser
     var fileId = file.getId();

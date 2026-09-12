@@ -444,6 +444,8 @@ export const deleteAccountApi = async (id) => {
   return await fetchAccountsApi();
 };
 
+export const DRIVE_UPLOAD_FOLDER_ID = '1oWayragc2gZQ6VoThNVvejUKyNFpMToS';
+
 // --------------------------------------------------------------------------
 // DRIVE ASSET UPLOAD REPOSITORY
 // --------------------------------------------------------------------------
@@ -454,7 +456,8 @@ export const uploadDriveAssetApi = async (base64Data, filename) => {
 
   const res = await callAppsScriptApi('uploadDriveFile', {
     base64Data: base64Data,
-    filename: filename || 'asset-' + Date.now() + '.png'
+    filename: filename || 'asset-' + Date.now() + '.png',
+    folderId: DRIVE_UPLOAD_FOLDER_ID
   });
 
   if (!res.success || !res.data) {
@@ -469,8 +472,8 @@ export const uploadDriveAssetApi = async (base64Data, filename) => {
 // --------------------------------------------------------------------------
 
 /**
- * Uploads a vendor nota file (PDF/JPG/PNG) to Google Drive folder "Nota_Vendor_P1".
- * Returns { fileId, fileUrl } on success.
+ * Uploads a vendor nota file (PDF/JPG/PNG) directly to target Google Drive folder.
+ * Returns { fileId, fileUrl, previewUrl, thumbnailUrl } on success.
  */
 export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
   if (!isAppsScriptConnected()) {
@@ -481,6 +484,7 @@ export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
     base64Data,
     filename: filename || 'nota-vendor-' + Date.now(),
     mimeType: mimeType || 'image/jpeg',
+    folderId: DRIVE_UPLOAD_FOLDER_ID,
     folderName: 'Nota_Vendor_P1'
   });
 
@@ -488,7 +492,7 @@ export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
     throw new Error(res.error || 'Gagal mengunggah nota ke Google Drive.');
   }
 
-  return res.data; // { fileId, fileUrl }
+  return res.data; // { fileId, fileUrl, previewUrl, thumbnailUrl }
 };
 
 /**
