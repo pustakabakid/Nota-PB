@@ -6,6 +6,18 @@ import CustomTooltip from '../ui/CustomTooltip';
 import CustomSelect from '../ui/CustomSelect';
 import CustomDatePicker from '../ui/CustomDatePicker';
 
+const formatWaLink = (phone) => {
+  if (!phone) return '';
+  let clean = String(phone).replace(/\D/g, '');
+  if (!clean) return '';
+  if (clean.startsWith('0')) {
+    clean = '62' + clean.slice(1);
+  } else if (clean.startsWith('8')) {
+    clean = '628' + clean.slice(1);
+  }
+  return `https://wa.me/${clean}`;
+};
+
 export default function HistoryTab({
   history = [],
   storeProfile = {},
@@ -48,9 +60,9 @@ export default function HistoryTab({
   const filteredHistory = history.filter(item => {
     const searchLower = historySearch.toLowerCase();
     const matchesSearch = (
-      (item.noNota || '').toLowerCase().includes(searchLower) ||
-      (item.custName || '').toLowerCase().includes(searchLower) ||
-      (item.custPhone || '').toLowerCase().includes(searchLower)
+      String(item.noNota || '').toLowerCase().includes(searchLower) ||
+      String(item.custName || '').toLowerCase().includes(searchLower) ||
+      String(item.custPhone || '').toLowerCase().includes(searchLower)
     );
     const matchesStatus = historyStatusFilter === 'ALL' || item.payStatus === historyStatusFilter;
 
@@ -307,7 +319,7 @@ export default function HistoryTab({
                           ? 'lunas' 
                           : (rec.payStatus === 'DP' ? 'dp' : (rec.payStatus === 'Dibatalkan' ? 'cancelled' : 'unpaid'))
                       }`}>
-                        {rec.payStatus === 'Lunas' ? '✓ LUNAS' : (rec.payStatus === 'DP' ? 'UANG MUKA' : rec.payStatus.toUpperCase())}
+                        {rec.payStatus === 'Lunas' ? '✓ LUNAS' : (rec.payStatus === 'DP' ? 'UANG MUKA' : String(rec.payStatus || '').toUpperCase())}
                       </span>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700 }} className="num-tabular">
@@ -380,8 +392,8 @@ export default function HistoryTab({
               const isDp = rec.payStatus === 'DP';
               const isCancelled = rec.payStatus === 'Dibatalkan';
               const statusClass = isLunas ? 'lunas' : (isDp ? 'dp' : (isCancelled ? 'cancelled' : 'unpaid'));
-              const statusLabel = isLunas ? '✓ LUNAS' : (isDp ? 'UANG MUKA' : rec.payStatus.toUpperCase());
-              const cleanPhone = (rec.custPhone || '').replace(/\D/g, '');
+              const statusLabel = isLunas ? '✓ LUNAS' : (isDp ? 'UANG MUKA' : String(rec.payStatus || '').toUpperCase());
+              const waUrl = formatWaLink(rec.custPhone);
 
               return (
                 <article key={`hm_${rec.id || idx}`} className="history-mobile-card">
@@ -411,16 +423,23 @@ export default function HistoryTab({
                       <div className="hmc-customer-text">
                         <strong className="hmc-cust-name text-wrap-break">{rec.custName || 'Pelanggan Umum'}</strong>
                         {rec.custPhone && (
-                          <a
-                            href={`https://wa.me/${cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hmc-cust-phone"
-                            title="Hubungi via WhatsApp"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }} aria-hidden="true">chat</span>
-                            <span>{rec.custPhone}</span>
-                          </a>
+                          waUrl ? (
+                            <a
+                              href={waUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hmc-cust-phone"
+                              title="Hubungi via WhatsApp"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }} aria-hidden="true">chat</span>
+                              <span>{String(rec.custPhone)}</span>
+                            </a>
+                          ) : (
+                            <span className="hmc-cust-phone" style={{ color: 'var(--text-muted)' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }} aria-hidden="true">call</span>
+                              <span>{String(rec.custPhone)}</span>
+                            </span>
+                          )
                         )}
                       </div>
                     </div>

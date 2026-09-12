@@ -16,8 +16,8 @@ const getProductCueIcon = (name = '', type = '') => {
 };
 
 const parseFinishingChips = (finishingStr) => {
-  if (!finishingStr || !finishingStr.trim()) return ['Tanpa Finishing'];
-  return finishingStr.split(/[,|/]+/).map(s => s.trim()).filter(Boolean);
+  if (!finishingStr || !String(finishingStr).trim()) return ['Tanpa Finishing'];
+  return String(finishingStr).split(/[,|/]+/).map(s => s.trim()).filter(Boolean);
 };
 
 export default function CatalogTab({
