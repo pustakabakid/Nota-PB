@@ -37,18 +37,19 @@ function getSecretSalt() {
   return 'NOTA_PUSTAKA_BAKI_SECURE_SALT_2026';
 }
 
-/**
- * Helper: Gets target spreadsheet DB
- */
+var _cachedDB = null;
 function getDB() {
+  if (_cachedDB) return _cachedDB;
   if (typeof SPREADSHEET_ID !== 'undefined' && SPREADSHEET_ID && SPREADSHEET_ID.trim().length > 0) {
     try {
-      return SpreadsheetApp.openById(SPREADSHEET_ID.trim());
+      _cachedDB = SpreadsheetApp.openById(SPREADSHEET_ID.trim());
+      return _cachedDB;
     } catch (e) {
       Logger.log('Fallback to getActiveSpreadsheet: ' + e.toString());
     }
   }
-  return SpreadsheetApp.getActiveSpreadsheet();
+  _cachedDB = SpreadsheetApp.getActiveSpreadsheet();
+  return _cachedDB;
 }
 
 /**
