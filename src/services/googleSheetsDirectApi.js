@@ -142,6 +142,26 @@ export const loginDirect = async (username, password) => {
   return { success: false, error: 'Username atau Password salah.' };
 };
 
+export const fetchUsersDirect = async () => {
+  const rows = await fetchSheetValues('users!A1:I50');
+  if (!rows || rows.length <= 1) return [];
+
+  const users = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    users.push({
+      id: row[0],
+      username: row[1],
+      name: row[4] || row[1],
+      role: row[5] || 'kasir',
+      isActive: row[6] === true || String(row[6]).toLowerCase() === 'true',
+      createdAt: row[7],
+      updatedAt: row[8]
+    });
+  }
+  return users;
+};
+
 // --------------------------------------------------------------------------
 // 2. FAST INSTANT NOTES & HISTORY FETCH
 // --------------------------------------------------------------------------

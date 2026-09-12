@@ -12,6 +12,7 @@ import {
 
 import {
   loginDirect,
+  fetchUsersDirect,
   fetchNotesDirect,
   fetchCatalogDirect,
   fetchStoreProfileDirect,
@@ -371,10 +372,19 @@ export const logoutApi = async () => {
 // USER ACCOUNTS REPOSITORY
 // --------------------------------------------------------------------------
 export const fetchAccountsApi = async () => {
+  try {
+    const directUsers = await fetchUsersDirect();
+    if (Array.isArray(directUsers) && directUsers.length > 0) {
+      return directUsers;
+    }
+  } catch (err) {
+    console.warn('Direct fetchUsers failed, fallback to AppsScript:', err);
+  }
+
   if (isAppsScriptConnected()) {
     try {
       const res = await callAppsScriptApi('getUsers');
-      if (res.success && Array.isArray(res.data)) {
+      if (res && res.success && Array.isArray(res.data)) {
         return res.data;
       }
     } catch (err) {

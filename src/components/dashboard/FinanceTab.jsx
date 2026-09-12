@@ -97,6 +97,42 @@ export default function FinanceTab({
   const [confirmDelExpense, setConfirmDelExpense] = useState(null);
   const [confirmDelIncome, setConfirmDelIncome] = useState(null);
 
+  // Receipt modal state & handlers
+  const [previewReceipt, setPreviewReceipt] = useState(null);
+
+  const openReceiptPreview = (item) => {
+    if (!item || !item.notaFile) return;
+    setPreviewReceipt({
+      title: item.title,
+      refNo: item.subTitle || item.refNo || '',
+      tanggal: item.tanggal,
+      jumlah: item.jumlah,
+      file: item.notaFile
+    });
+  };
+
+  const handleDownloadReceipt = (receipt) => {
+    if (!receipt || !receipt.file) return;
+    const fileObj = receipt.file;
+
+    if (fileObj.driveUrl) {
+      window.open(fileObj.driveUrl, '_blank');
+      return;
+    }
+
+    if (fileObj.dataBase64) {
+      const a = document.createElement('a');
+      a.href = fileObj.dataBase64;
+      a.download = fileObj.fileName || `nota-p1-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    onShowToast('Berkas nota belum diunggah secara fisik.', 'warning');
+  };
+
   // Report date filters
   const [reportFrom, setReportFrom] = useState('');
   const [reportTo, setReportTo] = useState('');
@@ -846,28 +882,23 @@ export default function FinanceTab({
                             {formatRupiah(item.jumlah)}
                           </td>
                           <td>
-                            {item.type === 'p1' && (
-                              item.notaFile?.driveUrl ? (
-                                <a
-                                  href={item.notaFile.driveUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-ghost btn-icon-sm"
-                                  title="Buka Nota di Drive"
-                                >
-                                  <span className="material-symbols-outlined" aria-hidden="true">
-                                    {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image'}
-                                  </span>
-                                </a>
-                              ) : item.notaFile?.fileName ? (
-                                <span className="finance-nota-local" title={item.notaFile.fileName}>
-                                  <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                            {item.type === 'p1' && item.notaFile ? (
+                              <button
+                                type="button"
+                                className="finance-nota-btn"
+                                onClick={() => openReceiptPreview(item)}
+                                title={`Pratinjau / Unduh Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
+                              >
+                                <span className="material-symbols-outlined" aria-hidden="true">
+                                  {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'attach_file'}
                                 </span>
-                              ) : (
-                                <span className="finance-no-nota">—</span>
-                              )
+                                <span className="finance-nota-btn-text">
+                                  {item.notaFile.fileName ? (item.notaFile.fileName.length > 14 ? item.notaFile.fileName.substring(0, 11) + '...' : item.notaFile.fileName) : 'Lihat Nota'}
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="finance-no-nota">—</span>
                             )}
-                            {item.type !== 'p1' && <span className="finance-no-nota">—</span>}
                           </td>
                           <td>
                             <div className="finance-row-actions">
@@ -1275,6 +1306,83 @@ export default function FinanceTab({
           }}
           onCancel={() => setConfirmDelIncome(null)}
         />
+      )}
+
+      {/* ── In-App Receipt Viewer Modal ────────────────────────────────────── */}
+      {previewReceipt && (
+        <div className="receipt-modal-overlay" onClick={() => setPreviewReceipt(null)}>
+          <div className="receipt-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="receipt-modal-header">
+              <div className="receipt-modal-title">
+                <span className="material-symbols-outlined" aria-hidden="true">description</span>
+                <div>
+                  <h3>Pratinjau Struk / Nota Pembelian P1</h3>
+                  <p>{previewReceipt.title} — {previewReceipt.refNo} ({formatDateId(previewReceipt.tanggal)})</p>
+                </div>
+              </div>
+              <button type="button" className="receipt-modal-close" onClick={() => setPreviewReceipt(null)} aria-label="Tutup">
+                <span className="material-symbols-outlined" aria-hidden="true">close</span>
+              </button>
+            </div>
+
+            <div className="receipt-modal-body">
+              {previewReceipt.file.driveUrl ? (
+                previewReceipt.file.mimeType === 'application/pdf' ? (
+                  <iframe
+                    src={previewReceipt.file.driveUrl}
+                    className="receipt-iframe-preview"
+                    title="Pratinjau PDF Nota"
+                  />
+                ) : (
+                  <img
+                    src={previewReceipt.file.driveUrl}
+                    alt="Nota Vendor P1"
+                    className="receipt-img-preview"
+                  />
+                )
+              ) : previewReceipt.file.dataBase64 ? (
+                previewReceipt.file.mimeType === 'application/pdf' ? (
+                  <iframe
+                    src={previewReceipt.file.dataBase64}
+                    className="receipt-iframe-preview"
+                    title="Pratinjau PDF Nota"
+                  />
+                ) : (
+                  <img
+                    src={previewReceipt.file.dataBase64}
+                    alt="Nota Vendor P1"
+                    className="receipt-img-preview"
+                  />
+                )
+              ) : (
+                <div className="receipt-no-preview-box">
+                  <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                  <p><strong>{previewReceipt.file.fileName || 'Berkas Nota'}</strong></p>
+                  <p className="text-muted">Pratinjau visual terbatas, klik tombol unduh di bawah untuk melihat file.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="receipt-modal-footer">
+              <div className="receipt-modal-info">
+                <span>Total Bayar:</span>
+                <strong className="text-danger num-tabular">{formatRupiah(previewReceipt.jumlah)}</strong>
+              </div>
+              <div className="receipt-modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setPreviewReceipt(null)}>
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleDownloadReceipt(previewReceipt)}
+                >
+                  <span className="material-symbols-outlined" aria-hidden="true">download</span> Unduh Berkas Nota
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
