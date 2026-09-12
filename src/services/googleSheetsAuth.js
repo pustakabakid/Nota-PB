@@ -3,14 +3,67 @@
    Uses Native Web Crypto API (crypto.subtle) for ultra-fast RS256 JWT signing
    ========================================================================== */
 
-import serviceAccountKey from '../../nota-bakid-app-15fe71ccb737.json';
-
 const SPREADSHEET_ID = '1Qzh4XR8Eu3Pfp-LjurqZkI0pb1gI2kzHQmWjvGOqImk';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
 const TOKEN_URI = 'https://oauth2.googleapis.com/token';
 
 let cachedAccessToken = null;
 let tokenExpiresAt = 0;
+
+// Resolve credentials from environment variables or local JSON key
+function getServiceAccountCredentials() {
+  // 1. Env variable: JSON string (Vercel Project Settings)
+  const envKey = import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (envKey) {
+    try {
+      const parsed = typeof envKey === 'string' ? JSON.parse(envKey) : envKey;
+      if (parsed && parsed.client_email && parsed.private_key) {
+        return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not parse VITE_GOOGLE_SERVICE_ACCOUNT_KEY:', e);
+    }
+  }
+
+  // 2. Separate env variables
+  const envEmail = import.meta.env.VITE_GOOGLE_CLIENT_EMAIL;
+  const envPrivateKey = import.meta.env.VITE_GOOGLE_PRIVATE_KEY;
+  if (envEmail && envPrivateKey) {
+    return {
+      client_email: envEmail,
+      private_key: envPrivateKey.replace(/\\n/g, '\n')
+    };
+  }
+
+  // 3. Local JSON files loaded dynamically via Vite glob import (safe: does not fail build if absent)
+  try {
+    const localKeys = import.meta.glob('/nota-bakid-app-*.json', { eager: true });
+    for (const keyPath in localKeys) {
+      const mod = localKeys[keyPath];
+      const data = mod?.default || mod;
+      if (data?.client_email && data?.private_key) {
+        return data;
+      }
+    }
+
+    const relKeys = import.meta.glob('../../nota-bakid-app-*.json', { eager: true });
+    for (const keyPath in relKeys) {
+      const mod = relKeys[keyPath];
+      const data = mod?.default || mod;
+      if (data?.client_email && data?.private_key) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading local key glob:', err);
+  }
+
+  return null;
+}
+
+export const isDirectApiConfigured = () => {
+  return !!getServiceAccountCredentials();
+};
 
 function base64UrlEncode(strOrUint8) {
   let base64 = '';
@@ -62,10 +115,15 @@ export const getAccessToken = async () => {
     return cachedAccessToken;
   }
 
+  const credentials = getServiceAccountCredentials();
+  if (!credentials || !credentials.client_email || !credentials.private_key) {
+    throw new Error('Direct Google Sheets Service Account credentials not configured. Using fallback.');
+  }
+
   try {
     const header = { alg: 'RS256', typ: 'JWT' };
     const payload = {
-      iss: serviceAccountKey.client_email,
+      iss: credentials.client_email,
       scope: SCOPES,
       aud: TOKEN_URI,
       exp: nowInSeconds + 3600,
@@ -76,7 +134,7 @@ export const getAccessToken = async () => {
     const encodedPayload = base64UrlEncode(JSON.stringify(payload));
     const unsignedToken = `${encodedHeader}.${encodedPayload}`;
 
-    const cryptoKey = await importPrivateKey(serviceAccountKey.private_key);
+    const cryptoKey = await importPrivateKey(credentials.private_key);
     const encoder = new TextEncoder();
     const signatureBuffer = await crypto.subtle.sign(
       'RSASSA-PKCS1-v1_5',

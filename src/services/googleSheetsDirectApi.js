@@ -3,7 +3,7 @@
    Ultra-fast, zero-cold-start cloud database client powered by Service Account
    ========================================================================== */
 
-import { getAccessToken, getSpreadsheetId } from './googleSheetsAuth';
+import { getAccessToken, getSpreadsheetId, isDirectApiConfigured } from './googleSheetsAuth';
 
 const BASE_URL = 'https://sheets.googleapis.com/v4/spreadsheets';
 const SECRET_SALT = 'NOTA_PUSTAKA_BAKI_SECURE_SALT_2026';
@@ -134,6 +134,9 @@ async function generateSessionTokenJs(userId, role) {
 // 1. FAST INSTANT LOGIN
 // --------------------------------------------------------------------------
 export const loginDirect = async (username, password) => {
+  if (!isDirectApiConfigured()) {
+    return { success: false, fallback: true };
+  }
   const cleanUser = String(username || '').trim().toLowerCase();
   const cleanPass = String(password || '');
 
@@ -184,6 +187,7 @@ export const loginDirect = async (username, password) => {
 };
 
 export const fetchUsersDirect = async () => {
+  if (!isDirectApiConfigured()) return [];
   const rows = await fetchSheetValues('users!A1:I50');
   if (!rows || rows.length <= 1) return [];
 
@@ -207,6 +211,7 @@ export const fetchUsersDirect = async () => {
 // 2. FAST INSTANT NOTES & HISTORY FETCH
 // --------------------------------------------------------------------------
 export const fetchNotesDirect = async () => {
+  if (!isDirectApiConfigured()) return [];
   const [notesRows, itemsRows] = await Promise.all([
     fetchSheetValues('sales_notes!A1:T2000'),
     fetchSheetValues('sales_note_items!A1:I5000')
@@ -277,6 +282,7 @@ export const fetchNotesDirect = async () => {
 // 3. FAST CATALOG FETCH
 // --------------------------------------------------------------------------
 export const fetchCatalogDirect = async () => {
+  if (!isDirectApiConfigured()) return [];
   const rows = await fetchSheetValues('catalog_presets!A1:H500');
   if (!rows || rows.length <= 1) return [];
 
@@ -303,6 +309,7 @@ export const fetchCatalogDirect = async () => {
 // 4. FAST STORE PROFILE FETCH
 // --------------------------------------------------------------------------
 export const fetchStoreProfileDirect = async () => {
+  if (!isDirectApiConfigured()) return null;
   const rows = await fetchSheetValues('store_profile!A1:I5');
   if (!rows || rows.length <= 1) return null;
 
@@ -323,6 +330,7 @@ export const fetchStoreProfileDirect = async () => {
 // 5. DIRECT SOFT DELETE NOTE
 // --------------------------------------------------------------------------
 export const deleteNoteDirect = async (noteId) => {
+  if (!isDirectApiConfigured()) return false;
   const rows = await fetchSheetValues('sales_notes!A1:A2000');
   if (!rows) return false;
 
@@ -342,6 +350,7 @@ export const deleteNoteDirect = async (noteId) => {
 // 5B. DIRECT SAVE / UPDATE NOTE & ITEMS
 // --------------------------------------------------------------------------
 export const saveNoteDirect = async (note) => {
+  if (!isDirectApiConfigured()) return { success: false, fallback: true };
   const noteId = note.id || `nota_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const nowIso = new Date().toISOString();
   const dateStr = note.date || nowIso.slice(0, 10);
@@ -415,6 +424,7 @@ export const saveNoteDirect = async (note) => {
 // 5C. DIRECT SAVE / DELETE CATALOG PRESET
 // --------------------------------------------------------------------------
 export const saveCatalogDirect = async (preset) => {
+  if (!isDirectApiConfigured()) return { success: false, fallback: true };
   const rows = await fetchSheetValues('catalog_presets!A1:A500');
   const nowIso = new Date().toISOString();
   const id = String(preset.id || `preset-${Date.now()}`);
@@ -456,6 +466,7 @@ export const saveCatalogDirect = async (preset) => {
 };
 
 export const deleteCatalogDirect = async (id) => {
+  if (!isDirectApiConfigured()) return false;
   const rows = await fetchSheetValues('catalog_presets!A1:A500');
   if (!rows) return false;
 
@@ -474,6 +485,7 @@ export const deleteCatalogDirect = async (id) => {
 // 5D. DIRECT SAVE STORE PROFILE
 // --------------------------------------------------------------------------
 export const saveStoreProfileDirect = async (profile) => {
+  if (!isDirectApiConfigured()) return { success: false, fallback: true };
   const nowIso = new Date().toISOString();
   const row = [
     'store_default_001',
@@ -719,6 +731,7 @@ export const deleteUserDirect = async (id) => {
 // 8. FAST FINANCE REPOSITORY (Purchases, Expenses, Other Income)
 // --------------------------------------------------------------------------
 export const fetchFinancesDirect = async () => {
+  if (!isDirectApiConfigured()) return { purchases: [], expenses: [], otherIncome: [] };
   const rows = await fetchSheetValues('finances!A1:M2000');
   if (!rows || rows.length <= 1) {
     return { purchases: [], expenses: [], otherIncome: [] };
@@ -802,6 +815,7 @@ export const fetchFinancesDirect = async () => {
 };
 
 export const saveFinanceDirect = async (item) => {
+  if (!isDirectApiConfigured()) return { success: false, fallback: true };
   const rows = await fetchSheetValues('finances!A1:A2000');
   const nowIso = new Date().toISOString();
   const id = item.id || `fin_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -877,6 +891,7 @@ export const saveFinanceDirect = async (item) => {
 };
 
 export const deleteFinanceDirect = async (id) => {
+  if (!isDirectApiConfigured()) return false;
   const rows = await fetchSheetValues('finances!A1:A2000');
   if (!rows || rows.length <= 1) return { success: false, error: 'Data tidak ditemukan.' };
 
