@@ -32,3 +32,8 @@ graphify-out
 *-*.json
 service_account*.json
 
+# Downloaded Test Reports & PDFs
+*.pdf
+*.xls
+*.csv
+
