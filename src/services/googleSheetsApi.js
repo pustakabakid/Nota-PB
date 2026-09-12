@@ -17,6 +17,10 @@ import {
   fetchCatalogDirect,
   fetchStoreProfileDirect,
   deleteNoteDirect,
+  saveNoteDirect,
+  saveCatalogDirect,
+  deleteCatalogDirect,
+  saveStoreProfileDirect,
   saveUserDirect,
   deleteUserDirect,
   fetchFinancesDirect,
@@ -92,11 +96,12 @@ export const fetchStoreProfileApi = async () => {
 
 export const saveStoreProfileApi = async (profile) => {
   saveStoredStoreProfile(profile);
+  saveStoreProfileDirect(profile).catch(err => console.warn('Direct store profile sync warning:', err));
   if (isAppsScriptConnected()) {
     try {
       await callAppsScriptApi('updateStoreProfile', profile);
     } catch (err) {
-      console.error('Failed to sync store profile to AppsScript:', err);
+      console.warn('Failed to sync store profile to AppsScript:', err);
     }
   }
   return profile;
@@ -147,6 +152,7 @@ export const saveCatalogPresetApi = async (preset, currentCatalog) => {
     : [...currentCatalog, preset];
 
   saveStoredCatalog(updatedCatalog);
+  saveCatalogDirect(preset).catch(err => console.warn('Direct catalog save warning:', err));
 
   if (isAppsScriptConnected()) {
     try {
@@ -158,7 +164,7 @@ export const saveCatalogPresetApi = async (preset, currentCatalog) => {
         description: preset.finishing || ''
       });
     } catch (err) {
-      console.error('Failed to sync catalog preset to AppsScript:', err);
+      console.warn('Failed to sync catalog preset to AppsScript:', err);
     }
   }
 
@@ -168,12 +174,13 @@ export const saveCatalogPresetApi = async (preset, currentCatalog) => {
 export const deleteCatalogPresetApi = async (id, currentCatalog) => {
   const updatedCatalog = currentCatalog.filter(c => c.id !== id);
   saveStoredCatalog(updatedCatalog);
+  deleteCatalogDirect(id).catch(err => console.warn('Direct catalog delete warning:', err));
 
   if (isAppsScriptConnected()) {
     try {
       await callAppsScriptApi('deleteCatalog', { id: String(id) });
     } catch (err) {
-      console.error('Failed to delete catalog preset from AppsScript:', err);
+      console.warn('Failed to delete catalog preset from AppsScript:', err);
     }
   }
 
@@ -288,12 +295,14 @@ export const saveTransactionApi = async (transactionRecord, currentHistory) => {
 
   saveStoredHistory(updatedHistory);
 
+  // Trigger Direct REST API immediately (<300ms, no cold start)
+  saveNoteDirect(transactionRecord).catch(err => console.warn('Direct note save warning:', err));
+
   if (isAppsScriptConnected()) {
     try {
       await callAppsScriptApi('createNote', transactionRecord);
     } catch (err) {
-      console.error('Failed to sync transaction to AppsScript cloud:', err);
-      throw new Error(`Nota ${transactionRecord.noNota} tersimpan di lokal, namun gagal terkirim ke Cloud: ${err.message}`);
+      console.warn('AppsScript note sync warning:', err);
     }
   }
 

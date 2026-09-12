@@ -18,13 +18,36 @@ async function hashPasswordJs(password, salt = SECRET_SALT) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Helper: Fetch with exponential backoff for rate limits (HTTP 429 / 503)
+async function fetchWithBackoff(url, options = {}, maxRetries = 2) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if ((res.status === 429 || res.status === 503) && attempt < maxRetries) {
+        const delay = 1000 * Math.pow(2, attempt) + Math.random() * 250;
+        console.warn(`Google API rate limit hit (${res.status}). Retrying attempt ${attempt + 1}/${maxRetries} in ${Math.round(delay)}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt < maxRetries) {
+        const delay = 1000 * Math.pow(2, attempt);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 // Helper: Fetch sheet values via Google Sheets REST API v4
 async function fetchSheetValues(range) {
   const token = await getAccessToken();
   const spreadsheetId = getSpreadsheetId();
   const url = `${BASE_URL}/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=UNFORMATTED_VALUE`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithBackoff(url, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -44,7 +67,7 @@ async function updateSheetValues(range, values) {
   const spreadsheetId = getSpreadsheetId();
   const url = `${BASE_URL}/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithBackoff(url, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -70,7 +93,7 @@ async function appendSheetValues(range, values) {
   const spreadsheetId = getSpreadsheetId();
   const url = `${BASE_URL}/${spreadsheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithBackoff(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -313,6 +336,159 @@ export const deleteNoteDirect = async (noteId) => {
   }
 
   return false;
+};
+
+// --------------------------------------------------------------------------
+// 5B. DIRECT SAVE / UPDATE NOTE & ITEMS
+// --------------------------------------------------------------------------
+export const saveNoteDirect = async (note) => {
+  const noteId = note.id || `nota_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const nowIso = new Date().toISOString();
+  const dateStr = note.date || nowIso.slice(0, 10);
+
+  const notesRows = await fetchSheetValues('sales_notes!A1:A2000');
+  let foundRowIndex = -1;
+  let existingCreatedAt = nowIso;
+
+  if (notesRows && notesRows.length > 1) {
+    for (let i = 1; i < notesRows.length; i++) {
+      if (String(notesRows[i][0]) === String(noteId)) {
+        foundRowIndex = i + 1;
+        break;
+      }
+    }
+  }
+
+  const noteRow = [
+    noteId,
+    note.publicToken || noteId,
+    note.noNota || '',
+    note.customerId || '',
+    note.custName || 'Pelanggan Umum',
+    String(note.custPhone || ''),
+    note.custAddress || '',
+    dateStr,
+    Number(note.subtotal || note.grandTotal || 0),
+    Number(note.discount || 0),
+    Number(note.tax || 0),
+    Number(note.dp || 0),
+    Number(note.grandTotal || 0),
+    note.payStatus || 'Lunas',
+    note.payMethod || 'Tunai',
+    note.catatan || '',
+    'operator',
+    existingCreatedAt,
+    nowIso,
+    'active'
+  ];
+
+  if (foundRowIndex > -1) {
+    const existingRow = await fetchSheetValues(`sales_notes!R${foundRowIndex}:R${foundRowIndex}`);
+    if (existingRow && existingRow[0] && existingRow[0][0]) {
+      noteRow[17] = existingRow[0][0]; // preserve original created_at
+    }
+    await updateSheetValues(`sales_notes!A${foundRowIndex}:T${foundRowIndex}`, [noteRow]);
+  } else {
+    await appendSheetValues('sales_notes!A1:T1', [noteRow]);
+  }
+
+  // Insert items to sales_note_items
+  if (note.items && Array.isArray(note.items) && note.items.length > 0) {
+    const itemRows = note.items.map((it, idx) => [
+      it.id || `${noteId}_item_${idx + 1}`,
+      noteId,
+      it.name || it.nama || 'Barang Cetakan',
+      it.finishing || it.description || it.rincian || '',
+      Number(it.qty || 1),
+      it.type || it.satuan || 'pcs',
+      Number(it.price || it.harga || 0),
+      Number(it.discount || 0),
+      Number(it.subtotal || it.totalHarga || ((Number(it.qty) || 1) * (Number(it.price) || 0)) || 0)
+    ]);
+    await appendSheetValues('sales_note_items!A1:I1', itemRows);
+  }
+
+  return { success: true, id: noteId };
+};
+
+// --------------------------------------------------------------------------
+// 5C. DIRECT SAVE / DELETE CATALOG PRESET
+// --------------------------------------------------------------------------
+export const saveCatalogDirect = async (preset) => {
+  const rows = await fetchSheetValues('catalog_presets!A1:A500');
+  const nowIso = new Date().toISOString();
+  const id = String(preset.id || `preset-${Date.now()}`);
+
+  let foundRowIndex = -1;
+  let existingCreatedAt = nowIso;
+
+  if (rows && rows.length > 1) {
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i][0]) === String(id)) {
+        foundRowIndex = i + 1;
+        break;
+      }
+    }
+  }
+
+  const catalogRow = [
+    id,
+    preset.name || '',
+    Number(preset.price || 0),
+    preset.type || preset.unit || 'pcs',
+    preset.finishing || preset.description || '',
+    true, // is_active
+    existingCreatedAt,
+    nowIso
+  ];
+
+  if (foundRowIndex > -1) {
+    const existingRow = await fetchSheetValues(`catalog_presets!G${foundRowIndex}:G${foundRowIndex}`);
+    if (existingRow && existingRow[0] && existingRow[0][0]) {
+      catalogRow[6] = existingRow[0][0];
+    }
+    await updateSheetValues(`catalog_presets!A${foundRowIndex}:H${foundRowIndex}`, [catalogRow]);
+  } else {
+    await appendSheetValues('catalog_presets!A1:H1', [catalogRow]);
+  }
+
+  return { success: true, id };
+};
+
+export const deleteCatalogDirect = async (id) => {
+  const rows = await fetchSheetValues('catalog_presets!A1:A500');
+  if (!rows) return false;
+
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      const rowIndex = i + 1;
+      const nowIso = new Date().toISOString();
+      await updateSheetValues(`catalog_presets!F${rowIndex}:H${rowIndex}`, [[false, rows[rowIndex - 1][6] || nowIso, nowIso]]);
+      return true;
+    }
+  }
+  return false;
+};
+
+// --------------------------------------------------------------------------
+// 5D. DIRECT SAVE STORE PROFILE
+// --------------------------------------------------------------------------
+export const saveStoreProfileDirect = async (profile) => {
+  const nowIso = new Date().toISOString();
+  const row = [
+    'store_default_001',
+    profile.name || 'PUSTAKA BAKID',
+    profile.address || '',
+    profile.phone || '',
+    profile.subtitle || '',
+    profile.footerMsg || 'Terima kasih. Cetakan tidak dapat dibatalkan.',
+    profile.logoUrl || '',
+    profile.qrisUrl || '',
+    nowIso
+  ];
+
+  await updateSheetValues('store_profile!A2:I2', [row]);
+  return { success: true };
 };
 
 // --------------------------------------------------------------------------
