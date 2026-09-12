@@ -13,6 +13,7 @@ import {
 import { isAppsScriptConnected } from '../../services/appsScriptClient';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import ConfirmModal from '../ui/ConfirmModal';
+import CustomTooltip from '../ui/CustomTooltip';
 
 const PRESET_CATEGORIES = [
   'Pembelian P1',
@@ -1161,14 +1162,15 @@ export default function FinanceTab({
                 )}
               </div>
 
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={handleExportExcel}
-                title="Download file Excel / CSV"
-              >
-                <span className="material-symbols-outlined" aria-hidden="true">download</span> Export Excel (.csv)
-              </button>
+              <CustomTooltip text="Download file Excel / CSV">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={handleExportExcel}
+                >
+                  <span className="material-symbols-outlined" aria-hidden="true">download</span> Export Excel (.csv)
+                </button>
+              </CustomTooltip>
             </div>
           </div>
 

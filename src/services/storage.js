@@ -426,11 +426,40 @@ export const calculateFinanceSummary = (
   dateFrom = null,
   dateTo = null
 ) => {
+  const normalizeYmd = (val) => {
+    if (!val) return '';
+    if (typeof val === 'number') {
+      const jsDate = new Date(Math.round((val - 25569) * 86400 * 1000));
+      if (!isNaN(jsDate.getTime())) return jsDate.toISOString().slice(0, 10);
+    }
+    const str = String(val).trim();
+    if (str.includes('T')) return str.split('T')[0];
+    if (str.includes('-')) {
+      const parts = str.split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) return str.slice(0, 10);
+        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    if (str.includes('/')) {
+      const parts = str.split('/');
+      if (parts.length === 3) {
+        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    return str;
+  };
+
+  const fromClean = normalizeYmd(dateFrom);
+  const toClean = normalizeYmd(dateTo);
+
   const inRange = (dateStr) => {
     if (!dateStr) return true;
-    const clean = String(dateStr).split('T')[0];
-    if (dateFrom && clean < dateFrom) return false;
-    if (dateTo && clean > dateTo) return false;
+    const clean = normalizeYmd(dateStr);
+    if (fromClean && clean < fromClean) return false;
+    if (toClean && clean > toClean) return false;
     return true;
   };
 

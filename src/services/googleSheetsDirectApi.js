@@ -317,6 +317,27 @@ export const deleteNoteDirect = async (noteId) => {
 
 // --------------------------------------------------------------------------
 // 6. DIRECT GOOGLE DRIVE FILE UPLOAD (v3 REST API)
+// Helper: Generate cryptographically strong random salt
+function generateRandomSalt() {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper: Verify active session role for admin mutations
+function getCurrentUserRole() {
+  try {
+    const stored = sessionStorage.getItem('nota_kasir_user');
+    if (!stored) return null;
+    const userObj = JSON.parse(stored);
+    return userObj?.role || null;
+  } catch {
+    return null;
+  }
+}
+
+// --------------------------------------------------------------------------
+// 6. DIRECT GOOGLE DRIVE FILE UPLOAD (v3 REST API)
 // --------------------------------------------------------------------------
 export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'image/png') => {
   const token = await getAccessToken();
@@ -362,6 +383,9 @@ export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'im
 
   if (!uploadRes.ok) {
     const errText = await uploadRes.text();
+    if (uploadRes.status === 403) {
+      throw new Error('Service Account Google Drive memiliki kuota 0 MB. Upload berkas harus menggunakan Google Apps Script Gateway.');
+    }
     throw new Error(`Drive upload failed: ${uploadRes.status} ${errText}`);
   }
 
@@ -397,6 +421,12 @@ export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'im
 // 7. DIRECT SAVE / DELETE USER ACCOUNT (v4 REST API)
 // --------------------------------------------------------------------------
 export const saveUserDirect = async (payload) => {
+  // Security Guard: Only Superadmin can create/edit user accounts
+  const currentRole = getCurrentUserRole();
+  if (currentRole && currentRole !== 'superadmin') {
+    return { success: false, error: 'Akses ditolak: Hanya Superadmin yang dapat mengelola akun pengguna.' };
+  }
+
   const isNew = !!payload.isNew;
   const username = String(payload.username || '').trim();
   const name = String(payload.name || username).trim();
@@ -427,7 +457,7 @@ export const saveUserDirect = async (payload) => {
       return { success: false, error: 'Password minimal 8 karakter.' };
     }
     const newId = payload.id || ('usr-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
-    const salt = 'salt_' + Math.random().toString(36).substring(2);
+    const salt = 'salt_' + generateRandomSalt();
     const passHash = await hashPasswordJs(payload.password, salt);
 
     const newRow = [newId, username, passHash, salt, name, role, isActive, nowIso, nowIso];
@@ -435,7 +465,7 @@ export const saveUserDirect = async (payload) => {
   } else {
     // Update existing user
     let foundRowIndex = -1;
-    let existingSalt = SECRET_SALT;
+    let existingSalt = '';
     let existingPassHash = '';
     let existingCreatedAt = nowIso;
 
@@ -443,7 +473,7 @@ export const saveUserDirect = async (payload) => {
       if (String(data[i][0]) === String(payload.id)) {
         foundRowIndex = i + 1; // 1-indexed for sheet
         existingPassHash = data[i][2];
-        existingSalt = data[i][3] || SECRET_SALT;
+        existingSalt = data[i][3] || ('salt_' + generateRandomSalt());
         existingCreatedAt = data[i][7] || nowIso;
         break;
       }
@@ -457,7 +487,7 @@ export const saveUserDirect = async (payload) => {
     let salt = existingSalt;
 
     if (payload.password && payload.password.trim().length >= 8) {
-      salt = 'salt_' + Math.random().toString(36).substring(2);
+      salt = 'salt_' + generateRandomSalt();
       passHash = await hashPasswordJs(payload.password.trim(), salt);
     }
 
@@ -480,6 +510,12 @@ export const saveUserDirect = async (payload) => {
 };
 
 export const deleteUserDirect = async (id) => {
+  // Security Guard: Only Superadmin can delete/deactivate user accounts
+  const currentRole = getCurrentUserRole();
+  if (currentRole && currentRole !== 'superadmin') {
+    return { success: false, error: 'Akses ditolak: Hanya Superadmin yang dapat mengelola akun pengguna.' };
+  }
+
   const rows = await fetchSheetValues('users!A1:I50');
   if (!rows) return { success: false, error: 'User tidak ditemukan.' };
 
@@ -501,3 +537,4 @@ export const deleteUserDirect = async (id) => {
 
   return { success: true, data: await fetchUsersDirect() };
 };
+

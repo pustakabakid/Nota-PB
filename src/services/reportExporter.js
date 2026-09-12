@@ -337,104 +337,94 @@ export const exportTransactionsToPdf = (history = [], storeProfile = {}, onShowT
     return;
   }
 
+  if (typeof onShowToast === 'function') {
+    onShowToast('Menyiapkan Laporan PDF Penjualan...', 'info');
+  }
+
   const storeName = storeProfile.name || 'Pustaka Bakid';
   const exportDate = new Date().toISOString().split('T')[0];
+  const safeStoreName = String(storeName || 'Pustaka_Bakid').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') || 'Percetakan';
+  const docTitle = `Laporan_Rekap_Penjualan_${safeStoreName}_${exportDate}`;
 
-  // Remove existing report container if present
-  const existing = document.getElementById('pdfReportRenderRoot');
-  if (existing) existing.remove();
-
-  // Create in-flow DOM element attached at the end of document.body
-  const reportContainer = document.createElement('div');
-  reportContainer.id = 'pdfReportRenderRoot';
-  reportContainer.style.position = 'absolute';
-  reportContainer.style.top = '0';
-  reportContainer.style.left = '0';
-  reportContainer.style.width = '790px';
-  reportContainer.style.zIndex = '999999';
-  reportContainer.style.background = '#ffffff';
-  reportContainer.style.boxSizing = 'border-box';
-
-  reportContainer.innerHTML = buildPdfReportHtml(history, storeProfile);
-  document.body.appendChild(reportContainer);
-
-  const prevScrollX = window.scrollX || 0;
-  const prevScrollY = window.scrollY || 0;
-  window.scrollTo(0, 0);
-
-  // 300ms delay guarantees the browser reflows and paints the table DOM before html2canvas captures
-  setTimeout(() => {
-    const safeStoreName = String(storeName || 'Pustaka_Bakid').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') || 'Percetakan';
-    const opt = {
-      margin: [6, 6, 6, 6],
-      filename: `Laporan_Rekap_Penjualan_${safeStoreName}_${exportDate}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 800,
-        x: 0,
-        y: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    let isFinished = false;
-    const timeoutId = setTimeout(() => {
-      if (!isFinished) {
-        isFinished = true;
-        window.scrollTo(prevScrollX, prevScrollY);
-        if (document.body.contains(reportContainer)) {
-          document.body.removeChild(reportContainer);
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>${docTitle}</title>
+      <style>
+        @page { size: A4 portrait; margin: 8mm; }
+        body { font-family: Arial, sans-serif; background: #ffffff; color: #000000; margin: 0; padding: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @media print {
+          .no-print { display: none !important; }
         }
-        openPrintReportWindow(history, storeProfile, onShowToast);
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="background: #f1f5f9; padding: 12px 16px; border-bottom: 1px solid #cbd5e1; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px;">
+        <div style="font-size: 13px; font-weight: bold; color: #0f172a;">📄 PRATINJAU DOKUMEN LAPORAN PDF</div>
+        <button onclick="window.print()" style="background: #2563eb; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+          🖨️ Simpan ke PDF / Cetak Laporan
+        </button>
+      </div>
+      ${buildPdfReportHtml(history, storeProfile)}
+    </body>
+    </html>
+  `;
+
+  // 1. Try Window Popup Method
+  const printWindow = window.open('', '_blank', 'width=960,height=800');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    setTimeout(() => {
+      try {
+        printWindow.focus();
+        printWindow.print();
+      } catch (err) {
+        console.warn('Auto-print error:', err);
       }
-    }, 12000);
+    }, 400);
+    if (typeof onShowToast === 'function') {
+      onShowToast('Jendela Cetak PDF Laporan terbuka. Pilih "Simpan sebagai PDF".', 'success');
+    }
+    return;
+  }
 
+  // 2. Fallback: Invisible iframe Print (If popup blocked by browser)
+  const existingFrame = document.getElementById('pdfPrintIframeRoot');
+  if (existingFrame) existingFrame.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'pdfPrintIframeRoot';
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(htmlContent);
+  doc.close();
+
+  setTimeout(() => {
     try {
-      html2pdf()
-        .from(reportContainer)
-        .set(opt)
-        .save()
-        .then(() => {
-          if (!isFinished) {
-            isFinished = true;
-            clearTimeout(timeoutId);
-            window.scrollTo(prevScrollX, prevScrollY);
-            if (document.body.contains(reportContainer)) {
-              document.body.removeChild(reportContainer);
-            }
-          }
-        })
-        .catch((err) => {
-          if (!isFinished) {
-            isFinished = true;
-            clearTimeout(timeoutId);
-            console.error('PDF export error:', err);
-            window.scrollTo(prevScrollX, prevScrollY);
-            if (document.body.contains(reportContainer)) {
-              document.body.removeChild(reportContainer);
-            }
-            // Fallback: Open Print Report Window if html2pdf fails
-            openPrintReportWindow(history, storeProfile, onShowToast);
-          }
-        });
-    } catch (err) {
-      if (!isFinished) {
-        isFinished = true;
-        clearTimeout(timeoutId);
-        console.error('PDF export sync error:', err);
-        window.scrollTo(prevScrollX, prevScrollY);
-        if (document.body.contains(reportContainer)) {
-          document.body.removeChild(reportContainer);
-        }
-        openPrintReportWindow(history, storeProfile, onShowToast);
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      if (typeof onShowToast === 'function') {
+        onShowToast('Dialog pencetakan PDF laporan terbuka.', 'success');
+      }
+    } catch {
+      if (typeof onShowToast === 'function') {
+        onShowToast('Gagal memicu pencetakan PDF. Mohon izinkan popup di browser Anda.', 'error');
       }
     }
-  }, 300);
+  }, 400);
 };
 
 /**

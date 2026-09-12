@@ -33,7 +33,6 @@ export default function MobileBottomBar({
           tabIndex={0}
           style={{ cursor: 'pointer' }}
           aria-label={`${itemCount} item • ${formatRupiah(grandTotal)} — Ketuk untuk melihat nota`}
-          title="Ketuk untuk melihat preview nota"
         >
           {hasItems ? (
             <>

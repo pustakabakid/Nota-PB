@@ -13,7 +13,7 @@ import {
   deleteAccountApi
 } from '../services/api';
 import { isSupabaseConnected } from '../services/api';
-import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
+import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredHistory, saveStoredHistory, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
 import { TransactionContext } from './transactionContextInstance';
 import { useAuth } from '../hooks/useAuth';
 
@@ -48,7 +48,7 @@ export function TransactionProvider({
 
   // Transaction Form State
   const [transaction, setTransaction] = useState(() => ({
-    noNota: generateReceiptNumber(),
+    noNota: generateReceiptNumber(getStoredHistory()),
     custName: '',
     custPhone: '',
     custAddress: '',
@@ -98,6 +98,12 @@ export function TransactionProvider({
     const hist = await fetchHistoryApi();
     if (hist) {
       setHistory(hist);
+      setTransaction(prev => {
+        if (!prev.id && !prev.custName) {
+          return { ...prev, noNota: generateReceiptNumber(hist) };
+        }
+        return prev;
+      });
     }
   }, [setAccounts]);
 
@@ -227,9 +233,15 @@ export function TransactionProvider({
       catatan: transaction.catatan.trim()
     };
 
-    const updatedHistory = await saveTransactionApi(newRecord, history);
-    setHistory(updatedHistory);
-    setIsCurrentNotaSaved(true);
+    try {
+      const updatedHistory = await saveTransactionApi(newRecord, history);
+      setHistory(updatedHistory);
+      setIsCurrentNotaSaved(true);
+      if (onShowToast) onShowToast(`Nota ${transaction.noNota} berhasil tersimpan & siap dicetak!`, 'success');
+    } catch (syncErr) {
+      setIsCurrentNotaSaved(true);
+      if (onShowToast) onShowToast(syncErr.message, 'warning');
+    }
 
     setTransaction(prev => ({
       ...prev,
@@ -239,8 +251,6 @@ export function TransactionProvider({
 
     setActiveMobileTab('preview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    if (onShowToast) onShowToast(`Nota ${transaction.noNota} berhasil tersimpan & siap dicetak!`, 'success');
   }, [dpAmount, effectiveDiscount, grandTotal, history, items, onShowToast, sisa, subtotal, transaction]);
 
   const handleResetForm = useCallback(() => {
@@ -404,6 +414,60 @@ export function TransactionProvider({
     });
   }, [accounts, closeConfirmModal, currentUser, onShowToast, setAccounts, setConfirmModal]);
 
+  const handleSavePurchase = useCallback(async (purchase) => {
+    setPurchases(prev => {
+      const all = prev.filter(p => p.id !== purchase.id);
+      const existing = prev.find(p => p.id === purchase.id);
+      const next = existing ? [purchase, ...all] : [purchase, ...prev];
+      saveStoredPurchases(next);
+      return next;
+    });
+  }, []);
+
+  const handleDeletePurchase = useCallback(async (id) => {
+    setPurchases(prev => {
+      const next = prev.filter(p => p.id !== id);
+      saveStoredPurchases(next);
+      return next;
+    });
+  }, []);
+
+  const handleSaveExpense = useCallback(async (expense) => {
+    setExpenses(prev => {
+      const all = prev.filter(e => e.id !== expense.id);
+      const existing = prev.find(e => e.id === expense.id);
+      const next = existing ? [expense, ...all] : [expense, ...prev];
+      saveStoredExpenses(next);
+      return next;
+    });
+  }, []);
+
+  const handleDeleteExpense = useCallback(async (id) => {
+    setExpenses(prev => {
+      const next = prev.filter(e => e.id !== id);
+      saveStoredExpenses(next);
+      return next;
+    });
+  }, []);
+
+  const handleSaveOtherIncome = useCallback(async (inc) => {
+    setOtherIncome(prev => {
+      const all = (prev || []).filter(i => i.id !== inc.id);
+      const existing = (prev || []).find(i => i.id === inc.id);
+      const next = existing ? [inc, ...all] : [inc, ...(prev || [])];
+      saveStoredOtherIncome(next);
+      return next;
+    });
+  }, []);
+
+  const handleDeleteOtherIncome = useCallback(async (id) => {
+    setOtherIncome(prev => {
+      const next = (prev || []).filter(i => i.id !== id);
+      saveStoredOtherIncome(next);
+      return next;
+    });
+  }, []);
+
   const value = {
     currentPage,
     setCurrentPage,
@@ -448,43 +512,13 @@ export function TransactionProvider({
     loadAllData,
     purchases,
     expenses,
-    handleSavePurchase: async (purchase) => {
-      const all = purchases.filter(p => p.id !== purchase.id);
-      const existing = purchases.find(p => p.id === purchase.id);
-      const next = existing ? [purchase, ...all] : [purchase, ...purchases];
-      setPurchases(next);
-      saveStoredPurchases(next);
-    },
-    handleDeletePurchase: async (id) => {
-      const next = purchases.filter(p => p.id !== id);
-      setPurchases(next);
-      saveStoredPurchases(next);
-    },
-    handleSaveExpense: async (expense) => {
-      const all = expenses.filter(e => e.id !== expense.id);
-      const existing = expenses.find(e => e.id === expense.id);
-      const next = existing ? [expense, ...all] : [expense, ...expenses];
-      setExpenses(next);
-      saveStoredExpenses(next);
-    },
-    handleDeleteExpense: async (id) => {
-      const next = expenses.filter(e => e.id !== id);
-      setExpenses(next);
-      saveStoredExpenses(next);
-    },
+    handleSavePurchase,
+    handleDeletePurchase,
+    handleSaveExpense,
+    handleDeleteExpense,
     otherIncome,
-    handleSaveOtherIncome: async (inc) => {
-      const all = (otherIncome || []).filter(i => i.id !== inc.id);
-      const existing = (otherIncome || []).find(i => i.id === inc.id);
-      const next = existing ? [inc, ...all] : [inc, ...(otherIncome || [])];
-      setOtherIncome(next);
-      saveStoredOtherIncome(next);
-    },
-    handleDeleteOtherIncome: async (id) => {
-      const next = (otherIncome || []).filter(i => i.id !== id);
-      setOtherIncome(next);
-      saveStoredOtherIncome(next);
-    }
+    handleSaveOtherIncome,
+    handleDeleteOtherIncome
   };
 
   return (

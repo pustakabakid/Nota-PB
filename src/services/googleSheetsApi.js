@@ -285,6 +285,7 @@ export const saveTransactionApi = async (transactionRecord, currentHistory) => {
       await callAppsScriptApi('createNote', transactionRecord);
     } catch (err) {
       console.error('Failed to sync transaction to AppsScript cloud:', err);
+      throw new Error(`Nota ${transactionRecord.noNota} tersimpan di lokal, namun gagal terkirim ke Cloud: ${err.message}`);
     }
   }
 
