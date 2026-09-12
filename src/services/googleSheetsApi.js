@@ -17,7 +17,6 @@ import {
   fetchCatalogDirect,
   fetchStoreProfileDirect,
   deleteNoteDirect,
-  uploadDriveFileDirect,
   saveUserDirect,
   deleteUserDirect,
   fetchFinancesDirect,

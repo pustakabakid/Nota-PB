@@ -463,7 +463,7 @@ export const calculateFinanceSummary = (
     return true;
   };
 
-  const filteredHistory = history.filter(h => inRange(h.date));
+  const filteredHistory = history.filter(h => inRange(h.date) && h.payStatus !== 'Dibatalkan');
   const filteredPurchases = purchases.filter(p => inRange(p.tanggal));
   const filteredExpenses = expenses.filter(e => inRange(e.tanggal));
   const filteredOtherIncome = (otherIncome || []).filter(i => inRange(i.tanggal));
@@ -480,9 +480,12 @@ export const calculateFinanceSummary = (
   return {
     totalPemasukan,
     totalNotaSales,
+    totalOmsetNota: totalNotaSales,
     totalOtherIncome,
     totalPembelian,
+    totalPurchasesP1: totalPembelian,
     totalPengeluaranLain,
+    totalExpenses: totalPengeluaranLain,
     totalPengeluaran,
     labaBersih,
     countNota: filteredHistory.length,

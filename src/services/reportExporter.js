@@ -431,7 +431,7 @@ export const exportTransactionsToPdf = (history = [], storeProfile = {}, onShowT
  * Fallback / Direct Print Window for Laporan PDF
  */
 
-const openPrintReportWindow = (history, storeProfile, onShowToast = null) => {
+export const openPrintReportWindow = (history, storeProfile, onShowToast = null) => {
   const printWindow = window.open('', '_blank', 'width=900,height=800');
   if (!printWindow) {
     if (typeof onShowToast === 'function') {

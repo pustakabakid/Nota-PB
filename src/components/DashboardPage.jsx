@@ -38,10 +38,11 @@ export default function DashboardPage({
   const [activeTab, setActiveTab] = useState('history');
   const isConnected = isSupabaseConnected();
 
-  // Top stats calculations
-  const totalOmset = history.reduce((acc, h) => acc + (Number(h.grandTotal) || 0), 0);
-  const totalLunas = history.filter(h => h.payStatus === 'Lunas').length;
-  const totalSisa = history.reduce((acc, h) => acc + (Number(h.sisa) || 0), 0);
+  // Top stats calculations (excluding cancelled notes)
+  const activeHistory = history.filter(h => h.payStatus !== 'Dibatalkan');
+  const totalOmset = activeHistory.reduce((acc, h) => acc + (Number(h.grandTotal) || 0), 0);
+  const totalLunas = activeHistory.filter(h => h.payStatus === 'Lunas').length;
+  const totalSisa = activeHistory.reduce((acc, h) => acc + (Number(h.sisa) || 0), 0);
 
   return (
     <div className="dashboard-page-container">

@@ -41,7 +41,7 @@ export const getSupabaseConfig = () => {
   const { url } = getAppsScriptConfig();
   return { url: url, key: 'google_apps_script' };
 };
-export const saveSupabaseConfig = (url, key) => {
+export const saveSupabaseConfig = (url, _key) => {
   saveAppsScriptConfig(url);
 };
 export const getSupabase = () => {

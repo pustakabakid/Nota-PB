@@ -19,7 +19,7 @@ import {
   deleteOtherIncomeApi
 } from '../services/api';
 import { isSupabaseConnected } from '../services/api';
-import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredHistory, saveStoredHistory, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
+import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredHistory, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
 import { TransactionContext } from './transactionContextInstance';
 import { useAuth } from '../hooks/useAuth';
 
