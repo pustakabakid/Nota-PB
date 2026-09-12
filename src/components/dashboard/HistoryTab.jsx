@@ -67,11 +67,12 @@ export default function HistoryTab({
     const matchesStatus = historyStatusFilter === 'ALL' || item.payStatus === historyStatusFilter;
 
     let matchesDate = true;
-    if (historyDateFrom && item.date) {
-      matchesDate = matchesDate && item.date >= historyDateFrom;
+    const itemDateYmd = String(item.date || '').slice(0, 10);
+    if (historyDateFrom && itemDateYmd) {
+      matchesDate = matchesDate && itemDateYmd >= historyDateFrom;
     }
-    if (historyDateTo && item.date) {
-      matchesDate = matchesDate && item.date <= historyDateTo;
+    if (historyDateTo && itemDateYmd) {
+      matchesDate = matchesDate && itemDateYmd <= historyDateTo;
     }
 
     return matchesSearch && matchesStatus && matchesDate;
