@@ -76,16 +76,28 @@ export const callAppsScriptApi = async (action, payload = {}) => {
     payload: payload
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+
   try {
     const response = await fetch(url, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'text/plain;charset=utf-8' // Avoid CORS preflight OPTIONS request in Apps Script
       },
       body: JSON.stringify(requestBody)
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: 'URL Google Apps Script tidak aktif / 404 (Halaman Tidak Ditemukan). Silakan pasang VITE_GOOGLE_SERVICE_ACCOUNT_KEY di Vercel untuk mengaktifkan Direct REST API kilat.'
+        };
+      }
       return {
         success: false,
         error: `HTTP Error ${response.status}: ${response.statusText}`
@@ -95,7 +107,14 @@ export const callAppsScriptApi = async (action, payload = {}) => {
     const json = await response.json();
     return json;
   } catch (err) {
+    clearTimeout(timeoutId);
     console.warn(`AppsScript API Call (${action}) network error:`, err);
+    if (err.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Koneksi ke Google Apps Script time out (lebih dari 12 detik). Silakan pasang VITE_GOOGLE_SERVICE_ACCOUNT_KEY di Vercel untuk respon instan < 400ms.'
+      };
+    }
     return {
       success: false,
       error: 'Gagal terhubung ke Google Apps Script: ' + (err.message || 'Periksa koneksi internet Anda.')
