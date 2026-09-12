@@ -414,17 +414,8 @@ export const deleteAccountApi = async (id) => {
 // DRIVE ASSET UPLOAD REPOSITORY
 // --------------------------------------------------------------------------
 export const uploadDriveAssetApi = async (base64Data, filename) => {
-  try {
-    const directRes = await uploadDriveFileDirect(base64Data, filename || 'asset-' + Date.now() + '.png');
-    if (directRes && directRes.fileUrl) {
-      return directRes;
-    }
-  } catch (err) {
-    console.warn('Direct Drive asset upload failed, fallback to AppsScript:', err);
-  }
-
   if (!isAppsScriptConnected()) {
-    throw new Error('Google Apps Script / Drive API belum terhubung.');
+    throw new Error('Google Apps Script / Drive API belum terhubung. Buka Tab Cloud Config.');
   }
 
   const res = await callAppsScriptApi('uploadDriveFile', {
@@ -444,19 +435,10 @@ export const uploadDriveAssetApi = async (base64Data, filename) => {
 // --------------------------------------------------------------------------
 
 /**
- * Uploads a vendor nota file (PDF/JPG/PNG) to Google Drive.
+ * Uploads a vendor nota file (PDF/JPG/PNG) to Google Drive folder "Nota_Vendor_P1".
  * Returns { fileId, fileUrl } on success.
  */
 export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
-  try {
-    const directRes = await uploadDriveFileDirect(base64Data, filename || 'nota-vendor-' + Date.now(), mimeType || 'image/jpeg');
-    if (directRes && directRes.fileUrl) {
-      return directRes;
-    }
-  } catch (err) {
-    console.warn('Direct vendor nota Drive upload failed, fallback to AppsScript:', err);
-  }
-
   if (!isAppsScriptConnected()) {
     throw new Error('Google Apps Script belum terhubung. Aktifkan cloud di Tab Cloud Config terlebih dahulu.');
   }
