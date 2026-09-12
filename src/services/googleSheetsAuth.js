@@ -6,7 +6,7 @@
 import serviceAccountKey from '../../nota-bakid-app-15fe71ccb737.json';
 
 const SPREADSHEET_ID = '1Qzh4XR8Eu3Pfp-LjurqZkI0pb1gI2kzHQmWjvGOqImk';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
 const TOKEN_URI = 'https://oauth2.googleapis.com/token';
 
 let cachedAccessToken = null;

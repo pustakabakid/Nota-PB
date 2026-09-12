@@ -276,3 +276,81 @@ export const deleteNoteDirect = async (noteId) => {
 
   return false;
 };
+
+// --------------------------------------------------------------------------
+// 6. DIRECT GOOGLE DRIVE FILE UPLOAD (v3 REST API)
+// --------------------------------------------------------------------------
+export const uploadDriveFileDirect = async (base64Data, filename, mimeType = 'image/png') => {
+  const token = await getAccessToken();
+
+  let cleanBase64 = base64Data || '';
+  let detectedMime = mimeType;
+  if (cleanBase64.includes('base64,')) {
+    const parts = cleanBase64.split('base64,');
+    cleanBase64 = parts[1];
+    if (parts[0].includes('data:')) {
+      const match = parts[0].match(/data:(.*?);/);
+      if (match && match[1]) detectedMime = match[1];
+    }
+  }
+
+  const metadata = {
+    name: filename || `file-${Date.now()}`,
+    mimeType: detectedMime
+  };
+
+  const boundary = '-------314159265358979323846';
+  const delimiter = "\r\n--" + boundary + "\r\n";
+  const close_delim = "\r\n--" + boundary + "--";
+
+  const multipartRequestBody =
+    delimiter +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    JSON.stringify(metadata) +
+    delimiter +
+    'Content-Type: ' + detectedMime + '\r\n' +
+    'Content-Transfer-Encoding: base64\r\n\r\n' +
+    cleanBase64 +
+    close_delim;
+
+  const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': `multipart/related; boundary="${boundary}"`
+    },
+    body: multipartRequestBody
+  });
+
+  if (!uploadRes.ok) {
+    const errText = await uploadRes.text();
+    throw new Error(`Drive upload failed: ${uploadRes.status} ${errText}`);
+  }
+
+  const fileData = await uploadRes.json();
+  const fileId = fileData.id;
+
+  // Make file publicly readable for viewing images/PDF in app
+  try {
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        role: 'reader',
+        type: 'anyone'
+      })
+    });
+  } catch (permErr) {
+    console.warn('Set drive file permission warning:', permErr);
+  }
+
+  const fileUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+  return {
+    fileId: fileId,
+    fileUrl: fileUrl,
+    downloadUrl: `https://drive.google.com/uc?id=${fileId}&export=download`
+  };
+};
