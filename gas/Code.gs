@@ -1131,12 +1131,16 @@ function handleUploadDriveFile(payload, session) {
     // Use Drive viewer URL so both PDF and images open correctly in browser
     var fileId = file.getId();
     var fileUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+    var previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
+    var thumbnailUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1600';
 
     return {
       success: true,
       data: {
         fileId: fileId,
-        fileUrl: fileUrl
+        fileUrl: fileUrl,
+        previewUrl: previewUrl,
+        thumbnailUrl: thumbnailUrl
       }
     };
   } catch (err) {

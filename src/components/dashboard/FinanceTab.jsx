@@ -55,6 +55,76 @@ async function fileToBase64(file) {
   });
 }
 
+/**
+ * Normalizes Google Drive and file URLs for safe embedding in <img> and <iframe>.
+ * - For Google Drive PDFs: converts /view to /preview so iframe won't be blocked by X-Frame-Options.
+ * - For Google Drive Images: extracts fileId and converts to direct image stream via thumbnail/lh3 API.
+ * - Uses dataBase64 as instant, offline-capable fallback.
+ */
+function getNormalizedFilePreviewUrl(file) {
+  if (!file) return null;
+  const { driveUrl, mimeType, dataBase64, fileName = '' } = file;
+
+  const isImage = mimeType?.startsWith('image/') || 
+                  (!mimeType && /\.(jpe?g|png|webp|gif|bmp)$/i.test(fileName));
+  const isPdf = mimeType === 'application/pdf' || 
+                (!mimeType && /\.pdf$/i.test(fileName));
+
+  // If local base64 is available for images, prefer it for instant, zero-latency rendering
+  if (isImage && dataBase64) {
+    return {
+      type: 'image',
+      url: dataBase64,
+      fallbackUrl: null,
+      rawUrl: driveUrl || null
+    };
+  }
+
+  // Parse Google Drive URL if present
+  if (driveUrl && typeof driveUrl === 'string') {
+    const match = driveUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                  driveUrl.match(/id=([a-zA-Z0-9_-]+)/) ||
+                  driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const fileId = match ? match[1] : null;
+
+    if (fileId) {
+      if (isPdf) {
+        return {
+          type: 'pdf',
+          url: `https://drive.google.com/file/d/${fileId}/preview`,
+          rawUrl: driveUrl
+        };
+      } else {
+        return {
+          type: 'image',
+          url: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`,
+          fallbackUrl: `https://lh3.googleusercontent.com/d/${fileId}`,
+          rawUrl: driveUrl
+        };
+      }
+    }
+
+    if (isPdf) {
+      const previewUrl = driveUrl.replace(/\/view(\?.*)?$/, '/preview$1');
+      return { type: 'pdf', url: previewUrl, rawUrl: driveUrl };
+    } else {
+      return { type: 'image', url: driveUrl, rawUrl: driveUrl };
+    }
+  }
+
+  // Fallback to dataBase64 if available
+  if (dataBase64) {
+    return {
+      type: isPdf ? 'pdf' : 'image',
+      url: dataBase64,
+      fallbackUrl: null,
+      rawUrl: null
+    };
+  }
+
+  return null;
+}
+
 export default function FinanceTab({
   purchases = [],
   expenses = [],
@@ -104,10 +174,10 @@ export default function FinanceTab({
   const openReceiptPreview = (item) => {
     if (!item || !item.notaFile) return;
     setPreviewReceipt({
-      title: item.title,
-      refNo: item.subTitle || item.refNo || '',
+      title: item.title || 'Nota Pembelian',
+      refNo: item.subTitle || item.refNo || item.noPembelian || '',
       tanggal: item.tanggal,
-      jumlah: item.jumlah,
+      jumlah: item.jumlah || item.grandTotal || 0,
       file: item.notaFile
     });
   };
@@ -116,18 +186,28 @@ export default function FinanceTab({
     if (!receipt || !receipt.file) return;
     const fileObj = receipt.file;
 
-    if (fileObj.driveUrl) {
-      window.open(fileObj.driveUrl, '_blank');
-      return;
-    }
-
+    // If local base64 binary is present, download directly from memory
     if (fileObj.dataBase64) {
       const a = document.createElement('a');
       a.href = fileObj.dataBase64;
-      a.download = fileObj.fileName || `nota-p1-${Date.now()}.png`;
+      const ext = fileObj.mimeType === 'application/pdf' ? 'pdf' : 'png';
+      a.download = fileObj.fileName || `nota-p1-${Date.now()}.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      return;
+    }
+
+    // If only driveUrl exists, open drive direct download or viewer
+    if (fileObj.driveUrl) {
+      const match = fileObj.driveUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                    fileObj.driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      const fileId = match ? match[1] : null;
+      if (fileId) {
+        window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+      } else {
+        window.open(fileObj.driveUrl, '_blank');
+      }
       return;
     }
 
@@ -347,27 +427,50 @@ export default function FinanceTab({
       return;
     }
     e.target.value = '';
-    setP1Form(prev => ({
-      ...prev,
-      notaFile: { fileName: file.name, mimeType: file.type, driveUrl: null, driveFileId: null }
-    }));
-    if (!isAppsScriptConnected()) {
-      onShowToast('Cloud belum aktif. Nama file tersimpan, upload Drive dilewati.', 'warning');
-      return;
-    }
-    setUploadState('uploading');
+
     try {
+      // 1. Convert to Base64 first for instant offline preview
       const base64 = await fileToBase64(file);
-      const result = await uploadVendorNotaApi(base64, file.name, file.type);
       setP1Form(prev => ({
         ...prev,
-        notaFile: { fileName: file.name, mimeType: file.type, driveUrl: result.fileUrl, driveFileId: result.fileId }
+        notaFile: {
+          fileName: file.name,
+          mimeType: file.type,
+          dataBase64: base64,
+          driveUrl: null,
+          driveFileId: null
+        }
       }));
-      setUploadState('done');
-      onShowToast('Nota berhasil diunggah ke Google Drive.', 'success');
-    } catch (err) {
-      setUploadState('error');
-      onShowToast('Gagal upload ke Drive: ' + err.message, 'error');
+
+      // 2. If cloud is not connected, keep local cache
+      if (!isAppsScriptConnected()) {
+        onShowToast('Cloud belum aktif. Nota tersimpan di cache lokal.', 'warning');
+        return;
+      }
+
+      // 3. Upload to Google Drive asynchronously
+      setUploadState('uploading');
+      try {
+        const result = await uploadVendorNotaApi(base64, file.name, file.type);
+        setP1Form(prev => ({
+          ...prev,
+          notaFile: {
+            fileName: file.name,
+            mimeType: file.type,
+            dataBase64: base64,
+            driveUrl: result.fileUrl,
+            driveFileId: result.fileId
+          }
+        }));
+        setUploadState('done');
+        onShowToast('Nota berhasil diunggah ke Google Drive.', 'success');
+      } catch (err) {
+        console.warn('Gagal upload Google Drive:', err);
+        setUploadState('error');
+        onShowToast('Upload Cloud tertunda (' + err.message + '). Nota tetap tersimpan di lokal.', 'warning');
+      }
+    } catch (readErr) {
+      onShowToast('Gagal membaca file: ' + readErr.message, 'error');
     }
   };
 
@@ -694,13 +797,30 @@ export default function FinanceTab({
                           </span>
                           <div className="finance-nota-info">
                             <span className="finance-nota-name">{p1Form.notaFile.fileName}</span>
-                            {p1Form.notaFile.driveUrl ? (
-                              <a href={p1Form.notaFile.driveUrl} target="_blank" rel="noopener noreferrer" className="finance-nota-link">
-                                <span className="material-symbols-outlined" aria-hidden="true">open_in_new</span>Buka di Drive
-                              </a>
-                            ) : (
-                              <span className="finance-nota-pending">Tersimpan lokal</span>
-                            )}
+                            <div className="finance-nota-actions-row">
+                              <button
+                                type="button"
+                                className="finance-nota-preview-link-btn"
+                                onClick={() => openReceiptPreview({
+                                  title: 'Pratinjau Nota Terpilih',
+                                  subTitle: p1Form.supplier || 'Pembelian P1',
+                                  tanggal: p1Form.tanggal || new Date().toISOString().split('T')[0],
+                                  jumlah: calcTotal(p1Form.items),
+                                  notaFile: p1Form.notaFile
+                                })}
+                                title="Lihat Pratinjau Nota"
+                              >
+                                <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
+                                <span>Lihat Nota</span>
+                              </button>
+                              {p1Form.notaFile.driveUrl ? (
+                                <a href={p1Form.notaFile.driveUrl} target="_blank" rel="noopener noreferrer" className="finance-nota-link">
+                                  <span className="material-symbols-outlined" aria-hidden="true">open_in_new</span>Buka di Drive
+                                </a>
+                              ) : (
+                                <span className="finance-nota-pending">Tersimpan lokal</span>
+                              )}
+                            </div>
                           </div>
                           <button type="button" className="btn btn-ghost btn-icon-xs" onClick={() => updP1('notaFile', null)} aria-label="Hapus nota">
                             <span className="material-symbols-outlined" aria-hidden="true">close</span>
@@ -865,6 +985,21 @@ export default function FinanceTab({
                           <td>
                             <div className="finance-title-bold">{item.title}</div>
                             {item.subTitle && <div className="finance-sub-text num-tabular">{item.subTitle}</div>}
+                            {item.type === 'p1' && item.notaFile && (
+                              <div className="finance-mobile-nota-badge-wrap">
+                                <button
+                                  type="button"
+                                  className="finance-nota-quick-pill"
+                                  onClick={() => openReceiptPreview(item)}
+                                  title={`Lihat Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
+                                >
+                                  <span className="material-symbols-outlined" aria-hidden="true">
+                                    {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image'}
+                                  </span>
+                                  <span>Lihat Nota</span>
+                                </button>
+                              </div>
+                            )}
                           </td>
                           <td>
                             {item.type === 'p1' ? (
@@ -1311,81 +1446,105 @@ export default function FinanceTab({
       )}
 
       {/* ── In-App Receipt Viewer Modal ────────────────────────────────────── */}
-      {previewReceipt && (
-        <div className="receipt-modal-overlay" onClick={() => setPreviewReceipt(null)}>
-          <div className="receipt-modal-card" onClick={e => e.stopPropagation()}>
-            <div className="receipt-modal-header">
-              <div className="receipt-modal-title">
-                <span className="material-symbols-outlined" aria-hidden="true">description</span>
-                <div>
-                  <h3>Pratinjau Struk / Nota Pembelian P1</h3>
-                  <p>{previewReceipt.title} — {previewReceipt.refNo} ({formatDateId(previewReceipt.tanggal)})</p>
+      {previewReceipt && (() => {
+        const previewInfo = getNormalizedFilePreviewUrl(previewReceipt.file);
+        return (
+          <div className="receipt-modal-overlay" onClick={() => setPreviewReceipt(null)}>
+            <div className="receipt-modal-card" onClick={e => e.stopPropagation()}>
+              <div className="receipt-modal-header">
+                <div className="receipt-modal-title">
+                  <span className="material-symbols-outlined" aria-hidden="true">description</span>
+                  <div>
+                    <h3>Pratinjau Struk / Nota Pembelian P1</h3>
+                    <p>{previewReceipt.title} — {previewReceipt.refNo} ({formatDateId(previewReceipt.tanggal)})</p>
+                  </div>
                 </div>
+                <button type="button" className="receipt-modal-close" onClick={() => setPreviewReceipt(null)} aria-label="Tutup">
+                  <span className="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
               </div>
-              <button type="button" className="receipt-modal-close" onClick={() => setPreviewReceipt(null)} aria-label="Tutup">
-                <span className="material-symbols-outlined" aria-hidden="true">close</span>
-              </button>
-            </div>
 
-            <div className="receipt-modal-body">
-              {previewReceipt.file.driveUrl ? (
-                previewReceipt.file.mimeType === 'application/pdf' ? (
-                  <iframe
-                    src={previewReceipt.file.driveUrl}
-                    className="receipt-iframe-preview"
-                    title="Pratinjau PDF Nota"
-                  />
+              <div className="receipt-modal-body">
+                {previewInfo ? (
+                  previewInfo.type === 'pdf' ? (
+                    <div className="receipt-pdf-container">
+                      <iframe
+                        src={previewInfo.url}
+                        className="receipt-iframe-preview"
+                        title="Pratinjau PDF Nota"
+                      />
+                      <div className="receipt-preview-hint">
+                        <span>Pratinjau dokumen PDF terintegrasi.</span>
+                        {previewReceipt.file.driveUrl && (
+                          <a
+                            href={previewReceipt.file.driveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="receipt-hint-link"
+                          >
+                            <span className="material-symbols-outlined" aria-hidden="true">open_in_new</span> Buka Layar Penuh di Drive
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="receipt-image-container">
+                      <img
+                        src={previewInfo.url}
+                        alt="Nota Vendor P1"
+                        className="receipt-img-preview"
+                        loading="lazy"
+                        onError={(e) => {
+                          if (previewInfo.fallbackUrl && e.currentTarget.src !== previewInfo.fallbackUrl) {
+                            e.currentTarget.src = previewInfo.fallbackUrl;
+                          } else if (previewReceipt.file?.dataBase64 && e.currentTarget.src !== previewReceipt.file.dataBase64) {
+                            e.currentTarget.src = previewReceipt.file.dataBase64;
+                          }
+                        }}
+                      />
+                    </div>
+                  )
                 ) : (
-                  <img
-                    src={previewReceipt.file.driveUrl}
-                    alt="Nota Vendor P1"
-                    className="receipt-img-preview"
-                  />
-                )
-              ) : previewReceipt.file.dataBase64 ? (
-                previewReceipt.file.mimeType === 'application/pdf' ? (
-                  <iframe
-                    src={previewReceipt.file.dataBase64}
-                    className="receipt-iframe-preview"
-                    title="Pratinjau PDF Nota"
-                  />
-                ) : (
-                  <img
-                    src={previewReceipt.file.dataBase64}
-                    alt="Nota Vendor P1"
-                    className="receipt-img-preview"
-                  />
-                )
-              ) : (
-                <div className="receipt-no-preview-box">
-                  <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
-                  <p><strong>{previewReceipt.file.fileName || 'Berkas Nota'}</strong></p>
-                  <p className="text-muted">Pratinjau visual terbatas, klik tombol unduh di bawah untuk melihat file.</p>
+                  <div className="receipt-no-preview-box">
+                    <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                    <p><strong>{previewReceipt.file?.fileName || 'Berkas Nota'}</strong></p>
+                    <p className="text-muted">Pratinjau visual belum tersimpan di memori peramban.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="receipt-modal-footer">
+                <div className="receipt-modal-info">
+                  <span>Total Bayar:</span>
+                  <strong className="text-danger num-tabular">{formatRupiah(previewReceipt.jumlah)}</strong>
                 </div>
-              )}
-            </div>
-
-            <div className="receipt-modal-footer">
-              <div className="receipt-modal-info">
-                <span>Total Bayar:</span>
-                <strong className="text-danger num-tabular">{formatRupiah(previewReceipt.jumlah)}</strong>
-              </div>
-              <div className="receipt-modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setPreviewReceipt(null)}>
-                  Tutup
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => handleDownloadReceipt(previewReceipt)}
-                >
-                  <span className="material-symbols-outlined" aria-hidden="true">download</span> Unduh Berkas Nota
-                </button>
+                <div className="receipt-modal-actions">
+                  <button type="button" className="btn btn-secondary" onClick={() => setPreviewReceipt(null)}>
+                    Tutup
+                  </button>
+                  {previewReceipt.file?.driveUrl && (
+                    <a
+                      href={previewReceipt.file.driveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">cloud</span> Buka di Drive
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => handleDownloadReceipt(previewReceipt)}
+                  >
+                    <span className="material-symbols-outlined" aria-hidden="true">download</span> Unduh Nota
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
