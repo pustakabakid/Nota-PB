@@ -152,7 +152,7 @@ export default function Header({
                 <div className="dropdown-item-text">
                   <span className="dropdown-item-title">Database Sync</span>
                   <small className="dropdown-item-desc">
-                    {isCloudConnected ? 'Supabase Cloud DB Aktif' : 'Penyimpanan Offline (Lokal)'}
+                    {isCloudConnected ? 'Google Sheets Cloud Aktif' : 'Penyimpanan Offline (Lokal)'}
                   </small>
                 </div>
               </div>
@@ -202,6 +202,27 @@ export default function Header({
                 <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
               </button>
             )}
+
+            <div className="user-dropdown-divider" />
+
+            {/* App Version & Update Info */}
+            <div className="user-dropdown-item user-dropdown-version-item">
+              <div className="dropdown-item-left">
+                <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: '1.15rem' }}>
+                  verified
+                </span>
+                <div className="dropdown-item-text">
+                  <span className="dropdown-item-title">Versi Aplikasi</span>
+                  <small className="dropdown-item-desc">v2.0.0 · Build Sep 2026</small>
+                </div>
+              </div>
+              <span className="status-pill-mini connected">
+                <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }} aria-hidden="true">
+                  check_circle
+                </span>
+                Terbaru
+              </span>
+            </div>
           </div>
         )}
       </div>

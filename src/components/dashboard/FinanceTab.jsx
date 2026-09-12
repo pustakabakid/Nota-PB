@@ -554,75 +554,161 @@ export default function FinanceTab({
   return (
     <div className="finance-tab">
 
-      {/* ══ 1. TOP HIGHLIGHT BANNER (Visual Hierarchy Focus) ════════════ */}
-      <div className="finance-banner-grid">
-        <div className="finance-banner-card banner-income">
-          <div className="banner-icon-wrap">
-            <span className="material-symbols-outlined" aria-hidden="true">call_received</span>
-          </div>
-          <div className="banner-content">
-            <span className="banner-label">Menerima (Pemasukan)</span>
-            <span className="banner-value num-tabular">{formatRupiah(summary.totalPemasukan)}</span>
-            <span className="banner-sub">Nota P3 ({formatRupiah(summary.totalNotaSales)}) + Lainnya</span>
-          </div>
-        </div>
-
-        <div className="finance-banner-card banner-expense">
-          <div className="banner-icon-wrap">
-            <span className="material-symbols-outlined" aria-hidden="true">call_made</span>
-          </div>
-          <div className="banner-content">
-            <span className="banner-label">Membayar (Pengeluaran)</span>
-            <span className="banner-value num-tabular">{formatRupiah(summary.totalPengeluaran)}</span>
-            <span className="banner-sub">P1 ({formatRupiah(summary.totalPembelian)}) + Operasional</span>
-          </div>
-        </div>
-
-        <div className={`finance-banner-card banner-profit ${summary.labaBersih >= 0 ? 'profit-pos' : 'profit-neg'}`}>
-          <div className="banner-icon-wrap">
+      {/* ══ 1. FLUENT STAT CARDS (Executive Summary) ══════════════════════ */}
+      <div className="dashboard-stats-grid finance-stats-grid">
+        {/* Stat 1: Saldo Bersih */}
+        <div className="fluent-card stat-card" style={{
+          padding: '0.85rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem'
+        }}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '10px',
+            background: summary.labaBersih >= 0 ? 'rgba(16, 185, 129, 0.14)' : 'rgba(239, 68, 68, 0.14)',
+            color: summary.labaBersih >= 0 ? '#10B981' : '#EF4444',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
             <span className="material-symbols-outlined" aria-hidden="true">
               {summary.labaBersih >= 0 ? 'trending_up' : 'trending_down'}
             </span>
           </div>
-          <div className="banner-content">
-            <span className="banner-label">Laba Bersih</span>
-            <span className="banner-value num-tabular">{formatRupiah(summary.labaBersih)}</span>
-            <span className="banner-sub">Pemasukan − Total Pengeluaran</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: '0.7rem',
+              color: 'var(--text-muted)',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '4px'
+            }}>
+              <span>Saldo Bersih (Laba)</span>
+              <span className={`badge-status ${summary.labaBersih >= 0 ? 'lunas' : 'unpaid'}`} style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                {summary.labaBersih >= 0 ? 'Surplus' : 'Defisit'}
+              </span>
+            </div>
+            <div className={`num-tabular text-ellipsis-single ${summary.labaBersih >= 0 ? 'text-success' : 'text-danger'}`} style={{
+              fontSize: 'var(--text-lg)',
+              fontWeight: 800,
+              marginTop: '0.1rem'
+            }}>
+              {formatRupiah(summary.labaBersih)}
+            </div>
+          </div>
+        </div>
+
+        {/* Stat 2: Total Menerima */}
+        <div className="fluent-card stat-card" style={{
+          padding: '0.85rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem'
+        }}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '10px',
+            background: 'rgba(27, 189, 143, 0.14)',
+            color: 'var(--primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <span className="material-symbols-outlined" aria-hidden="true">south_west</span>
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Menerima (Masuk)
+            </div>
+            <div className="num-tabular text-ellipsis-single text-success" style={{
+              fontSize: 'var(--text-lg)',
+              fontWeight: 800,
+              marginTop: '0.1rem'
+            }}>
+              {formatRupiah(summary.totalPemasukan)}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              {summary.countNota} Nota P3 + {summary.countOtherIncome} Lainnya
+            </div>
+          </div>
+        </div>
+
+        {/* Stat 3: Total Membayar */}
+        <div className="fluent-card stat-card" style={{
+          padding: '0.85rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem'
+        }}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '10px',
+            background: 'rgba(239, 68, 68, 0.14)',
+            color: '#EF4444',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <span className="material-symbols-outlined" aria-hidden="true">north_east</span>
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Membayar (Keluar)
+            </div>
+            <div className="num-tabular text-ellipsis-single text-danger" style={{
+              fontSize: 'var(--text-lg)',
+              fontWeight: 800,
+              marginTop: '0.1rem'
+            }}>
+              {formatRupiah(summary.totalPengeluaran)}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              {summary.countPurchases} Cetak P1 + {summary.countExpenses} Ops
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ══ 2. SEGMENTED TABS: Membayar | Menerima | Laporan ═════════════ */}
-      <div className="finance-panel-tabs" role="tablist" aria-label="Navigasi Keuangan">
+      {/* ══ 2. FLUENT PIVOT TABS ══════════════════════════════════════════ */}
+      <div className="dashboard-tabs" style={{ marginBottom: 'var(--space-3)' }} role="tablist" aria-label="Navigasi Keuangan">
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === 'membayar'}
-          className={`finance-panel-tab ${activeTab === 'membayar' ? 'active' : ''}`}
-          onClick={() => setActiveTab('membayar')}
+          className={`dashboard-tab ${activeTab === 'membayar' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('membayar'); setShowForm(false); }}
         >
           <span className="material-symbols-outlined" aria-hidden="true">payments</span>
-          <span>Membayar</span>
-          <span className="finance-badge">{purchases.length + expenses.length}</span>
+          <span>Membayar ({purchases.length + expenses.length})</span>
         </button>
 
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === 'menerima'}
-          className={`finance-panel-tab ${activeTab === 'menerima' ? 'active' : ''}`}
-          onClick={() => setActiveTab('menerima')}
+          className={`dashboard-tab ${activeTab === 'menerima' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('menerima'); setShowIncomeForm(false); }}
         >
           <span className="material-symbols-outlined" aria-hidden="true">account_balance</span>
-          <span>Menerima</span>
-          <span className="finance-badge">{history.length + (otherIncome || []).length}</span>
+          <span>Menerima ({history.length + (otherIncome || []).length})</span>
         </button>
 
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === 'laporan'}
-          className={`finance-panel-tab ${activeTab === 'laporan' ? 'active' : ''}`}
+          className={`dashboard-tab ${activeTab === 'laporan' ? 'active' : ''}`}
           onClick={() => setActiveTab('laporan')}
         >
           <span className="material-symbols-outlined" aria-hidden="true">insights</span>
@@ -911,14 +997,9 @@ export default function FinanceTab({
             </div>
           ) : (
             <>
-              {/* Toolbar */}
-              <div className="finance-toolbar">
-                <div className="finance-toolbar-left">
-                  <div className="finance-toolbar-title">
-                    <span className="material-symbols-outlined" aria-hidden="true">payments</span>
-                    <span>Daftar Membayar (Pengeluaran)</span>
-                  </div>
-
+              {/* Dense Toolbar (Fluent) */}
+              <div className="dense-toolbar finance-dense-toolbar">
+                <div className="finance-toolbar-filters">
                   {/* Sub-filter pills */}
                   <div className="finance-subfilter-group" role="tablist" aria-label="Filter jenis pengeluaran">
                     <button
@@ -943,127 +1024,197 @@ export default function FinanceTab({
                       Operasional ({expenses.length})
                     </button>
                   </div>
+
+                  <div className="finance-subfilter-summary num-tabular">
+                    Subtotal: <strong className="text-danger">{formatRupiah(mergedOutgoing.reduce((acc, it) => acc + (it.jumlah || 0), 0))}</strong>
+                  </div>
                 </div>
 
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => openNewOutgoing('Pembelian P1')}>
-                  <span className="material-symbols-outlined" aria-hidden="true">add</span> Catat Pengeluaran
-                </button>
+                <div className="finance-toolbar-actions">
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => openNewOutgoing('Pembelian P1')}>
+                    <span className="material-symbols-outlined" aria-hidden="true">add</span> Catat Pengeluaran
+                  </button>
+                </div>
               </div>
 
               {/* Table / Empty List */}
               {mergedOutgoing.length === 0 ? (
-                <div className="finance-empty">
+                <div className="finance-empty" style={{ background: 'var(--bg-surface-solid)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
                   <span className="material-symbols-outlined finance-empty-icon" aria-hidden="true">payments</span>
                   <p>Belum ada catatan pengeluaran / pembayaran.</p>
-                  <button type="button" className="btn btn-primary" onClick={() => openNewOutgoing('Pembelian P1')}>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => openNewOutgoing('Pembelian P1')}>
                     <span className="material-symbols-outlined" aria-hidden="true">add</span> Catat Pembayaran Pertama
                   </button>
                 </div>
               ) : (
-                <div className="finance-table-wrap">
-                  <table className="finance-table">
-                    <thead>
-                      <tr>
-                        <th>Tanggal</th>
-                        <th>Kategori</th>
-                        <th>Keterangan / Supplier</th>
-                        <th>Rincian Produk / Detail</th>
-                        <th>Total Bayar</th>
-                        <th>Nota P1</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mergedOutgoing.map(item => (
-                        <tr key={`${item.type}_${item.id}`}>
-                          <td className="finance-date-cell">{formatDateId(item.tanggal)}</td>
-                          <td>
-                            <span className={`finance-chip ${item.type === 'p1' ? 'chip-p1' : 'chip-ops'}`}>
-                              {item.kategori}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="finance-title-bold">{item.title}</div>
-                            {item.subTitle && <div className="finance-sub-text num-tabular">{item.subTitle}</div>}
-                            {item.type === 'p1' && item.notaFile && (
-                              <div className="finance-mobile-nota-badge-wrap">
+                <>
+                  {/* Desktop Table View (>= 768px) */}
+                  <div className="dense-table-container finance-desktop-table">
+                    <table className="dense-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '110px' }}>Tanggal</th>
+                          <th style={{ width: '130px' }}>Kategori</th>
+                          <th>Keterangan / Supplier</th>
+                          <th>Rincian Produk / Detail</th>
+                          <th style={{ textAlign: 'right', width: '130px' }}>Total Bayar</th>
+                          <th style={{ width: '130px', textAlign: 'center' }}>Nota P1</th>
+                          <th style={{ width: '90px', textAlign: 'center' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mergedOutgoing.map(item => (
+                          <tr key={`${item.type}_${item.id}`}>
+                            <td className="finance-date-cell" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {formatDateId(item.tanggal)}
+                            </td>
+                            <td>
+                              <span className={`finance-chip ${item.type === 'p1' ? 'chip-p1' : 'chip-ops'}`}>
+                                {item.kategori}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="finance-title-bold" style={{ fontSize: 'var(--text-xs)' }}>{item.title}</div>
+                              {item.subTitle && <div className="finance-sub-text num-tabular">{item.subTitle}</div>}
+                            </td>
+                            <td>
+                              {item.type === 'p1' ? (
+                                <div className="finance-items-summary">
+                                  {(item.items || []).map((it, i) => (
+                                    <span key={i} className="finance-item-chip">
+                                      {it.nama} × {it.jumlah}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="finance-detail-text">{item.title}</span>
+                              )}
+                            </td>
+                            <td className="num-tabular finance-total-cell text-danger" style={{ textAlign: 'right', fontWeight: 700 }}>
+                              {formatRupiah(item.jumlah)}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {item.type === 'p1' && item.notaFile ? (
                                 <button
                                   type="button"
-                                  className="finance-nota-quick-pill"
+                                  className="finance-nota-btn"
                                   onClick={() => openReceiptPreview(item)}
-                                  title={`Lihat Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
+                                  title={`Pratinjau / Unduh Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
                                 >
                                   <span className="material-symbols-outlined" aria-hidden="true">
-                                    {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image'}
+                                    {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'attach_file'}
                                   </span>
-                                  <span>Lihat Nota</span>
+                                  <span className="finance-nota-btn-text">
+                                    {item.notaFile.fileName ? (item.notaFile.fileName.length > 14 ? item.notaFile.fileName.substring(0, 11) + '...' : item.notaFile.fileName) : 'Lihat Nota'}
+                                  </span>
                                 </button>
+                              ) : (
+                                <span className="finance-no-nota">—</span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                                <CustomTooltip text="Edit Pembayaran">
+                                  <button
+                                    type="button"
+                                    className="btn-icon-action"
+                                    onClick={() => openEditItem(item)}
+                                    aria-label="Edit"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                                  </button>
+                                </CustomTooltip>
+                                <CustomTooltip text="Hapus Pembayaran">
+                                  <button
+                                    type="button"
+                                    className="btn-icon-action danger"
+                                    onClick={() => {
+                                      if (item.type === 'p1') setConfirmDelPurchase(item.raw);
+                                      else setConfirmDelExpense(item.raw);
+                                    }}
+                                    aria-label="Hapus"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
+                                  </button>
+                                </CustomTooltip>
                               </div>
-                            )}
-                          </td>
-                          <td>
-                            {item.type === 'p1' ? (
-                              <div className="finance-items-summary">
-                                {(item.items || []).map((it, i) => (
-                                  <span key={i} className="finance-item-chip">
-                                    {it.nama} × {it.jumlah}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="finance-detail-text">{item.title}</span>
-                            )}
-                          </td>
-                          <td className="num-tabular finance-total-cell text-danger">
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards View (< 768px - No Horizontal Scroll!) */}
+                  <div className="finance-mobile-list">
+                    {mergedOutgoing.map(item => (
+                      <div key={`m_${item.type}_${item.id}`} className="finance-mobile-card">
+                        <div className="finance-mobile-card-header">
+                          <span className={`finance-chip ${item.type === 'p1' ? 'chip-p1' : 'chip-ops'}`}>
+                            {item.kategori}
+                          </span>
+                          <span className="finance-mobile-card-date">{formatDateId(item.tanggal)}</span>
+                        </div>
+
+                        <div className="finance-mobile-card-title">{item.title}</div>
+                        {item.subTitle && <div className="finance-mobile-card-sub num-tabular">{item.subTitle}</div>}
+
+                        {item.type === 'p1' && item.items && item.items.length > 0 && (
+                          <div className="finance-mobile-card-items">
+                            {item.items.map((it, i) => (
+                              <span key={i} className="finance-item-chip">
+                                {it.nama} × {it.jumlah}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {item.type === 'p1' && item.notaFile && (
+                          <div className="finance-mobile-card-nota">
+                            <button
+                              type="button"
+                              className="finance-nota-quick-pill"
+                              onClick={() => openReceiptPreview(item)}
+                              title={`Lihat Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
+                            >
+                              <span className="material-symbols-outlined" aria-hidden="true">
+                                {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image'}
+                              </span>
+                              <span>Lihat Nota P1</span>
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="finance-mobile-card-footer">
+                          <div className="finance-mobile-card-amount num-tabular text-danger">
                             {formatRupiah(item.jumlah)}
-                          </td>
-                          <td>
-                            {item.type === 'p1' && item.notaFile ? (
-                              <button
-                                type="button"
-                                className="finance-nota-btn"
-                                onClick={() => openReceiptPreview(item)}
-                                title={`Pratinjau / Unduh Nota (${item.notaFile.fileName || 'Berkas Nota'})`}
-                              >
-                                <span className="material-symbols-outlined" aria-hidden="true">
-                                  {item.notaFile.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'attach_file'}
-                                </span>
-                                <span className="finance-nota-btn-text">
-                                  {item.notaFile.fileName ? (item.notaFile.fileName.length > 14 ? item.notaFile.fileName.substring(0, 11) + '...' : item.notaFile.fileName) : 'Lihat Nota'}
-                                </span>
-                              </button>
-                            ) : (
-                              <span className="finance-no-nota">—</span>
-                            )}
-                          </td>
-                          <td>
-                            <div className="finance-row-actions">
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon-sm"
-                                onClick={() => openEditItem(item)}
-                                aria-label="Edit"
-                              >
-                                <span className="material-symbols-outlined" aria-hidden="true">edit</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon-sm finance-btn-delete"
-                                onClick={() => {
-                                  if (item.type === 'p1') setConfirmDelPurchase(item.raw);
-                                  else setConfirmDelExpense(item.raw);
-                                }}
-                                aria-label="Hapus"
-                              >
-                                <span className="material-symbols-outlined" aria-hidden="true">delete</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                          <div className="finance-mobile-card-actions">
+                            <button
+                              type="button"
+                              className="btn-icon-action"
+                              onClick={() => openEditItem(item)}
+                              aria-label="Edit"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-icon-action danger"
+                              onClick={() => {
+                                if (item.type === 'p1') setConfirmDelPurchase(item.raw);
+                                else setConfirmDelExpense(item.raw);
+                              }}
+                              aria-label="Hapus"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}
@@ -1151,13 +1302,9 @@ export default function FinanceTab({
             </div>
           ) : (
             <>
-              <div className="finance-toolbar">
-                <div className="finance-toolbar-left">
-                  <div className="finance-toolbar-title">
-                    <span className="material-symbols-outlined" aria-hidden="true">account_balance</span>
-                    <span>Daftar Menerima (Pemasukan)</span>
-                  </div>
-
+              {/* Dense Toolbar (Fluent) */}
+              <div className="dense-toolbar finance-dense-toolbar">
+                <div className="finance-toolbar-filters">
                   {/* Sub-filter pills for income */}
                   <div className="finance-subfilter-group" role="tablist" aria-label="Filter jenis pemasukan">
                     <button
@@ -1182,217 +1329,452 @@ export default function FinanceTab({
                       Pemasukan Lain ({(otherIncome || []).length})
                     </button>
                   </div>
+
+                  <div className="finance-subfilter-summary num-tabular">
+                    Subtotal: <strong className="text-success">{formatRupiah(mergedIncoming.reduce((acc, it) => acc + (it.jumlah || 0), 0))}</strong>
+                  </div>
                 </div>
 
-                <button type="button" className="btn btn-primary btn-sm" onClick={openNewOtherIncome}>
-                  <span className="material-symbols-outlined" aria-hidden="true">add</span> Catat Pemasukan Lain
-                </button>
+                <div className="finance-toolbar-actions">
+                  <button type="button" className="btn btn-primary btn-sm" onClick={openNewOtherIncome}>
+                    <span className="material-symbols-outlined" aria-hidden="true">add</span> Catat Pemasukan Lain
+                  </button>
+                </div>
               </div>
 
               {mergedIncoming.length === 0 ? (
-                <div className="finance-empty">
+                <div className="finance-empty" style={{ background: 'var(--bg-surface-solid)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
                   <span className="material-symbols-outlined finance-empty-icon" aria-hidden="true">receipt_long</span>
                   <p>Belum ada catatan pemasukan.</p>
                   <span className="finance-sub-text">Nota P3 yang dibuat aplikasi dan pemasukan manual akan tercatat di sini.</span>
                 </div>
               ) : (
-                <div className="finance-table-wrap">
-                  <table className="finance-table">
-                    <thead>
-                      <tr>
-                        <th>Tanggal</th>
-                        <th>Sumber / No. Nota</th>
-                        <th>Pelanggan / Keterangan</th>
-                        <th>Rincian Produk / Detail</th>
-                        <th>Metode / Format</th>
-                        <th>Total Menerima</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mergedIncoming.map(item => (
-                        <tr key={`${item.type}_${item.id}`}>
-                          <td className="finance-date-cell">{formatDateId(item.tanggal)}</td>
-                          <td className="num-tabular finance-title-bold">{item.refNo}</td>
-                          <td>{item.title}</td>
-                          <td>
-                            {item.type === 'nota' ? (
-                              <div className="finance-items-summary">
-                                {(item.items || []).map((it, i) => (
-                                  <span key={i} className="finance-item-chip">
-                                    {it.name} × {it.qty}
-                                  </span>
-                                ))}
+                <>
+                  {/* Desktop Table View (>= 768px) */}
+                  <div className="dense-table-container finance-desktop-table">
+                    <table className="dense-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '110px' }}>Tanggal</th>
+                          <th style={{ width: '140px' }}>Sumber / No. Nota</th>
+                          <th>Pelanggan / Keterangan</th>
+                          <th>Rincian Produk / Detail</th>
+                          <th style={{ width: '120px' }}>Metode</th>
+                          <th style={{ textAlign: 'right', width: '130px' }}>Total Menerima</th>
+                          <th style={{ width: '90px', textAlign: 'center' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mergedIncoming.map(item => (
+                          <tr key={`${item.type}_${item.id}`}>
+                            <td className="finance-date-cell" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {formatDateId(item.tanggal)}
+                            </td>
+                            <td className="num-tabular finance-title-bold" style={{ fontSize: 'var(--text-xs)' }}>
+                              {item.refNo}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 'var(--text-xs)' }}>
+                                {item.title}
                               </div>
-                            ) : (
-                              <span className="finance-detail-text">{item.title}</span>
-                            )}
-                          </td>
-                          <td>
-                            <span className="finance-chip chip-income">
-                              {item.subTitle}
-                            </span>
-                          </td>
-                          <td className="num-tabular finance-total-cell text-success">
+                            </td>
+                            <td>
+                              {item.type === 'nota' ? (
+                                <div className="finance-items-summary">
+                                  {(item.items || []).map((it, i) => (
+                                    <span key={i} className="finance-item-chip">
+                                      {it.name} × {it.qty}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="finance-detail-text">{item.title}</span>
+                              )}
+                            </td>
+                            <td>
+                              <span className="finance-chip chip-income">
+                                {item.subTitle}
+                              </span>
+                            </td>
+                            <td className="num-tabular finance-total-cell text-success" style={{ textAlign: 'right', fontWeight: 700 }}>
+                              {formatRupiah(item.jumlah || 0)}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {item.type === 'other' ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                                  <CustomTooltip text="Edit Pemasukan">
+                                    <button
+                                      type="button"
+                                      className="btn-icon-action"
+                                      onClick={() => openEditOtherIncome(item)}
+                                      aria-label="Edit"
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                                    </button>
+                                  </CustomTooltip>
+                                  <CustomTooltip text="Hapus Pemasukan">
+                                    <button
+                                      type="button"
+                                      className="btn-icon-action danger"
+                                      onClick={() => setConfirmDelIncome(item.raw)}
+                                      aria-label="Hapus"
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
+                                    </button>
+                                  </CustomTooltip>
+                                </div>
+                              ) : (
+                                <span className="badge-status lunas" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                                  Nota P3
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards View (< 768px - No Horizontal Scroll!) */}
+                  <div className="finance-mobile-list">
+                    {mergedIncoming.map(item => (
+                      <div key={`m_${item.type}_${item.id}`} className="finance-mobile-card">
+                        <div className="finance-mobile-card-header">
+                          <span className="finance-chip chip-income">
+                            {item.type === 'nota' ? 'Nota Penjualan' : (item.subTitle || 'Pemasukan')}
+                          </span>
+                          <span className="finance-mobile-card-date">{formatDateId(item.tanggal)}</span>
+                        </div>
+
+                        <div className="finance-mobile-card-title">{item.title}</div>
+                        {item.refNo && <div className="finance-mobile-card-sub num-tabular">Ref: {item.refNo}</div>}
+
+                        {item.type === 'nota' && item.items && item.items.length > 0 && (
+                          <div className="finance-mobile-card-items">
+                            {item.items.map((it, i) => (
+                              <span key={i} className="finance-item-chip">
+                                {it.name} × {it.qty}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="finance-mobile-card-footer">
+                          <div className="finance-mobile-card-amount num-tabular text-success">
                             {formatRupiah(item.jumlah || 0)}
-                          </td>
-                          <td>
+                          </div>
+                          <div className="finance-mobile-card-actions">
                             {item.type === 'other' ? (
-                              <div className="finance-row-actions">
+                              <>
                                 <button
                                   type="button"
-                                  className="btn btn-ghost btn-icon-sm"
+                                  className="btn-icon-action"
                                   onClick={() => openEditOtherIncome(item)}
                                   aria-label="Edit"
                                 >
-                                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                                 </button>
                                 <button
                                   type="button"
-                                  className="btn btn-ghost btn-icon-sm finance-btn-delete"
+                                  className="btn-icon-action danger"
                                   onClick={() => setConfirmDelIncome(item.raw)}
                                   aria-label="Hapus"
                                 >
-                                  <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
                                 </button>
-                              </div>
+                              </>
                             ) : (
-                              <span className="finance-no-nota">—</span>
+                              <span className="badge-status lunas" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                                Nota P3
+                              </span>
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}
         </div>
       )}
 
-      {/* ══ 5. TAB CONTENT: LAPORAN KEUANGAN ═════════════════════════════ */}
+      {/* ══ 5. TAB CONTENT: LAPORAN KEUANGAN (FLUENT) ═════════════════════ */}
       {activeTab === 'laporan' && (
         <div className="finance-panel">
-          <div className="finance-toolbar finance-toolbar-wrap">
-            <div className="finance-toolbar-title">
-              <span className="material-symbols-outlined" aria-hidden="true">insights</span>
-              <span>Laporan & Analisis Keuangan</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-              <div className="finance-report-filter">
-                <CustomDatePicker value={reportFrom} onChange={setReportFrom} placeholder="Dari Tanggal" />
-                <span className="finance-filter-sep">–</span>
-                <CustomDatePicker value={reportTo} onChange={setReportTo} placeholder="Sampai Tanggal" />
+          {/* Dense Toolbar (Fluent) */}
+          <div className="dense-toolbar finance-dense-toolbar">
+            <div className="finance-toolbar-filters">
+              <div className="toolbar-date-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                <div className="toolbar-date-field" style={{ minWidth: '135px', maxWidth: '170px' }}>
+                  <CustomDatePicker value={reportFrom} onChange={setReportFrom} placeholder="Dari Tanggal" />
+                </div>
+                <span className="toolbar-date-separator" style={{ color: 'var(--text-muted)' }}>-</span>
+                <div className="toolbar-date-field" style={{ minWidth: '135px', maxWidth: '170px' }}>
+                  <CustomDatePicker value={reportTo} onChange={setReportTo} placeholder="Sampai Tanggal" />
+                </div>
                 {(reportFrom || reportTo) && (
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
+                    className="btn btn-ghost btn-sm btn-icon-only"
                     onClick={() => { setReportFrom(''); setReportTo(''); }}
-                    aria-label="Reset filter"
+                    aria-label="Reset Filter"
                   >
                     <span className="material-symbols-outlined" aria-hidden="true">close</span>
                   </button>
                 )}
               </div>
+            </div>
 
+            <div className="finance-toolbar-actions">
               <CustomTooltip text="Download file Excel / CSV">
                 <button
                   type="button"
-                  className="btn btn-outline btn-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={handleExportExcel}
                 >
-                  <span className="material-symbols-outlined" aria-hidden="true">download</span> Export Excel (.csv)
+                  <span className="material-symbols-outlined" aria-hidden="true">download</span>
+                  <span>Export Excel (.csv)</span>
                 </button>
               </CustomTooltip>
             </div>
           </div>
 
-          <div className="finance-summary-grid">
-            <div className="finance-summary-card finance-card-income">
-              <div className="finance-card-icon">
-                <span className="material-symbols-outlined" aria-hidden="true">call_received</span>
-              </div>
-              <div className="finance-card-body">
-                <div className="finance-card-label">Total Menerima (Pemasukan)</div>
-                <div className="finance-card-value num-tabular">{formatRupiah(summary.totalPemasukan)}</div>
-                <div className="finance-card-sub">{summary.countNota} Nota P3 + {summary.countOtherIncome} Pemasukan Lain</div>
-              </div>
-            </div>
-
-            <div className="finance-summary-card finance-card-purchase">
-              <div className="finance-card-icon">
-                <span className="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
-              </div>
-              <div className="finance-card-body">
-                <div className="finance-card-label">Membayar P1 (Pembelian Cetak)</div>
-                <div className="finance-card-value num-tabular">{formatRupiah(summary.totalPembelian)}</div>
-                <div className="finance-card-sub">{summary.countPurchases} transaksi ke P1</div>
-              </div>
-            </div>
-
-            <div className="finance-summary-card finance-card-expense">
-              <div className="finance-card-icon">
-                <span className="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
-              </div>
-              <div className="finance-card-body">
-                <div className="finance-card-label">Membayar Operasional</div>
-                <div className="finance-card-value num-tabular">{formatRupiah(summary.totalPengeluaranLain)}</div>
-                <div className="finance-card-sub">{summary.countExpenses} item pengeluaran</div>
-              </div>
-            </div>
-
-            <div className="finance-summary-card finance-card-total-out">
-              <div className="finance-card-icon">
-                <span className="material-symbols-outlined" aria-hidden="true">call_made</span>
-              </div>
-              <div className="finance-card-body">
-                <div className="finance-card-label">Total Membayar (Pengeluaran)</div>
-                <div className="finance-card-value num-tabular">{formatRupiah(summary.totalPengeluaran)}</div>
-                <div className="finance-card-sub">P1 + Operasional</div>
-              </div>
-            </div>
-
-            <div className={`finance-summary-card finance-card-profit ${summary.labaBersih >= 0 ? 'profit-positive' : 'profit-negative'}`}>
-              <div className="finance-card-icon">
+          {/* KPI Summary Cards (Fluent) */}
+          <div className="dashboard-stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
+            {/* Laba Bersih Featured */}
+            <div className="fluent-card stat-card" style={{
+              padding: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              borderLeft: `4px solid ${summary.labaBersih >= 0 ? '#10B981' : '#EF4444'}`
+            }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '10px',
+                background: summary.labaBersih >= 0 ? 'rgba(16, 185, 129, 0.14)' : 'rgba(239, 68, 68, 0.14)',
+                color: summary.labaBersih >= 0 ? '#10B981' : '#EF4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.4rem',
+                flexShrink: 0
+              }}>
                 <span className="material-symbols-outlined" aria-hidden="true">
                   {summary.labaBersih >= 0 ? 'emoji_events' : 'warning'}
                 </span>
               </div>
-              <div className="finance-card-body">
-                <div className="finance-card-label">Laba / Rugi Bersih</div>
-                <div className="finance-card-value finance-card-value-lg num-tabular">{formatRupiah(summary.labaBersih)}</div>
-                <div className="finance-card-sub">Total Menerima − Total Membayar</div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{
+                  fontSize: '0.725rem',
+                  color: 'var(--text-muted)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>Laba Bersih Akhir</span>
+                  <span className={`badge-status ${summary.labaBersih >= 0 ? 'lunas' : 'unpaid'}`} style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                    {summary.labaBersih >= 0 ? 'Surplus' : 'Defisit'}
+                  </span>
+                </div>
+                <div className={`num-tabular text-ellipsis-single ${summary.labaBersih >= 0 ? 'text-success' : 'text-danger'}`} style={{
+                  fontSize: 'var(--text-xl)',
+                  fontWeight: 800,
+                  marginTop: '0.15rem'
+                }}>
+                  {formatRupiah(summary.labaBersih)}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Total Menerima − Total Membayar
+                </div>
+              </div>
+            </div>
+
+            {/* Total Arus Masuk */}
+            <div className="fluent-card stat-card" style={{
+              padding: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '10px',
+                background: 'rgba(27, 189, 143, 0.14)',
+                color: 'var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.4rem',
+                flexShrink: 0
+              }}>
+                <span className="material-symbols-outlined" aria-hidden="true">call_received</span>
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Total Arus Masuk
+                </div>
+                <div className="num-tabular text-ellipsis-single text-success" style={{
+                  fontSize: 'var(--text-lg)',
+                  fontWeight: 800,
+                  marginTop: '0.15rem'
+                }}>
+                  {formatRupiah(summary.totalPemasukan)}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {summary.countNota} Nota P3 ({formatRupiah(summary.totalNotaSales)}) + Lainnya
+                </div>
+              </div>
+            </div>
+
+            {/* Total Arus Keluar */}
+            <div className="fluent-card stat-card" style={{
+              padding: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '10px',
+                background: 'rgba(239, 68, 68, 0.14)',
+                color: '#EF4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.4rem',
+                flexShrink: 0
+              }}>
+                <span className="material-symbols-outlined" aria-hidden="true">call_made</span>
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Total Arus Keluar
+                </div>
+                <div className="num-tabular text-ellipsis-single text-danger" style={{
+                  fontSize: 'var(--text-lg)',
+                  fontWeight: 800,
+                  marginTop: '0.15rem'
+                }}>
+                  {formatRupiah(summary.totalPengeluaran)}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {summary.countPurchases} P1 ({formatRupiah(summary.totalPembelian)}) + Ops
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="finance-formula-box">
-            <div className="finance-formula-title">
-              <span className="material-symbols-outlined" aria-hidden="true">calculate</span>
-              Rincian Perhitungan Laba Keuangan
+          {/* Arus Kas Streams Breakdown (Side by Side Fluent Cards) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 'var(--space-4)',
+            marginBottom: 'var(--space-4)'
+          }}>
+            {/* Arus Masuk Card */}
+            <div className="fluent-card" style={{ padding: 'var(--space-4)' }}>
+              <div className="card-title" style={{ color: 'var(--text-main)', marginBottom: 'var(--space-3)' }}>
+                <span className="material-symbols-outlined" style={{ color: '#10B981' }}>call_received</span>
+                <span>Rincian Arus Masuk</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-color)', fontSize: 'var(--text-xs)' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>Penjualan Nota P3</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{summary.countNota} transaksi tercatat</div>
+                  </div>
+                  <div className="num-tabular text-success" style={{ fontWeight: 700 }}>{formatRupiah(summary.totalNotaSales)}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-color)', fontSize: 'var(--text-xs)' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>Pemasukan Lain (Non-Nota)</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{summary.countOtherIncome} transaksi tercatat</div>
+                  </div>
+                  <div className="num-tabular text-success" style={{ fontWeight: 700 }}>{formatRupiah(summary.totalOtherIncome)}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
+                  <span>Total Pemasukan</span>
+                  <span className="num-tabular text-success">{formatRupiah(summary.totalPemasukan)}</span>
+                </div>
+              </div>
             </div>
-            <div className="finance-formula-row">
-              <span>💰 Total Penjualan Nota P3</span>
-              <span className="num-tabular text-success">{formatRupiah(summary.totalNotaSales)}</span>
+
+            {/* Arus Keluar Card */}
+            <div className="fluent-card" style={{ padding: 'var(--space-4)' }}>
+              <div className="card-title" style={{ color: 'var(--text-main)', marginBottom: 'var(--space-3)' }}>
+                <span className="material-symbols-outlined" style={{ color: '#EF4444' }}>call_made</span>
+                <span>Rincian Arus Keluar</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-color)', fontSize: 'var(--text-xs)' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>Pembelian Cetak ke P1</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{summary.countPurchases} transaksi ke vendor</div>
+                  </div>
+                  <div className="num-tabular text-danger" style={{ fontWeight: 700 }}>{formatRupiah(summary.totalPembelian)}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-color)', fontSize: 'var(--text-xs)' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>Pengeluaran Operasional</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{summary.countExpenses} item pengeluaran</div>
+                  </div>
+                  <div className="num-tabular text-danger" style={{ fontWeight: 700 }}>{formatRupiah(summary.totalPengeluaranLain)}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
+                  <span>Total Pengeluaran</span>
+                  <span className="num-tabular text-danger">{formatRupiah(summary.totalPengeluaran)}</span>
+                </div>
+              </div>
             </div>
-            <div className="finance-formula-row">
-              <span>➕ Pemasukan Lain (Non-Nota)</span>
-              <span className="num-tabular text-success">+{formatRupiah(summary.totalOtherIncome)}</span>
+          </div>
+
+          {/* Formula Calculation Box (Fluent Card) */}
+          <div className="fluent-card" style={{ padding: 'var(--space-4)' }}>
+            <div className="card-title" style={{ marginBottom: 'var(--space-3)' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>calculate</span>
+              <span>Rekapitulasi Perhitungan Laba Bersih</span>
             </div>
-            <div className="finance-formula-row finance-formula-minus">
-              <span>📦 Pembelian Cetak ke P1</span>
-              <span className="num-tabular text-danger">− {formatRupiah(summary.totalPembelian)}</span>
-            </div>
-            <div className="finance-formula-row finance-formula-minus">
-              <span>💸 Pengeluaran Operasional & Lainnya</span>
-              <span className="num-tabular text-danger">− {formatRupiah(summary.totalPengeluaranLain)}</span>
-            </div>
-            <div className="finance-formula-divider" />
-            <div className={`finance-formula-row finance-formula-result ${summary.labaBersih >= 0 ? 'profit-positive' : 'profit-negative'}`}>
-              <span>🏆 Laba Bersih</span>
-              <span className="num-tabular">{formatRupiah(summary.labaBersih)}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: 'var(--text-xs)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>💰 Total Penjualan Nota P3</span>
+                <span className="num-tabular text-success font-bold">{formatRupiah(summary.totalNotaSales)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>➕ Pemasukan Lain (Non-Nota)</span>
+                <span className="num-tabular text-success font-bold">+{formatRupiah(summary.totalOtherIncome)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>📦 Pembelian Cetak ke P1</span>
+                <span className="num-tabular text-danger font-bold">− {formatRupiah(summary.totalPembelian)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>💸 Pengeluaran Operasional & Lainnya</span>
+                <span className="num-tabular text-danger font-bold">− {formatRupiah(summary.totalPengeluaranLain)}</span>
+              </div>
+              <div style={{ height: '1px', borderTop: '1px dashed var(--border-color)', margin: 'var(--space-1) 0' }} />
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 'var(--space-3)',
+                background: 'var(--bg-app)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)'
+              }}>
+                <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-main)' }}>🏆 Laba Bersih (Surplus/Defisit)</span>
+                <span className={`num-tabular ${summary.labaBersih >= 0 ? 'text-success' : 'text-danger'}`} style={{ fontWeight: 800, fontSize: 'var(--text-md)' }}>
+                  {formatRupiah(summary.labaBersih)}
+                </span>
+              </div>
             </div>
           </div>
         </div>

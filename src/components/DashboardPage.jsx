@@ -48,7 +48,7 @@ export default function DashboardPage({
       {/* 4 Overview Analytics Stat Cards */}
       <div className="dashboard-stats-grid">
         {/* Stat Card 1: Omset */}
-        <div style={{
+        <div className="dashboard-stat-card" style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
@@ -58,7 +58,7 @@ export default function DashboardPage({
           gap: '1rem',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{
+          <div className="dashboard-stat-icon" style={{
             width: '44px',
             height: '44px',
             borderRadius: '10px',
@@ -72,18 +72,19 @@ export default function DashboardPage({
           }}>
             <span className="material-symbols-outlined" aria-hidden="true">payments</span>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Total Omset Penjualan
+          <div className="dashboard-stat-content" style={{ minWidth: 0 }}>
+            <div className="dashboard-stat-label" style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span className="stat-label-desktop">Total Omset Penjualan</span>
+              <span className="stat-label-mobile">Total Omset</span>
             </div>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }} className="num-tabular text-ellipsis-single">
+            <div className="dashboard-stat-value num-tabular text-ellipsis-single" style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }}>
               {formatRupiah(totalOmset)}
             </div>
           </div>
         </div>
 
         {/* Stat Card 2: Total Nota */}
-        <div style={{
+        <div className="dashboard-stat-card" style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
@@ -93,7 +94,7 @@ export default function DashboardPage({
           gap: '1rem',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{
+          <div className="dashboard-stat-icon" style={{
             width: '44px',
             height: '44px',
             borderRadius: '10px',
@@ -107,18 +108,19 @@ export default function DashboardPage({
           }}>
             <span className="material-symbols-outlined" aria-hidden="true">description</span>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Total Transaksi Nota
+          <div className="dashboard-stat-content" style={{ minWidth: 0 }}>
+            <div className="dashboard-stat-label" style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span className="stat-label-desktop">Total Transaksi Nota</span>
+              <span className="stat-label-mobile">Total Nota</span>
             </div>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }} className="text-ellipsis-single">
-              {history.length} <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-muted)' }}>Nota</span>
+            <div className="dashboard-stat-value text-ellipsis-single" style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }}>
+              {history.length} <span className="dashboard-stat-unit" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-muted)' }}>Nota</span>
             </div>
           </div>
         </div>
 
         {/* Stat Card 3: Status Bayar Lunas */}
-        <div style={{
+        <div className="dashboard-stat-card" style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
@@ -128,7 +130,7 @@ export default function DashboardPage({
           gap: '1rem',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{
+          <div className="dashboard-stat-icon" style={{
             width: '44px',
             height: '44px',
             borderRadius: '10px',
@@ -142,18 +144,18 @@ export default function DashboardPage({
           }}>
             <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="dashboard-stat-content" style={{ minWidth: 0 }}>
+            <div className="dashboard-stat-label" style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Nota Lunas
             </div>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }} className="text-ellipsis-single">
-              {totalLunas} <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-muted)' }}>Tuntas</span>
+            <div className="dashboard-stat-value text-ellipsis-single" style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem' }}>
+              {totalLunas} <span className="dashboard-stat-unit" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-muted)' }}>Tuntas</span>
             </div>
           </div>
         </div>
 
         {/* Stat Card 4: Sisa Pelunasan */}
-        <div style={{
+        <div className="dashboard-stat-card" style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
@@ -163,7 +165,7 @@ export default function DashboardPage({
           gap: '1rem',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{
+          <div className="dashboard-stat-icon" style={{
             width: '44px',
             height: '44px',
             borderRadius: '10px',
@@ -177,11 +179,12 @@ export default function DashboardPage({
           }}>
             <span className="material-symbols-outlined" aria-hidden="true">pending</span>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Sisa DP / Belum Lunas
+          <div className="dashboard-stat-content" style={{ minWidth: 0 }}>
+            <div className="dashboard-stat-label" style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span className="stat-label-desktop">Sisa DP / Belum Lunas</span>
+              <span className="stat-label-mobile">Belum Lunas</span>
             </div>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: '#EF4444', marginTop: '0.1rem' }} className="num-tabular text-ellipsis-single">
+            <div className="dashboard-stat-value num-tabular text-ellipsis-single" style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: '#EF4444', marginTop: '0.1rem' }}>
               {formatRupiah(totalSisa)}
             </div>
           </div>
@@ -189,58 +192,89 @@ export default function DashboardPage({
       </div>
 
       {/* Main Dashboard Card Container */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'clamp(1rem, 3vw, 1.35rem)',
-        boxShadow: 'var(--shadow-sm)',
-        width: '100%'
-      }}>
+      <div className="dashboard-main-card">
         {/* Dashboard Navigation Tabs */}
-        <div className="dashboard-tabs">
+        <div className="dashboard-tabs dashboard-main-tabs" role="tablist" aria-label="Menu Dashboard">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'history'}
             className={`dashboard-tab ${activeTab === 'history' ? 'active' : ''}`}
             onClick={() => setActiveTab('history')}
+            title="Riwayat Transaksi"
           >
-            <span className="material-symbols-outlined" aria-hidden="true">history</span> Riwayat Transaksi ({history.length})
+            <span className="material-symbols-outlined" aria-hidden="true">history</span>
+            <span className="dashboard-tab-label">
+              <span className="tab-label-desktop">Riwayat Transaksi ({history.length})</span>
+              <span className="tab-label-mobile">Riwayat ({history.length})</span>
+            </span>
           </button>
           <button
             type="button"
-            className={`dashboard-tab ${activeTab === 'catalog' ? 'active' : ''}`}
-            onClick={() => setActiveTab('catalog')}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">sell</span> Katalog Preset Tarif ({catalog.length})
-          </button>
-          <button
-            type="button"
-            className={`dashboard-tab ${activeTab === 'store' ? 'active' : ''}`}
-            onClick={() => setActiveTab('store')}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">storefront</span> Profil Toko
-          </button>
-          <button
-            type="button"
-            className={`dashboard-tab ${activeTab === 'cloud' ? 'active' : ''}`}
-            onClick={() => setActiveTab('cloud')}
-          >
-            <span className="material-symbols-outlined" style={{ color: isConnected ? 'var(--primary)' : 'inherit' }} aria-hidden="true">cloud</span> 
-            Koneksi Cloud DB {isConnected && <span className="tab-badge-online">Active</span>}
-          </button>
-          <button
-            type="button"
-            className={`dashboard-tab ${activeTab === 'accounts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('accounts')}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">manage_accounts</span> Manajemen Akun ({accounts.length})
-          </button>
-          <button
-            type="button"
+            role="tab"
+            aria-selected={activeTab === 'finance'}
             className={`dashboard-tab ${activeTab === 'finance' ? 'active' : ''}`}
             onClick={() => setActiveTab('finance')}
+            title="Keuangan"
           >
-            <span className="material-symbols-outlined" aria-hidden="true">account_balance</span> Keuangan
+            <span className="material-symbols-outlined" aria-hidden="true">account_balance</span>
+            <span className="dashboard-tab-label">Keuangan</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'catalog'}
+            className={`dashboard-tab ${activeTab === 'catalog' ? 'active' : ''}`}
+            onClick={() => setActiveTab('catalog')}
+            title="Katalog Preset Tarif"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">sell</span>
+            <span className="dashboard-tab-label">
+              <span className="tab-label-desktop">Katalog Preset Tarif ({catalog.length})</span>
+              <span className="tab-label-mobile">Katalog ({catalog.length})</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'store'}
+            className={`dashboard-tab ${activeTab === 'store' ? 'active' : ''}`}
+            onClick={() => setActiveTab('store')}
+            title="Profil Toko"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">storefront</span>
+            <span className="dashboard-tab-label">
+              <span className="tab-label-desktop">Profil Toko</span>
+              <span className="tab-label-mobile">Toko</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'accounts'}
+            className={`dashboard-tab ${activeTab === 'accounts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('accounts')}
+            title="Manajemen Akun"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">manage_accounts</span>
+            <span className="dashboard-tab-label">
+              <span className="tab-label-desktop">Manajemen Akun ({accounts.length})</span>
+              <span className="tab-label-mobile">Akun ({accounts.length})</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'cloud'}
+            className={`dashboard-tab ${activeTab === 'cloud' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cloud')}
+            title="Koneksi Cloud DB"
+          >
+            <span className="material-symbols-outlined" style={{ color: isConnected ? 'var(--primary)' : 'inherit' }} aria-hidden="true">cloud</span> 
+            <span className="dashboard-tab-label">
+              <span className="tab-label-desktop">Koneksi Cloud DB {isConnected && <span className="tab-badge-online">Active</span>}</span>
+              <span className="tab-label-mobile">Cloud {isConnected && <span className="tab-badge-online">Active</span>}</span>
+            </span>
           </button>
         </div>
 
@@ -257,7 +291,24 @@ export default function DashboardPage({
           />
         )}
 
-        {/* Tab 2: Catalog */}
+        {/* Tab 2: Keuangan */}
+        {activeTab === 'finance' && (
+          <FinanceTab
+            purchases={purchases}
+            expenses={expenses}
+            otherIncome={otherIncome}
+            history={history}
+            onSavePurchase={onSavePurchase}
+            onDeletePurchase={onDeletePurchase}
+            onSaveExpense={onSaveExpense}
+            onDeleteExpense={onDeleteExpense}
+            onSaveOtherIncome={onSaveOtherIncome}
+            onDeleteOtherIncome={onDeleteOtherIncome}
+            onShowToast={onShowToast}
+          />
+        )}
+
+        {/* Tab 3: Catalog */}
         {activeTab === 'catalog' && (
           <CatalogTab
             catalog={catalog}
@@ -267,19 +318,11 @@ export default function DashboardPage({
           />
         )}
 
-        {/* Tab 3: Store Profile */}
+        {/* Tab 4: Store Profile */}
         {activeTab === 'store' && (
           <StoreProfileTab
             storeProfile={storeProfile}
             onSaveStoreProfile={onSaveStoreProfile}
-            onShowToast={onShowToast}
-          />
-        )}
-
-        {/* Tab 4: Cloud Config */}
-        {activeTab === 'cloud' && (
-          <CloudConfigTab
-            onReloadData={onReloadData}
             onShowToast={onShowToast}
           />
         )}
@@ -295,19 +338,10 @@ export default function DashboardPage({
           />
         )}
 
-        {/* Tab 6: Keuangan */}
-        {activeTab === 'finance' && (
-          <FinanceTab
-            purchases={purchases}
-            expenses={expenses}
-            otherIncome={otherIncome}
-            history={history}
-            onSavePurchase={onSavePurchase}
-            onDeletePurchase={onDeletePurchase}
-            onSaveExpense={onSaveExpense}
-            onDeleteExpense={onDeleteExpense}
-            onSaveOtherIncome={onSaveOtherIncome}
-            onDeleteOtherIncome={onDeleteOtherIncome}
+        {/* Tab 6: Cloud Config */}
+        {activeTab === 'cloud' && (
+          <CloudConfigTab
+            onReloadData={onReloadData}
             onShowToast={onShowToast}
           />
         )}

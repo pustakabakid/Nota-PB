@@ -212,89 +212,159 @@ export default function CatalogTab({
           </p>
         </div>
       ) : (
-        <div className="dense-table-container">
-          <table className="dense-table">
-            <thead>
-              <tr>
-                <th>Nama Produk</th>
-                <th style={{ width: '100px' }}>Kategori</th>
-                <th style={{ textAlign: 'right', width: '120px' }}>Harga Default</th>
-                <th>Finishing</th>
-                <th style={{ width: '120px' }}>Terakhir Diubah</th>
-                <th style={{ textAlign: 'center', width: '110px' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCatalog.map((item) => {
-                const cueIcon = getProductCueIcon(item.name, item.type);
-                const chips = parseFinishingChips(item.finishing);
+        <>
+          {/* Desktop Table View (>= 768px) */}
+          <div className="dense-table-container catalog-desktop-table">
+            <table className="dense-table">
+              <thead>
+                <tr>
+                  <th>Nama Produk</th>
+                  <th style={{ width: '100px' }}>Kategori</th>
+                  <th style={{ textAlign: 'right', width: '120px' }}>Harga Default</th>
+                  <th>Finishing</th>
+                  <th style={{ width: '120px' }}>Terakhir Diubah</th>
+                  <th style={{ textAlign: 'center', width: '110px' }}>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCatalog.map((item) => {
+                  const cueIcon = getProductCueIcon(item.name, item.type);
+                  const chips = parseFinishingChips(item.finishing);
 
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.2rem' }} aria-hidden="true">{cueIcon}</span>
-                        <strong style={{ color: 'var(--text-main)', fontSize: 'var(--text-xs)' }} className="text-wrap-break">{item.name}</strong>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="item-number-badge">{item.type.toUpperCase()}</span>
-                    </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }} className="num-tabular">
-                      {formatRupiah(item.price)}
-                    </td>
-                    <td>
-                      <div className="chip-group">
-                        {chips.map((chip, cIdx) => (
-                          <span key={cIdx} className="chip-finishing">
-                            {chip}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                      {formatDateId(item.updatedAt || new Date().toISOString())}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem' }}>
-                        <CustomTooltip text="Edit Preset">
-                          <button
-                            type="button"
-                            className="btn-icon-action"
-                            onClick={() => handleOpenPresetForm(item)}
-                            aria-label="Edit Preset"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
-                          </button>
-                        </CustomTooltip>
-                        <CustomTooltip text="Duplikat Preset">
-                          <button
-                            type="button"
-                            className="btn-icon-action"
-                            onClick={() => handleDuplicatePreset(item)}
-                            aria-label="Duplikat Preset"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>content_copy</span>
-                          </button>
-                        </CustomTooltip>
-                        <CustomTooltip text="Hapus Preset">
-                          <button
-                            type="button"
-                            className="btn-icon-action danger"
-                            onClick={() => onDeletePreset(item.id)}
-                            aria-label="Hapus Preset"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
-                          </button>
-                        </CustomTooltip>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.2rem' }} aria-hidden="true">{cueIcon}</span>
+                          <strong style={{ color: 'var(--text-main)', fontSize: 'var(--text-xs)' }} className="text-wrap-break">{item.name}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="item-number-badge">{item.type.toUpperCase()}</span>
+                      </td>
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }} className="num-tabular">
+                        {formatRupiah(item.price)}
+                      </td>
+                      <td>
+                        <div className="chip-group">
+                          {chips.map((chip, cIdx) => (
+                            <span key={cIdx} className="chip-finishing">
+                              {chip}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                        {formatDateId(item.updatedAt || new Date().toISOString())}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem' }}>
+                          <CustomTooltip text="Edit Preset">
+                            <button
+                              type="button"
+                              className="btn-icon-action"
+                              onClick={() => handleOpenPresetForm(item)}
+                              aria-label="Edit Preset"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                            </button>
+                          </CustomTooltip>
+                          <CustomTooltip text="Duplikat Preset">
+                            <button
+                              type="button"
+                              className="btn-icon-action"
+                              onClick={() => handleDuplicatePreset(item)}
+                              aria-label="Duplikat Preset"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>content_copy</span>
+                            </button>
+                          </CustomTooltip>
+                          <CustomTooltip text="Hapus Preset">
+                            <button
+                              type="button"
+                              className="btn-icon-action danger"
+                              onClick={() => onDeletePreset(item.id)}
+                              aria-label="Hapus Preset"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
+                            </button>
+                          </CustomTooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Native Cards Feed (< 768px - No Horizontal Scroll!) */}
+          <div className="catalog-mobile-list" role="feed" aria-label="Daftar Preset Katalog">
+            {filteredCatalog.map((item) => {
+              const cueIcon = getProductCueIcon(item.name, item.type);
+              const chips = parseFinishingChips(item.finishing);
+
+              return (
+                <article key={`cm_${item.id}`} className="catalog-mobile-card">
+                  {/* Header: Icon + Name + Category Badge */}
+                  <div className="cmc-header">
+                    <div className="cmc-title-wrapper">
+                      <span className="material-symbols-outlined cmc-cue-icon" aria-hidden="true">{cueIcon}</span>
+                      <strong className="cmc-product-name text-wrap-break">{item.name}</strong>
+                    </div>
+                    <span className="item-number-badge">{item.type.toUpperCase()}</span>
+                  </div>
+
+                  {/* Price & Finishing Chips */}
+                  <div className="cmc-body">
+                    <div className="cmc-price-box">
+                      <span className="cmc-price-label">Tarif Default</span>
+                      <span className="cmc-price-value num-tabular">{formatRupiah(item.price)}</span>
+                    </div>
+                    <div className="cmc-chips-wrap">
+                      {chips.map((chip, cIdx) => (
+                        <span key={cIdx} className="chip-finishing">
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Row (44px touch targets) */}
+                  <div className="cmc-actions-row">
+                    <button
+                      type="button"
+                      className="cmc-action-btn cmc-btn-edit"
+                      onClick={() => handleOpenPresetForm(item)}
+                      aria-label="Edit Preset Produk"
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="cmc-action-btn cmc-btn-copy"
+                      onClick={() => handleDuplicatePreset(item)}
+                      aria-label="Duplikat Preset"
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">content_copy</span>
+                      <span>Salin</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="cmc-action-btn cmc-btn-delete"
+                      onClick={() => onDeletePreset(item.id)}
+                      aria-label="Hapus Preset"
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+                      <span>Hapus</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );
