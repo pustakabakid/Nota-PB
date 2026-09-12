@@ -6,6 +6,7 @@ import CatalogTab from './dashboard/CatalogTab';
 import StoreProfileTab from './dashboard/StoreProfileTab';
 import CloudConfigTab from './dashboard/CloudConfigTab';
 import AccountManagementTab from './dashboard/AccountManagementTab';
+import FinanceTab from './dashboard/FinanceTab';
 
 export default function DashboardPage({
   storeProfile,
@@ -23,7 +24,16 @@ export default function DashboardPage({
   accounts = [],
   currentUser,
   onSaveAccount,
-  onDeleteAccount
+  onDeleteAccount,
+  purchases = [],
+  expenses = [],
+  otherIncome = [],
+  onSavePurchase,
+  onDeletePurchase,
+  onSaveExpense,
+  onDeleteExpense,
+  onSaveOtherIncome,
+  onDeleteOtherIncome
 }) {
   const [activeTab, setActiveTab] = useState('history');
   const isConnected = isSupabaseConnected();
@@ -225,6 +235,13 @@ export default function DashboardPage({
           >
             <span className="material-symbols-outlined" aria-hidden="true">manage_accounts</span> Manajemen Akun ({accounts.length})
           </button>
+          <button
+            type="button"
+            className={`dashboard-tab ${activeTab === 'finance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('finance')}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">account_balance</span> Keuangan
+          </button>
         </div>
 
         {/* Tab 1: History */}
@@ -274,6 +291,23 @@ export default function DashboardPage({
             currentUser={currentUser}
             onSaveAccount={onSaveAccount}
             onDeleteAccount={onDeleteAccount}
+            onShowToast={onShowToast}
+          />
+        )}
+
+        {/* Tab 6: Keuangan */}
+        {activeTab === 'finance' && (
+          <FinanceTab
+            purchases={purchases}
+            expenses={expenses}
+            otherIncome={otherIncome}
+            history={history}
+            onSavePurchase={onSavePurchase}
+            onDeletePurchase={onDeletePurchase}
+            onSaveExpense={onSaveExpense}
+            onDeleteExpense={onDeleteExpense}
+            onSaveOtherIncome={onSaveOtherIncome}
+            onDeleteOtherIncome={onDeleteOtherIncome}
             onShowToast={onShowToast}
           />
         )}

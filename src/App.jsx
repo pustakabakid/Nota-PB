@@ -65,7 +65,16 @@ function AppContent({
     handleSaveAccount,
     handleDeleteAccount,
     handleExportDataJSON,
-    loadAllData
+    loadAllData,
+    purchases,
+    expenses,
+    otherIncome,
+    handleSavePurchase,
+    handleDeletePurchase,
+    handleSaveExpense,
+    handleDeleteExpense,
+    handleSaveOtherIncome,
+    handleDeleteOtherIncome
   } = useTransaction();
 
   // Trigger print safely once editor has mounted and rendered the loaded nota
@@ -265,6 +274,15 @@ function AppContent({
           currentUser={currentUser}
           onSaveAccount={handleSaveAccount}
           onDeleteAccount={handleDeleteAccount}
+          purchases={purchases}
+          expenses={expenses}
+          otherIncome={otherIncome}
+          onSavePurchase={handleSavePurchase}
+          onDeletePurchase={handleDeletePurchase}
+          onSaveExpense={handleSaveExpense}
+          onDeleteExpense={handleDeleteExpense}
+          onSaveOtherIncome={handleSaveOtherIncome}
+          onDeleteOtherIncome={handleDeleteOtherIncome}
         />
       )}
     </div>

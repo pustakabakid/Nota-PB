@@ -358,3 +358,88 @@ export const uploadDriveAssetApi = async (base64Data, filename) => {
 
   return res.data;
 };
+
+// --------------------------------------------------------------------------
+// PURCHASES — Pembelian P2 ke P1
+// --------------------------------------------------------------------------
+
+/**
+ * Uploads a vendor nota file (PDF/JPG/PNG) to Google Drive folder "Nota_Vendor_P1".
+ * Returns { fileId, fileUrl } on success.
+ */
+export const uploadVendorNotaApi = async (base64Data, filename, mimeType) => {
+  if (!isAppsScriptConnected()) {
+    throw new Error('Google Apps Script belum terhubung. Aktifkan cloud di Tab Cloud Config terlebih dahulu.');
+  }
+
+  const res = await callAppsScriptApi('uploadDriveFile', {
+    base64Data,
+    filename: filename || 'nota-vendor-' + Date.now(),
+    mimeType: mimeType || 'image/jpeg',
+    folderName: 'Nota_Vendor_P1'
+  });
+
+  if (!res.success || !res.data) {
+    throw new Error(res.error || 'Gagal mengunggah nota ke Google Drive.');
+  }
+
+  return res.data; // { fileId, fileUrl }
+};
+
+/**
+ * Saves a single purchase to localStorage (offline-first).
+ * Cloud sync to GAS can be added in future.
+ */
+export const savePurchaseApi = async (purchase) => {
+  const { getStoredPurchases, saveStoredPurchases } = await import('./storage');
+  const all = getStoredPurchases();
+  const idx = all.findIndex(p => p.id === purchase.id);
+  if (idx >= 0) {
+    all[idx] = purchase;
+  } else {
+    all.unshift(purchase);
+  }
+  saveStoredPurchases(all);
+  return all;
+};
+
+/**
+ * Deletes a purchase by id from localStorage.
+ */
+export const deletePurchaseApi = async (id) => {
+  const { getStoredPurchases, saveStoredPurchases } = await import('./storage');
+  const all = getStoredPurchases().filter(p => p.id !== id);
+  saveStoredPurchases(all);
+  return all;
+};
+
+// --------------------------------------------------------------------------
+// EXPENSES — Pengeluaran lain
+// --------------------------------------------------------------------------
+
+/**
+ * Saves a single expense to localStorage (offline-first).
+ */
+export const saveExpenseApi = async (expense) => {
+  const { getStoredExpenses, saveStoredExpenses } = await import('./storage');
+  const all = getStoredExpenses();
+  const idx = all.findIndex(e => e.id === expense.id);
+  if (idx >= 0) {
+    all[idx] = expense;
+  } else {
+    all.unshift(expense);
+  }
+  saveStoredExpenses(all);
+  return all;
+};
+
+/**
+ * Deletes an expense by id from localStorage.
+ */
+export const deleteExpenseApi = async (id) => {
+  const { getStoredExpenses, saveStoredExpenses } = await import('./storage');
+  const all = getStoredExpenses().filter(e => e.id !== id);
+  saveStoredExpenses(all);
+  return all;
+};
+

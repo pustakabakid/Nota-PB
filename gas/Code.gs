@@ -1108,9 +1108,10 @@ function handleUploadDriveFile(payload, session) {
   }
 
   try {
-    const folderName = 'Nota_Assets_Storage';
-    let folder;
-    const folders = DriveApp.getFoldersByName(folderName);
+    // Support custom folder name per upload context (e.g. Nota_Vendor_P1)
+    var folderName = payload.folderName || 'Nota_Assets_Storage';
+    var folder;
+    var folders = DriveApp.getFoldersByName(folderName);
     if (folders.hasNext()) {
       folder = folders.next();
     } else {
@@ -1118,18 +1119,22 @@ function handleUploadDriveFile(payload, session) {
       folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     }
 
-    const contentType = payload.mimeType || 'image/png';
-    const decoded = Utilities.base64Decode(payload.base64Data.replace(/^data:image\/\w+;base64,/, ''));
-    const blob = Utilities.newBlob(decoded, contentType, payload.filename);
-    const file = folder.createFile(blob);
+    var contentType = payload.mimeType || 'image/png';
+    // Strip data URI prefix for any MIME type (image or PDF)
+    var base64Clean = payload.base64Data.replace(/^data:[^;]+;base64,/, '');
+    var decoded = Utilities.base64Decode(base64Clean);
+    var blob = Utilities.newBlob(decoded, contentType, payload.filename);
+    var file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    const fileUrl = 'https://lh3.googleusercontent.com/d/' + file.getId();
+    // Use Drive viewer URL so both PDF and images open correctly in browser
+    var fileId = file.getId();
+    var fileUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
 
     return {
       success: true,
       data: {
-        fileId: file.getId(),
+        fileId: fileId,
         fileUrl: fileUrl
       }
     };

@@ -13,7 +13,7 @@ import {
   deleteAccountApi
 } from '../services/api';
 import { isSupabaseConnected } from '../services/api';
-import { generateReceiptNumber, calculateItemTotal, getLocalDateString } from '../services/storage';
+import { generateReceiptNumber, calculateItemTotal, getLocalDateString, getStoredPurchases, saveStoredPurchases, getStoredExpenses, saveStoredExpenses, getStoredOtherIncome, saveStoredOtherIncome } from '../services/storage';
 import { TransactionContext } from './transactionContextInstance';
 import { useAuth } from '../hooks/useAuth';
 
@@ -40,6 +40,11 @@ export function TransactionProvider({
   const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConnected);
   const [selectedPaper, setSelectedPaper] = useState('80mm');
   const [isCurrentNotaSaved, setIsCurrentNotaSaved] = useState(false);
+
+  // Finance state (offline-first localStorage)
+  const [purchases, setPurchases] = useState(() => getStoredPurchases());
+  const [expenses, setExpenses] = useState(() => getStoredExpenses());
+  const [otherIncome, setOtherIncome] = useState(() => getStoredOtherIncome());
 
   // Transaction Form State
   const [transaction, setTransaction] = useState(() => ({
@@ -440,7 +445,46 @@ export function TransactionProvider({
     handleSaveAccount,
     handleDeleteAccount,
     handleExportDataJSON,
-    loadAllData
+    loadAllData,
+    purchases,
+    expenses,
+    handleSavePurchase: async (purchase) => {
+      const all = purchases.filter(p => p.id !== purchase.id);
+      const existing = purchases.find(p => p.id === purchase.id);
+      const next = existing ? [purchase, ...all] : [purchase, ...purchases];
+      setPurchases(next);
+      saveStoredPurchases(next);
+    },
+    handleDeletePurchase: async (id) => {
+      const next = purchases.filter(p => p.id !== id);
+      setPurchases(next);
+      saveStoredPurchases(next);
+    },
+    handleSaveExpense: async (expense) => {
+      const all = expenses.filter(e => e.id !== expense.id);
+      const existing = expenses.find(e => e.id === expense.id);
+      const next = existing ? [expense, ...all] : [expense, ...expenses];
+      setExpenses(next);
+      saveStoredExpenses(next);
+    },
+    handleDeleteExpense: async (id) => {
+      const next = expenses.filter(e => e.id !== id);
+      setExpenses(next);
+      saveStoredExpenses(next);
+    },
+    otherIncome,
+    handleSaveOtherIncome: async (inc) => {
+      const all = (otherIncome || []).filter(i => i.id !== inc.id);
+      const existing = (otherIncome || []).find(i => i.id === inc.id);
+      const next = existing ? [inc, ...all] : [inc, ...(otherIncome || [])];
+      setOtherIncome(next);
+      saveStoredOtherIncome(next);
+    },
+    handleDeleteOtherIncome: async (id) => {
+      const next = (otherIncome || []).filter(i => i.id !== id);
+      setOtherIncome(next);
+      saveStoredOtherIncome(next);
+    }
   };
 
   return (

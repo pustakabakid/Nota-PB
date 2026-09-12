@@ -6,7 +6,10 @@ const KEYS = {
   STORE: 'nota_percetakan_store',
   CATALOG: 'nota_percetakan_catalog',
   HISTORY: 'nota_percetakan_history',
-  THEME: 'nota_percetakan_theme'
+  THEME: 'nota_percetakan_theme',
+  PURCHASES: 'nota_percetakan_purchases',   // Pembelian ke P1
+  EXPENSES: 'nota_percetakan_expenses',      // Pengeluaran lain
+  OTHER_INCOME: 'nota_percetakan_other_income' // Pemasukan lain
 };
 
 export const defaultStore = {
@@ -251,8 +254,9 @@ export const generateReceiptNumber = (existingHistory = []) => {
 
 export const formatDateId = (dateStr) => {
   if (!dateStr) return '';
-  if (typeof dateStr === 'string' && dateStr.includes('-')) {
-    const parts = dateStr.split('-');
+  const cleanStr = String(dateStr).split('T')[0];
+  if (cleanStr.includes('-')) {
+    const parts = cleanStr.split('-');
     if (parts.length === 3) {
       const [year, month, day] = parts;
       return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
@@ -327,3 +331,186 @@ export const generateCompactNotaText = (storeProfile, transaction, items, grandT
 
   return text.trim();
 };
+
+// ==========================================================================
+// PURCHASES — Pembelian P2 ke P1 (percetakan/supplier)
+// ==========================================================================
+
+/**
+ * Generates a collision-free purchase order number.
+ * Format: BLI-YYYYMMDD-XXX
+ */
+export const generatePurchaseNumber = (existingPurchases = []) => {
+  const today = new Date();
+  const dateStr = today.getFullYear() +
+    String(today.getMonth() + 1).padStart(2, '0') +
+    String(today.getDate()).padStart(2, '0');
+
+  const existingNos = new Set((existingPurchases || []).map(p => p.noPembelian));
+  let attempts = 0;
+  let no;
+  do {
+    const rand = Math.floor(100 + Math.random() * 900);
+    no = `BLI-${dateStr}-${rand}`;
+    attempts++;
+  } while (existingNos.has(no) && attempts < 100);
+  return no;
+};
+
+export const getStoredPurchases = () => {
+  try {
+    const data = localStorage.getItem(KEYS.PURCHASES);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveStoredPurchases = (purchases) => {
+  safeSetItem(KEYS.PURCHASES, JSON.stringify(purchases));
+};
+
+// ==========================================================================
+// EXPENSES — Pengeluaran lain (transport, bisyaroh tim, dll)
+// ==========================================================================
+
+export const getStoredExpenses = () => {
+  try {
+    const data = localStorage.getItem(KEYS.EXPENSES);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveStoredExpenses = (expenses) => {
+  safeSetItem(KEYS.EXPENSES, JSON.stringify(expenses));
+};
+
+// ==========================================================================
+// OTHER INCOME — Pemasukan lain (infaq, modal, cash-in lain)
+// ==========================================================================
+
+export const getStoredOtherIncome = () => {
+  try {
+    const data = localStorage.getItem(KEYS.OTHER_INCOME);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveStoredOtherIncome = (otherIncome) => {
+  safeSetItem(KEYS.OTHER_INCOME, JSON.stringify(otherIncome));
+};
+
+// ==========================================================================
+// FINANCE SUMMARY — Kalkulasi laporan keuangan
+// ==========================================================================
+
+/**
+ * Menghitung ringkasan keuangan dari sumber data yang ada.
+ * @param {Array} history - Riwayat nota P3
+ * @param {Array} purchases - Pembelian ke P1
+ * @param {Array} expenses - Pengeluaran lain
+ * @param {Array} otherIncome - Pemasukan lain
+ * @param {string|null} dateFrom - Filter dari tanggal (YYYY-MM-DD), null = semua
+ * @param {string|null} dateTo - Filter sampai tanggal (YYYY-MM-DD), null = semua
+ * @returns {Object} summary
+ */
+export const calculateFinanceSummary = (
+  history = [],
+  purchases = [],
+  expenses = [],
+  otherIncome = [],
+  dateFrom = null,
+  dateTo = null
+) => {
+  const inRange = (dateStr) => {
+    if (!dateStr) return true;
+    const clean = String(dateStr).split('T')[0];
+    if (dateFrom && clean < dateFrom) return false;
+    if (dateTo && clean > dateTo) return false;
+    return true;
+  };
+
+  const filteredHistory = history.filter(h => inRange(h.date));
+  const filteredPurchases = purchases.filter(p => inRange(p.tanggal));
+  const filteredExpenses = expenses.filter(e => inRange(e.tanggal));
+  const filteredOtherIncome = (otherIncome || []).filter(i => inRange(i.tanggal));
+
+  const totalNotaSales = filteredHistory.reduce((acc, h) => acc + (Number(h.grandTotal) || 0), 0);
+  const totalOtherIncome = filteredOtherIncome.reduce((acc, i) => acc + (Number(i.jumlah) || 0), 0);
+  const totalPemasukan = totalNotaSales + totalOtherIncome;
+
+  const totalPembelian = filteredPurchases.reduce((acc, p) => acc + (Number(p.grandTotal) || 0), 0);
+  const totalPengeluaranLain = filteredExpenses.reduce((acc, e) => acc + (Number(e.jumlah) || 0), 0);
+  const totalPengeluaran = totalPembelian + totalPengeluaranLain;
+  const labaBersih = totalPemasukan - totalPengeluaran;
+
+  return {
+    totalPemasukan,
+    totalNotaSales,
+    totalOtherIncome,
+    totalPembelian,
+    totalPengeluaranLain,
+    totalPengeluaran,
+    labaBersih,
+    countNota: filteredHistory.length,
+    countOtherIncome: filteredOtherIncome.length,
+    countPurchases: filteredPurchases.length,
+    countExpenses: filteredExpenses.length
+  };
+};
+
+/**
+ * Export finance report to Excel-compatible CSV format with UTF-8 BOM
+ */
+export const exportFinanceToCsv = (
+  summary,
+  history = [],
+  purchases = [],
+  expenses = [],
+  otherIncome = [],
+  dateFrom = null,
+  dateTo = null
+) => {
+  let csv = '\uFEFF'; // UTF-8 BOM for MS Excel
+
+  csv += 'LAPORAN KEUANGAN NOTA PERCETAKAN\n';
+  csv += `Periode,${dateFrom || 'Awal'} s/d ${dateTo || 'Sekarang'}\n\n`;
+
+  csv += 'RINGKASAN KEUANGAN\n';
+  csv += 'Kategori,Jumlah (Rp)\n';
+  csv += `"Total Menerima (Pemasukan)",${summary.totalPemasukan}\n`;
+  csv += `"  - Penjualan Nota P3",${summary.totalNotaSales}\n`;
+  csv += `"  - Pemasukan Lain",${summary.totalOtherIncome}\n`;
+  csv += `"Pembelian Cetak P1",${summary.totalPembelian}\n`;
+  csv += `"Pengeluaran Operasional",${summary.totalPengeluaranLain}\n`;
+  csv += `"Total Membayar (Pengeluaran)",${summary.totalPengeluaran}\n`;
+  csv += `"Laba / Rugi Bersih",${summary.labaBersih}\n\n`;
+
+  csv += 'RINCIAN MENERIMA (PEMASUKAN)\n';
+  csv += 'Tanggal,Sumber / No. Nota,Pelanggan,Keterangan / Rincian,Metode,Total (Rp)\n';
+  history.forEach(h => {
+    const itemsStr = (h.items || []).map(i => `${i.name} (${i.qty})`).join('; ');
+    csv += `"${h.date || ''}","${h.notaNumber || ''}","${(h.customerName || 'Pelanggan Umum').replace(/"/g, '""')}","${itemsStr.replace(/"/g, '""')}","${h.paymentMethod || 'Tunai'}",${h.grandTotal || 0}\n`;
+  });
+  (otherIncome || []).forEach(inc => {
+    csv += `"${inc.tanggal || ''}","Pemasukan Lain","-","${(inc.keterangan || '').replace(/"/g, '""')}","Pemasukan Lain",${inc.jumlah || 0}\n`;
+  });
+  csv += '\n';
+
+  csv += 'RINCIAN MEMBAYAR (PENGELUARAN)\n';
+  csv += 'Tanggal,Kategori,Supplier / Keterangan,Rincian Detail,Total (Rp)\n';
+  purchases.forEach(p => {
+    const itemsStr = (p.items || []).map(i => `${i.nama} (${i.jumlah}x @${i.hargaSatuan})`).join('; ');
+    csv += `"${p.tanggal || ''}","${(p.kategori || 'Pembelian P1').replace(/"/g, '""')}","${(p.namaP1 || '').replace(/"/g, '""')}","${itemsStr.replace(/"/g, '""')}",${p.grandTotal || 0}\n`;
+  });
+  expenses.forEach(e => {
+    csv += `"${e.tanggal || ''}","${(e.kategori || 'Operasional').replace(/"/g, '""')}","${(e.keterangan || '').replace(/"/g, '""')}","-",${e.jumlah || 0}\n`;
+  });
+
+  return csv;
+};
+
