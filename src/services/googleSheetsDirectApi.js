@@ -191,7 +191,7 @@ export const fetchNotesDirect = async () => {
       id: noteId,
       publicToken: row[1] || noteId,
       noNota: row[2] || '',
-      date: row[7] || row[17] || new Date().toISOString(),
+      date: String(row[7] || row[17] || new Date().toISOString()),
       custName: row[4] || 'Pelanggan Umum',
       custPhone: row[5] || '',
       custAddress: row[6] || '',

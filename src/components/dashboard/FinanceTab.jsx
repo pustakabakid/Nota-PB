@@ -141,7 +141,7 @@ export default function FinanceTab({
     }));
 
     const combined = [...pList, ...eList];
-    combined.sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+    combined.sort((a, b) => String(b.tanggal || '').localeCompare(String(a.tanggal || '')));
 
     if (payFilter === 'p1') return combined.filter(i => i.type === 'p1');
     if (payFilter === 'operasional') return combined.filter(i => i.type === 'expense');
@@ -175,7 +175,7 @@ export default function FinanceTab({
     }));
 
     const combined = [...notaList, ...incList];
-    combined.sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+    combined.sort((a, b) => String(b.tanggal || '').localeCompare(String(a.tanggal || '')));
 
     if (incomeFilter === 'nota') return combined.filter(i => i.type === 'nota');
     if (incomeFilter === 'lainnya') return combined.filter(i => i.type === 'other');

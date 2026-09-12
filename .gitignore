@@ -27,3 +27,8 @@ graphify-out
 *.njsproj
 *.sln
 *.sw?
+
+# Service Account Credentials & Keys
+*-*.json
+service_account*.json
+
