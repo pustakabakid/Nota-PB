@@ -277,9 +277,13 @@ export const generateNotaText = (storeProfile, transaction, items, grandTotal, s
   text += `Tanggal: ${formatDateId(transaction.date)}\n\n\n`;
 
   text += `*RINCIAN PESANAN:*\n`;
-  items.forEach((i, idx) => {
-    text += `${idx + 1}. ${formatItemSummary(i, 'full')}\n`;
-  });
+  if (!items || items.length === 0) {
+    text += `- (Belum ada rincian pesanan)\n`;
+  } else {
+    items.forEach((i, idx) => {
+      text += `${idx + 1}. ${formatItemSummary(i, 'full')}\n`;
+    });
+  }
 
   text += `--------------------------------------\n`;
   text += `*TOTAL: ${formatRupiah(grandTotal)}*\n`;

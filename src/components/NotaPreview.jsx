@@ -223,7 +223,7 @@ function NotaPreview({
                 key={item.id}
                 role="tab"
                 aria-selected={selectedPaper === item.id}
-                className={`paper-tab ${selectedPaper === item.id ? 'active' : ''}`}
+                className={`paper-tab${selectedPaper === item.id ? ' active' : ''}`}
                 onClick={() => onSelectPaper(item.id)}
                 aria-label={`Pilih format ${item.label}`}
               >
@@ -313,7 +313,14 @@ function NotaPreview({
                 </tr>
               </thead>
               <tbody>
-                {displayItems.map((item, idx) => {
+                {displayItems.length === 0 ? (
+                  <tr className="nota-item-main-row">
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '1.25rem 0.5rem', color: '#94a3b8', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                      (Belum ada rincian item pesanan)
+                    </td>
+                  </tr>
+                ) : (
+                  displayItems.map((item, idx) => {
                   const itemTotal = calculateItemTotal(item);
                   const areaM2 = item.type === 'm2' ? (item.length / 100) * (item.width / 100) : 0;
 
@@ -388,7 +395,7 @@ function NotaPreview({
                       )}
                     </React.Fragment>
                   );
-                })}
+                }))}
               </tbody>
             </table>
 

@@ -7,6 +7,7 @@ import DashboardPage from './components/DashboardPage';
 import PublicNotaView from './components/PublicNotaView';
 import LoginModal from './components/LoginModal';
 import MobileBottomBar from './components/ui/MobileBottomBar';
+import MobileNavTabBar from './components/ui/MobileNavTabBar';
 import Toast from './components/ui/Toast';
 import ConfirmModal from './components/ui/ConfirmModal';
 import { useBreakpoint } from './hooks/useBreakpoint';
@@ -32,6 +33,7 @@ function AppContent({
 }) {
   const { isMobile } = useBreakpoint();
   const { isAuthenticated, currentUser, accounts, handleLoginSuccess, handleLogout } = useAuth();
+  const [dashboardTab, setDashboardTab] = useState('history');
   const {
     storeProfile,
     catalog,
@@ -258,6 +260,8 @@ function AppContent({
         </>
       ) : (
         <DashboardPage
+          activeTab={dashboardTab}
+          onTabChange={setDashboardTab}
           storeProfile={storeProfile}
           onSaveStoreProfile={handleSaveStoreProfile}
           catalog={catalog}
@@ -283,6 +287,21 @@ function AppContent({
           onDeleteExpense={handleDeleteExpense}
           onSaveOtherIncome={handleSaveOtherIncome}
           onDeleteOtherIncome={handleDeleteOtherIncome}
+        />
+      )}
+
+      {/* ── MOBILE: Persistent Bottom Navigation Bar (Apple HIG Tab Bar) ── */}
+      {isMobile && (
+        <MobileNavTabBar
+          currentPage={activePage}
+          activeMobileTab={activeMobileTab}
+          dashboardTab={dashboardTab}
+          onNavigate={setCurrentPage}
+          onSwitchMobileTab={setActiveMobileTab}
+          onSwitchDashboardTab={setDashboardTab}
+          isSuperAdmin={isSuperAdmin}
+          itemCount={items.length}
+          isSaved={isCurrentNotaSaved}
         />
       )}
     </div>

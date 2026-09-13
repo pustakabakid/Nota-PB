@@ -9,6 +9,8 @@ import AccountManagementTab from './dashboard/AccountManagementTab';
 import FinanceTab from './dashboard/FinanceTab';
 
 export default function DashboardPage({
+  activeTab: controlledActiveTab,
+  onTabChange: controlledOnTabChange,
   storeProfile,
   onSaveStoreProfile,
   catalog = [],
@@ -35,7 +37,9 @@ export default function DashboardPage({
   onSaveOtherIncome,
   onDeleteOtherIncome
 }) {
-  const [activeTab, setActiveTab] = useState('history');
+  const [internalTab, setInternalTab] = useState('history');
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalTab;
+  const setActiveTab = controlledOnTabChange || setInternalTab;
   const isConnected = isSupabaseConnected();
 
   // Top stats calculations (excluding cancelled notes)
@@ -202,7 +206,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'history'}
             className={`dashboard-tab ${activeTab === 'history' ? 'active' : ''}`}
             onClick={() => setActiveTab('history')}
-            title="Riwayat Transaksi"
           >
             <span className="material-symbols-outlined" aria-hidden="true">history</span>
             <span className="dashboard-tab-label">
@@ -216,7 +219,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'finance'}
             className={`dashboard-tab ${activeTab === 'finance' ? 'active' : ''}`}
             onClick={() => setActiveTab('finance')}
-            title="Keuangan"
           >
             <span className="material-symbols-outlined" aria-hidden="true">account_balance</span>
             <span className="dashboard-tab-label">Keuangan</span>
@@ -227,7 +229,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'catalog'}
             className={`dashboard-tab ${activeTab === 'catalog' ? 'active' : ''}`}
             onClick={() => setActiveTab('catalog')}
-            title="Katalog Preset Tarif"
           >
             <span className="material-symbols-outlined" aria-hidden="true">sell</span>
             <span className="dashboard-tab-label">
@@ -241,7 +242,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'store'}
             className={`dashboard-tab ${activeTab === 'store' ? 'active' : ''}`}
             onClick={() => setActiveTab('store')}
-            title="Profil Toko"
           >
             <span className="material-symbols-outlined" aria-hidden="true">storefront</span>
             <span className="dashboard-tab-label">
@@ -255,7 +255,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'accounts'}
             className={`dashboard-tab ${activeTab === 'accounts' ? 'active' : ''}`}
             onClick={() => setActiveTab('accounts')}
-            title="Manajemen Akun"
           >
             <span className="material-symbols-outlined" aria-hidden="true">manage_accounts</span>
             <span className="dashboard-tab-label">
@@ -269,7 +268,6 @@ export default function DashboardPage({
             aria-selected={activeTab === 'cloud'}
             className={`dashboard-tab ${activeTab === 'cloud' ? 'active' : ''}`}
             onClick={() => setActiveTab('cloud')}
-            title="Koneksi Cloud DB"
           >
             <span className="material-symbols-outlined" style={{ color: isConnected ? 'var(--primary)' : 'inherit' }} aria-hidden="true">cloud</span> 
             <span className="dashboard-tab-label">

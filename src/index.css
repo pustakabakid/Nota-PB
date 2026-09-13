@@ -937,6 +937,93 @@ textarea.form-control {
   white-space: nowrap;
 }
 
+/* Collapsed Item Card State (Progressive Disclosure) */
+.item-row.is-collapsed {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-card);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-row.is-collapsed .item-row-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  flex-wrap: nowrap;
+}
+
+.item-collapsed-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.item-collapsed-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.item-collapsed-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.item-collapsed-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-solid);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.item-collapsed-price {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.btn-collapse-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-collapse-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-collapse-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .item-main-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1257,17 +1344,20 @@ textarea.form-control {
   letter-spacing: 0.01em;
 }
 
+.paper-selector-label .material-symbols-outlined,
 .paper-selector-label i {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  line-height: 1;
   color: var(--primary);
+  flex-shrink: 0;
 }
 
 .paper-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   background: var(--bg-surface-solid);
-  padding: 3px;
+  padding: 4px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   flex-shrink: 0;
@@ -1283,9 +1373,10 @@ textarea.form-control {
 .paper-tab {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.75rem;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.775rem;
   font-weight: 600;
   font-family: inherit;
   border-radius: calc(var(--radius-md) - 2px);
@@ -1294,42 +1385,65 @@ textarea.form-control {
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 32px;
+  min-height: 34px;
   white-space: nowrap;
   line-height: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
+.paper-tab .material-symbols-outlined,
 .paper-tab i {
-  font-size: 0.85rem;
+  font-size: 1.05rem;
+  line-height: 1;
   color: var(--text-muted);
-  transition: color 0.18s ease;
+  transition: color 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
 }
 
-.paper-tab:hover:not(.active) {
-  color: var(--text-main);
-  background: rgba(0, 0, 0, 0.05);
+@media (hover: hover) and (pointer: fine) {
+  .paper-tab:hover:not(.active) {
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  [data-theme="dark"] .paper-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .paper-tab:hover:not(.active) .material-symbols-outlined,
+  .paper-tab:hover:not(.active) i {
+    color: var(--text-main);
+  }
 }
 
-[data-theme="dark"] .paper-tab:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.06);
+.paper-tab:active {
+  transform: scale(0.96);
+}
+
+.paper-tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
 }
 
 .paper-tab.active {
   background: var(--primary);
   color: var(--primary-text, #ffffff);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+.paper-tab.active .material-symbols-outlined,
 .paper-tab.active i {
   color: inherit;
+  font-variation-settings: 'FILL' 1;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .paper-selector-bar {
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-2);
-    padding: 0.5rem;
+    padding: 0.5rem 0.65rem;
   }
 
   .paper-selector-label {
@@ -1339,11 +1453,14 @@ textarea.form-control {
   .paper-tabs {
     width: 100%;
     display: flex;
+    align-items: center;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
-    gap: 4px;
-    padding: 3px;
+    gap: 6px;
+    padding: 4px;
+    box-sizing: border-box;
   }
 
   .paper-tabs::-webkit-scrollbar {
@@ -1351,17 +1468,17 @@ textarea.form-control {
   }
 
   .paper-tab {
-    flex: 1 1 auto;
-    min-width: fit-content;
-    min-height: 38px;
-    justify-content: center;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.725rem;
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+    scroll-snap-align: start;
+    border-radius: var(--radius-sm);
   }
 
+  .paper-tab .material-symbols-outlined,
   .paper-tab i {
-    font-size: 0.9rem;
-    display: inline-block;
+    font-size: 1.15rem;
   }
 }
 
@@ -1651,7 +1768,7 @@ textarea.form-control {
   width: 100%;
   max-width: 1800px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-3) calc(var(--space-6) + var(--sab)) var(--space-3);
+  padding: var(--space-3) var(--space-3) calc(76px + var(--sab)) var(--space-3);
   box-sizing: border-box;
 }
 
@@ -1690,7 +1807,7 @@ textarea.form-control {
 /* Minimalist Compact Stat Cards & Container khusus Tampilan Mobile (<= 640px) */
 @media (max-width: 640px) {
   .dashboard-page-container {
-    padding: 0.5rem 0.5rem calc(var(--space-6) + var(--sab)) 0.5rem !important;
+    padding: 0.5rem 0.5rem calc(76px + var(--sab)) 0.5rem !important;
   }
 
   .dashboard-main-card {
@@ -4152,6 +4269,7 @@ textarea.form-control {
   .toast-container,
   .modal-backdrop,
   .mobile-bottom-bar,
+  .mobile-nav-tabbar,
   .mobile-nota-drawer,
   .mobile-drawer-overlay,
   .custom-tooltip,
@@ -4609,8 +4727,34 @@ textarea.form-control {
 /* Mobile editor: form always visible, no preview column */
 @media (max-width: 767px) {
   .app-container {
-    /* Extra bottom padding so content isn't hidden behind sticky bottom bar */
-    padding-bottom: calc(78px + var(--sab)) !important;
+    /* Extra bottom padding so content isn't hidden behind sticky action bar & nav tab bar */
+    padding-bottom: calc(125px + var(--sab)) !important;
+  }
+
+  /* Preview workspace bottom padding accounts for floating preview-actions-bar + mobile-nav-tabbar */
+  .mobile-editor .preview-workspace {
+    padding-bottom: calc(145px + var(--sab)) !important;
+  }
+
+  /* Mobile Sticky/Floating Action Bar on NotaPreview */
+  .preview-actions-bar {
+    position: fixed;
+    bottom: calc(56px + var(--sab));
+    left: 0;
+    right: 0;
+    z-index: 905;
+    background: var(--bg-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+    padding: var(--space-2) calc(var(--space-3) + var(--sar)) var(--space-2) calc(var(--space-3) + var(--sal));
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .preview-actions-bar .btn {
+    min-height: var(--touch-target-min, 44px);
   }
 
   /* When in mobile-editor mode, preview-workspace displays full-width when rendered */
@@ -4621,28 +4765,35 @@ textarea.form-control {
     max-width: 100% !important;
   }
 
-  /* Compact header */
+  /* Clean, unified 1-row mobile header (nav tabs moved to bottom MobileNavTabBar) */
   .app-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    gap: var(--space-1) var(--space-2);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
     padding: calc(var(--space-2) + var(--sat)) var(--space-3) var(--space-2) var(--space-3);
+    min-height: 48px;
   }
 
   .brand-container {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     min-width: 0;
+    flex: 1;
   }
 
   .brand-logo {
     height: 28px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   .brand-title {
-    font-size: clamp(0.78rem, 2.4vw, 0.9rem);
+    font-size: clamp(0.82rem, 2.6vw, 0.95rem);
+    font-weight: 700;
   }
 
   .brand-subtitle {
@@ -4650,51 +4801,12 @@ textarea.form-control {
   }
 
   .header-user-wrapper {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-    align-self: center;
-    justify-self: end;
-  }
-
-  /* Nav tabs: compact, perfectly balanced columns */
-  .header-nav-segment {
-    grid-column: 1 / 3;
-    grid-row: 2 / 3;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    gap: 3px;
-    padding: 3px;
-    background: var(--bg-app);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    width: 100%;
-    margin-top: 2px;
-  }
-
-  .nav-tab-btn {
-    padding: 0.35rem 0.35rem;
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: row;
-    gap: 0.3rem;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
-    font-weight: 600;
-  }
-
-  .nav-tab-btn i {
-    font-size: 1rem;
-    line-height: 1;
     flex-shrink: 0;
   }
 
-  .nav-tab-label {
-    font-size: clamp(0.68rem, 2.1vw, 0.75rem);
-    line-height: 1.1;
-    white-space: nowrap;
+  /* Hide top nav segment on mobile — replaced by persistent Bottom MobileNavTabBar */
+  .header-nav-segment {
+    display: none !important;
   }
 
   /* Compact cards on mobile */
@@ -4975,16 +5087,17 @@ textarea.form-control {
   .mobile-bottom-bar {
     display: block;
     position: fixed;
-    bottom: 0;
+    bottom: calc(56px + var(--sab));
     left: 0;
     right: 0;
-    z-index: 900;
+    z-index: 905;
     background: var(--bg-surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border-color);
-    padding: var(--space-2) calc(var(--space-3) + var(--sar)) calc(var(--space-2) + var(--sab)) calc(var(--space-3) + var(--sal));
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.14);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-2) calc(var(--space-3) + var(--sar)) var(--space-2) calc(var(--space-3) + var(--sal));
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08);
   }
 
   .mobile-bottom-bar-inner {
@@ -5146,6 +5259,146 @@ textarea.form-control {
 
   .mbb-btn-save i {
     font-size: 1rem;
+  }
+}
+
+/* ==========================================================================
+   17.5 MobileNavTabBar — Persistent Bottom Navigation Bar (Apple HIG Tab Bar)
+   ========================================================================== */
+
+.mobile-nav-tabbar {
+  display: none; /* Hidden on desktop / tablet >= 768px */
+}
+
+@media (max-width: 767px) {
+  .mobile-nav-tabbar {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 910;
+    background: var(--bg-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+    padding: 0 calc(var(--space-2) + var(--sar)) var(--sab) calc(var(--space-2) + var(--sal));
+  }
+
+  .mobile-nav-tabbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 56px;
+    max-width: 640px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .mobile-tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    padding: 4px 2px;
+    min-height: 48px;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    border-radius: var(--radius-md);
+    transition: color 180ms cubic-bezier(0.4, 0, 0.2, 1), transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .mobile-tab-item:active {
+    transform: scale(0.93);
+  }
+
+  .mobile-tab-item.active {
+    color: var(--primary);
+  }
+
+  .mobile-tab-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 26px;
+  }
+
+  .mobile-tab-icon {
+    font-size: 1.45rem;
+    line-height: 1;
+    transition: transform 180ms ease;
+  }
+
+  .mobile-tab-item.active .mobile-tab-icon {
+    transform: translateY(-1px);
+    font-variation-settings: 'FILL' 1;
+  }
+
+  .mobile-tab-label {
+    font-size: clamp(0.62rem, 2.1vw, 0.68rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .mobile-tab-item.active .mobile-tab-label {
+    font-weight: 700;
+  }
+
+  /* Badge indicator for item count */
+  .mobile-tab-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background: var(--primary);
+    color: var(--primary-text);
+    font-size: 0.6rem;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    border: 1.5px solid var(--bg-surface);
+  }
+
+  /* Dot indicator for unsaved draft */
+  .mobile-tab-dot {
+    position: absolute;
+    top: -1px;
+    right: -2px;
+    width: 9px;
+    height: 9px;
+    background: var(--warning, #f59e0b);
+    border-radius: 50%;
+    border: 1.5px solid var(--bg-surface);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+
+  /* Subtle active pill indicator at bottom */
+  .mobile-tab-indicator {
+    position: absolute;
+    bottom: 2px;
+    width: 24px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(var(--primary-rgb, 14, 165, 233), 0.4);
   }
 }
 

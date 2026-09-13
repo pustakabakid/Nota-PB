@@ -69,20 +69,7 @@ export function TransactionProvider({
     catatan: ''
   }));
 
-  const [items, setItems] = useState([
-    {
-      id: 'item-1',
-      presetId: '',
-      name: '',
-      type: 'm2',
-      length: 100,
-      width: 100,
-      qty: 1,
-      price: 20000,
-      finishing: '',
-      customDetails: []
-    }
-  ]);
+  const [items, setItems] = useState([]);
 
   // Load Initial Data from API (Cloud DB or Local Fallback)
   const loadAllData = useCallback(async () => {
@@ -197,11 +184,11 @@ export function TransactionProvider({
         id: 'item-' + Date.now(),
         presetId: '',
         name: '',
-        type: 'm2',
-        length: 100,
-        width: 100,
+        type: 'pcs',
+        length: 0,
+        width: 0,
         qty: 1,
-        price: 20000,
+        price: 0,
         finishing: '',
         customDetails: []
       }
@@ -209,15 +196,9 @@ export function TransactionProvider({
   }, []);
 
   const handleRemoveItem = useCallback((index) => {
-    setItems(prev => {
-      if (prev.length <= 1) {
-        if (onShowToast) onShowToast('Minimal harus ada 1 item pesanan pada nota.', 'warning');
-        return prev;
-      }
-      setIsCurrentNotaSaved(false);
-      return prev.filter((_, i) => i !== index);
-    });
-  }, [onShowToast]);
+    setIsCurrentNotaSaved(false);
+    setItems(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleUpdateItem = useCallback((index, updatedFields) => {
     setIsCurrentNotaSaved(false);
@@ -226,6 +207,11 @@ export function TransactionProvider({
 
   // Save Transaction to History
   const handleSaveTransaction = useCallback(async () => {
+    if (!items || items.length === 0) {
+      if (onShowToast) onShowToast('Tambahkan minimal 1 item pesanan sebelum menyimpan nota.', 'warning');
+      return;
+    }
+
     const finalCustName = transaction.custName.trim() || 'Pelanggan Umum';
     const trxId = transaction.id || `trx-${Date.now()}`;
 
@@ -293,20 +279,7 @@ export function TransactionProvider({
           dp: 0,
           catatan: ''
         });
-        setItems([
-          {
-            id: 'item-1',
-            presetId: '',
-            name: '',
-            type: 'm2',
-            length: 100,
-            width: 100,
-            qty: 1,
-            price: 20000,
-            finishing: '',
-            customDetails: []
-          }
-        ]);
+        setItems([]);
         setIsCurrentNotaSaved(false);
         if (storeProfile?.defaultPaper) {
           setSelectedPaper(storeProfile.defaultPaper);

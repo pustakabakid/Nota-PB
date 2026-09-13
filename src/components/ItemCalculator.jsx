@@ -31,11 +31,20 @@ function ItemCalculator({
 }) {
   // Accordion open/close state map keyed by item index
   const [openAccordions, setOpenAccordions] = useState({});
+  // Collapsed item state map keyed by item id or index for progressive disclosure
+  const [collapsedItems, setCollapsedItems] = useState({});
 
   const toggleAccordion = (index, key) => {
     setOpenAccordions(prev => ({
       ...prev,
       [`${index}-${key}`]: !prev[`${index}-${key}`]
+    }));
+  };
+
+  const toggleItemCollapse = (itemKey) => {
+    setCollapsedItems(prev => ({
+      ...prev,
+      [itemKey]: !prev[itemKey]
     }));
   };
 
@@ -64,9 +73,36 @@ function ItemCalculator({
         <h2 className="card-title" style={{ marginBottom: 0, border: 'none', padding: 0 }}>
           <span className="material-symbols-outlined" aria-hidden="true">calculate</span> Rincian Pesanan Percetakan
         </h2>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onAddItem}>
-          <span className="material-symbols-outlined" aria-hidden="true">add</span> Tambah Item
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          {items.length > 1 && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.75rem', padding: '0.3rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => {
+                const allCollapsed = items.every((itm, idx) => !!collapsedItems[itm.id || `item_${idx}`]);
+                if (allCollapsed) {
+                  setCollapsedItems({});
+                } else {
+                  const next = {};
+                  items.forEach((itm, idx) => {
+                    next[itm.id || `item_${idx}`] = true;
+                  });
+                  setCollapsedItems(next);
+                }
+              }}
+              aria-label={items.every((itm, idx) => !!collapsedItems[itm.id || `item_${idx}`]) ? "Buka semua rincian item" : "Ciutkan semua rincian item"}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }} aria-hidden="true">
+                {items.every((itm, idx) => !!collapsedItems[itm.id || `item_${idx}`]) ? 'unfold_more' : 'unfold_less'}
+              </span>
+              <span>{items.every((itm, idx) => !!collapsedItems[itm.id || `item_${idx}`]) ? 'Buka Semua' : 'Ciutkan Semua'}</span>
+            </button>
+          )}
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onAddItem}>
+            <span className="material-symbols-outlined" aria-hidden="true">add</span> Tambah Item
+          </button>
+        </div>
       </div>
 
       {/* Dynamic Item Rows */}
@@ -93,47 +129,91 @@ function ItemCalculator({
             const itemTotal = calculateItemTotal(item);
             const isBookDetailOpen = !!openAccordions[`${index}-book`];
             const isCustomDetailOpen = !!openAccordions[`${index}-custom`];
+            const itemKey = item.id || `item_${index}`;
+            const isCollapsed = !!collapsedItems[itemKey];
 
             return (
-              <div className="item-row compact-item-row" key={item.id || index}>
+              <div className={`item-row compact-item-row ${isCollapsed ? 'is-collapsed' : ''}`} key={item.id || index}>
                 
-                {/* Header: Item index & Preset Selector */}
+                {/* Header: Item index, Preset selector / Collapsed Summary, Collapse toggle & Delete */}
                 <div className="item-row-header">
-                  <div className="item-header-left">
+                  <div
+                    className="item-header-left"
+                    style={{ cursor: isCollapsed ? 'pointer' : 'default', flex: 1, minWidth: 0 }}
+                    onClick={isCollapsed ? () => toggleItemCollapse(itemKey) : undefined}
+                    role={isCollapsed ? "button" : undefined}
+                    tabIndex={isCollapsed ? 0 : undefined}
+                    onKeyDown={isCollapsed ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleItemCollapse(itemKey);
+                      }
+                    } : undefined}
+                    aria-label={isCollapsed ? `Buka rincian item #${index + 1}` : undefined}
+                  >
                     <span className="item-number-badge">#{index + 1}</span>
-                    <CustomSelect
-                      options={catalogPresetOptions}
-                      value={item.presetId || ''}
-                      placeholder="-- Pilih dari Preset Katalog --"
-                      className="select-preset-product"
-                      onChange={(val) => {
-                        const preset = catalog.find(c => c.id === val);
-                        if (preset) {
-                          onUpdateItem(index, {
-                            presetId: preset.id,
-                            name: preset.name,
-                            type: preset.type,
-                            price: preset.price,
-                            finishing: preset.finishing || ''
-                          });
-                        }
-                      }}
-                    />
+                    {isCollapsed ? (
+                      <div className="item-collapsed-summary">
+                        <span className="item-collapsed-name">{item.name || 'Item Tanpa Nama'}</span>
+                        <div className="item-collapsed-meta">
+                          <span className="item-collapsed-badge">{item.qty} {item.type.toUpperCase()}</span>
+                          <span className="item-collapsed-price num-tabular">{formatRupiah(itemTotal)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <CustomSelect
+                          options={catalogPresetOptions}
+                          value={item.presetId || ''}
+                          placeholder="-- Pilih dari Preset Katalog --"
+                          className="select-preset-product"
+                          onChange={(val) => {
+                            const preset = catalog.find(c => c.id === val);
+                            if (preset) {
+                              onUpdateItem(index, {
+                                presetId: preset.id,
+                                name: preset.name,
+                                type: preset.type,
+                                price: preset.price,
+                                finishing: preset.finishing || ''
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <CustomTooltip text="Hapus item pesanan">
-                    <button
-                      type="button"
-                      className="btn-remove-item"
-                      onClick={() => onRemoveItem(index)}
-                      aria-label={`Hapus item #${index + 1}`}
-                    >
-                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
-                    </button>
-                  </CustomTooltip>
+                  <div className="item-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+                    <CustomTooltip text={isCollapsed ? "Buka rincian item" : "Ciutkan rincian item"}>
+                      <button
+                        type="button"
+                        className="btn-collapse-item"
+                        onClick={() => toggleItemCollapse(itemKey)}
+                        aria-expanded={!isCollapsed}
+                        aria-label={isCollapsed ? `Buka rincian item #${index + 1}` : `Ciutkan rincian item #${index + 1}`}
+                      >
+                        <span className={`material-symbols-outlined accordion-chevron ${!isCollapsed ? 'open' : ''}`} aria-hidden="true">
+                          expand_more
+                        </span>
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Hapus item pesanan">
+                      <button
+                        type="button"
+                        className="btn-remove-item"
+                        onClick={() => onRemoveItem(index)}
+                        aria-label={`Hapus item #${index + 1}`}
+                      >
+                        <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+                      </button>
+                    </CustomTooltip>
+                  </div>
                 </div>
 
-                {/* Main Product Info Grid (2-Column Mobile Grid) */}
-                <div className="item-main-grid mobile-2col-grid">
+                {!isCollapsed && (
+                  <>
+                    {/* Main Product Info Grid (2-Column Mobile Grid) */}
+                    <div className="item-main-grid mobile-2col-grid">
                   <div className="form-group" style={{ gridColumn: 'span 1' }}>
                     <label className="form-label" htmlFor={`item-name-${index}`}>Nama Barang / Pekerjaan</label>
                     <input
@@ -379,6 +459,8 @@ function ItemCalculator({
                     </div>
                   )}
                 </div>
+                  </>
+                )}
 
               </div>
             );

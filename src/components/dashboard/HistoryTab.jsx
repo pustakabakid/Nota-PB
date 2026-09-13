@@ -180,7 +180,7 @@ export default function HistoryTab({
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
               aria-haspopup="true"
               aria-expanded={isExportMenuOpen}
-              title="Menu Ekspor & Backup Data"
+              aria-label="Menu Ekspor & Backup Data"
             >
               <span className="material-symbols-outlined" aria-hidden="true">ios_share</span>
               <span className="dropdown-trigger-text-full">Ekspor & Backup</span>
@@ -405,7 +405,7 @@ export default function HistoryTab({
                         type="button"
                         className="hmc-nota-btn"
                         onClick={() => onLoadTransaction(rec, false)}
-                        title="Edit transaksi nota ini"
+                        aria-label={`Edit transaksi nota ${rec.noNota}`}
                       >
                         <span className="material-symbols-outlined hmc-nota-icon" aria-hidden="true">receipt_long</span>
                         <span className="hmc-nota-num">{rec.noNota}</span>
@@ -430,7 +430,7 @@ export default function HistoryTab({
                               target="_blank"
                               rel="noopener noreferrer"
                               className="hmc-cust-phone"
-                              title="Hubungi via WhatsApp"
+                              aria-label={`Hubungi via WhatsApp ${rec.custPhone}`}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }} aria-hidden="true">chat</span>
                               <span>{String(rec.custPhone)}</span>

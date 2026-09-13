@@ -894,7 +894,7 @@ export default function FinanceTab({
                                   jumlah: calcTotal(p1Form.items),
                                   notaFile: p1Form.notaFile
                                 })}
-                                title="Lihat Pratinjau Nota"
+                                aria-label="Lihat Pratinjau Nota"
                               >
                                 <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
                                 <span>Lihat Nota</span>
